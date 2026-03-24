@@ -1,0 +1,390 @@
+"use client";
+
+import { useEffect, useState, useCallback } from "react";
+import { useRouter } from "next/navigation";
+import pacientesService, {
+  Paciente,
+  CreatePacientePayload,
+  UpdatePacientePayload,
+} from "@/services/pacientes.service";
+import { Button } from "@/components/ui/button";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Table,
+  TableBody,
+  TableCell,
+  TableHead,
+  TableHeader,
+  TableRow,
+} from "@/components/ui/table";
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from "@/components/ui/dialog";
+import { Badge } from "@/components/ui/badge";
+import { TableSkeleton } from "@/components/ui/skeleton";
+import { toast } from "sonner";
+
+function calcularEdad(fechaNacimiento: string | null): string {
+  if (!fechaNacimiento) return "—";
+  const hoy = new Date();
+  const nacimiento = new Date(fechaNacimiento);
+  let edad = hoy.getFullYear() - nacimiento.getFullYear();
+  const mes = hoy.getMonth() - nacimiento.getMonth();
+  if (mes < 0 || (mes === 0 && hoy.getDate() < nacimiento.getDate())) {
+    edad--;
+  }
+  return `${edad} años`;
+}
+
+export default function PacientesPage() {
+  const router = useRouter();
+  const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [search, setSearch] = useState("");
+  const [isLoading, setIsLoading] = useState(true);
+  const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
+  const [editing, setEditing] = useState<Paciente | null>(null);
+  const [deleting, setDeleting] = useState<Paciente | null>(null);
+  const [isSaving, setIsSaving] = useState(false);
+  const [form, setForm] = useState({
+    dni: "",
+    nombre: "",
+    apellido: "",
+    cel: "",
+    email: "",
+    fecha_nacimiento: "",
+  });
+
+  const loadPacientes = useCallback(async () => {
+    try {
+      setIsLoading(true);
+      const data = await pacientesService.getAll(search || undefined);
+      setPacientes(data);
+    } catch {
+      toast.error("Error al cargar pacientes");
+    } finally {
+      setIsLoading(false);
+    }
+  }, [search]);
+
+  useEffect(() => {
+    const timer = setTimeout(() => {
+      loadPacientes();
+    }, 300);
+    return () => clearTimeout(timer);
+  }, [loadPacientes]);
+
+  const openCreate = () => {
+    setEditing(null);
+    setForm({ dni: "", nombre: "", apellido: "", cel: "", email: "", fecha_nacimiento: "" });
+    setDialogOpen(true);
+  };
+
+  const openEdit = (paciente: Paciente) => {
+    setEditing(paciente);
+    setForm({
+      dni: paciente.dni || "",
+      nombre: paciente.nombre || "",
+      apellido: paciente.apellido || "",
+      cel: paciente.cel || "",
+      email: paciente.email || "",
+      fecha_nacimiento: paciente.fecha_nacimiento || "",
+    });
+    setDialogOpen(true);
+  };
+
+  const openDelete = (paciente: Paciente) => {
+    setDeleting(paciente);
+    setDeleteDialogOpen(true);
+  };
+
+  const handleSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    setIsSaving(true);
+    try {
+      if (editing) {
+        await pacientesService.update(editing.id, {
+          dni: form.dni || undefined,
+          nombre: form.nombre,
+          apellido: form.apellido,
+          cel: form.cel || undefined,
+          email: form.email || undefined,
+          fecha_nacimiento: form.fecha_nacimiento || undefined,
+        });
+        toast.success("Paciente actualizado");
+      } else {
+        const payload: CreatePacientePayload = {
+          dni: form.dni,
+          nombre: form.nombre,
+          apellido: form.apellido,
+        };
+        if (form.cel) payload.cel = form.cel;
+        if (form.email) payload.email = form.email;
+        if (form.fecha_nacimiento) payload.fecha_nacimiento = form.fecha_nacimiento;
+        await pacientesService.create(payload);
+        toast.success("Paciente creado");
+      }
+      setDialogOpen(false);
+      loadPacientes();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Error al guardar paciente";
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  const handleDelete = async () => {
+    if (!deleting) return;
+    try {
+      await pacientesService.delete(deleting.id);
+      toast.success("Paciente eliminado");
+      setDeleteDialogOpen(false);
+      setDeleting(null);
+      loadPacientes();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Error al eliminar paciente";
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <div className="flex items-center justify-between">
+        <div>
+          <h1 className="text-2xl font-bold tracking-tight">Pacientes</h1>
+          <p className="text-muted-foreground">
+            Gestiona los pacientes de tu clínica
+          </p>
+        </div>
+        <Button onClick={openCreate}>+ Nuevo Paciente</Button>
+      </div>
+
+      <Card>
+        <CardHeader>
+          <CardTitle>Lista de Pacientes</CardTitle>
+          <CardDescription>
+            Busca por nombre, apellido o DNI
+          </CardDescription>
+          <div className="pt-2">
+            <Input
+              placeholder="Buscar pacientes..."
+              value={search}
+              onChange={(e) => setSearch(e.target.value)}
+              className="max-w-sm"
+            />
+          </div>
+        </CardHeader>
+        <CardContent>
+          {isLoading ? (
+            <TableSkeleton rows={5} cols={7} />
+          ) : pacientes.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+              <p>No se encontraron pacientes</p>
+              {search && (
+                <p className="text-sm">
+                  Intenta con otro término de búsqueda
+                </p>
+              )}
+            </div>
+          ) : (
+            <Table>
+              <TableHeader>
+                <TableRow>
+                  <TableHead>DNI</TableHead>
+                  <TableHead>Nombre</TableHead>
+                  <TableHead>Apellido</TableHead>
+                  <TableHead>Edad</TableHead>
+                  <TableHead>Celular</TableHead>
+                  <TableHead>Email</TableHead>
+                  <TableHead className="text-right">Acciones</TableHead>
+                </TableRow>
+              </TableHeader>
+              <TableBody>
+                {pacientes.map((paciente) => (
+                  <TableRow key={paciente.id}>
+                    <TableCell>
+                      <Badge variant="outline">{paciente.dni}</Badge>
+                    </TableCell>
+                    <TableCell className="font-medium">
+                      {paciente.nombre}
+                    </TableCell>
+                    <TableCell>{paciente.apellido}</TableCell>
+                    <TableCell>{calcularEdad(paciente.fecha_nacimiento)}</TableCell>
+                    <TableCell>{paciente.cel || "—"}</TableCell>
+                    <TableCell>{paciente.email || "—"}</TableCell>
+                    <TableCell className="text-right space-x-2">
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() =>
+                          router.push(`/dashboard/pacientes/${paciente.id}`)
+                        }
+                      >
+                        Ver
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={() => openEdit(paciente)}
+                      >
+                        Editar
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        className="text-destructive hover:text-destructive"
+                        onClick={() => openDelete(paciente)}
+                      >
+                        Eliminar
+                      </Button>
+                    </TableCell>
+                  </TableRow>
+                ))}
+              </TableBody>
+            </Table>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Dialog Crear/Editar */}
+      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
+        <DialogContent className="sm:max-w-[425px]">
+          <DialogHeader>
+            <DialogTitle>
+              {editing ? "Editar Paciente" : "Nuevo Paciente"}
+            </DialogTitle>
+            <DialogDescription>
+              {editing
+                ? "Modifica los datos del paciente"
+                : "Completa los datos para registrar un nuevo paciente"}
+            </DialogDescription>
+          </DialogHeader>
+          <form onSubmit={handleSubmit} className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="dni">DNI *</Label>
+              <Input
+                id="dni"
+                value={form.dni}
+                onChange={(e) => setForm({ ...form, dni: e.target.value })}
+                required
+                placeholder="12345678"
+              />
+            </div>
+            <div className="grid grid-cols-2 gap-4">
+              <div className="space-y-2">
+                <Label htmlFor="nombre">Nombre *</Label>
+                <Input
+                  id="nombre"
+                  value={form.nombre}
+                  onChange={(e) =>
+                    setForm({ ...form, nombre: e.target.value })
+                  }
+                  required
+                />
+              </div>
+              <div className="space-y-2">
+                <Label htmlFor="apellido">Apellido *</Label>
+                <Input
+                  id="apellido"
+                  value={form.apellido}
+                  onChange={(e) =>
+                    setForm({ ...form, apellido: e.target.value })
+                  }
+                  required
+                />
+              </div>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="fecha_nacimiento">Fecha de Nacimiento</Label>
+              <Input
+                id="fecha_nacimiento"
+                type="date"
+                value={form.fecha_nacimiento}
+                onChange={(e) =>
+                  setForm({ ...form, fecha_nacimiento: e.target.value })
+                }
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="cel">Celular</Label>
+              <Input
+                id="cel"
+                value={form.cel}
+                onChange={(e) => setForm({ ...form, cel: e.target.value })}
+                placeholder="+54 11 1234-5678"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="email">Email</Label>
+              <Input
+                id="email"
+                type="email"
+                value={form.email}
+                onChange={(e) => setForm({ ...form, email: e.target.value })}
+                placeholder="paciente@email.com"
+              />
+            </div>
+            <DialogFooter>
+              <Button
+                type="button"
+                variant="outline"
+                onClick={() => setDialogOpen(false)}
+              >
+                Cancelar
+              </Button>
+              <Button type="submit" disabled={isSaving}>
+                {isSaving
+                  ? "Guardando..."
+                  : editing
+                    ? "Guardar Cambios"
+                    : "Crear Paciente"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Confirmar Eliminación */}
+      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle>Confirmar Eliminación</DialogTitle>
+            <DialogDescription>
+              Esta acción no se puede deshacer. Se eliminará permanentemente al
+              paciente{" "}
+              <strong>
+                {deleting?.nombre} {deleting?.apellido}
+              </strong>
+              .
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button
+              variant="outline"
+              onClick={() => setDeleteDialogOpen(false)}
+            >
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Eliminar
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+    </div>
+  );
+}

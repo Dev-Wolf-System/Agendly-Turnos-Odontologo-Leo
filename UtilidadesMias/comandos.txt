@@ -1,0 +1,11 @@
+Para reiniciar el servidor y matar compilaciones viejas:  
+
+Backend:
+
+lsof -ti :3001 | xargs kill -9 2>/dev/null; npm run start:dev
+
+rm -rf dist && npx nest build && node dist/main.js
+
+Frondend:
+
+rm -rf .next && npm run dev  
