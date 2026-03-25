@@ -2,6 +2,7 @@ import { Entity, Column, ManyToOne, JoinColumn, UpdateDateColumn } from 'typeorm
 import { TenantBaseEntity } from '../../../common/entities/tenant-base.entity';
 import { Clinica } from '../../clinicas/entities/clinica.entity';
 import { Proveedor } from '../../proveedores/entities/proveedor.entity';
+import { Categoria } from '../../categorias/entities/categoria.entity';
 
 @Entity('inventario')
 export class Inventario extends TenantBaseEntity {
@@ -17,6 +18,9 @@ export class Inventario extends TenantBaseEntity {
   @Column({ name: 'proveedor_id', type: 'uuid', nullable: true })
   proveedor_id: string;
 
+  @Column({ name: 'categoria_id', type: 'uuid', nullable: true })
+  categoria_id: string;
+
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
 
@@ -27,4 +31,8 @@ export class Inventario extends TenantBaseEntity {
   @ManyToOne(() => Proveedor, (proveedor) => proveedor.inventario)
   @JoinColumn({ name: 'proveedor_id' })
   proveedor: Proveedor;
+
+  @ManyToOne(() => Categoria, { nullable: true })
+  @JoinColumn({ name: 'categoria_id' })
+  categoria: Categoria;
 }

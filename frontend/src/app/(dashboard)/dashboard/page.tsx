@@ -24,6 +24,7 @@ import {
   AreaChart,
   Area,
 } from "recharts";
+import { useRouter } from "next/navigation";
 import dashboardService, {
   DashboardStats,
   TurnoHoy,
@@ -51,6 +52,7 @@ const mesesCortos: Record<string, string> = {
 };
 
 export default function DashboardPage() {
+  const router = useRouter();
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [turnosHoy, setTurnosHoy] = useState<TurnoHoy[]>([]);
   const [ingresosMensuales, setIngresosMensuales] = useState<IngresoMensual[]>([]);
@@ -134,7 +136,10 @@ export default function DashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card
+          className="cursor-pointer transition-shadow hover:shadow-md"
+          onClick={() => router.push("/dashboard/turnos")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Turnos Hoy</CardTitle>
             <CalendarIcon className="h-4 w-4 text-muted-foreground" />
@@ -147,7 +152,10 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-shadow hover:shadow-md"
+          onClick={() => router.push("/dashboard/pacientes")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Pacientes</CardTitle>
             <UsersIcon className="h-4 w-4 text-muted-foreground" />
@@ -160,7 +168,10 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-shadow hover:shadow-md"
+          onClick={() => router.push("/dashboard/pagos")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Ingresos del Mes</CardTitle>
             <DollarIcon className="h-4 w-4 text-muted-foreground" />
@@ -173,7 +184,10 @@ export default function DashboardPage() {
           </CardContent>
         </Card>
 
-        <Card>
+        <Card
+          className="cursor-pointer transition-shadow hover:shadow-md"
+          onClick={() => router.push("/dashboard/inventario")}
+        >
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Stock Bajo</CardTitle>
             <AlertIcon className="h-4 w-4 text-muted-foreground" />

@@ -24,4 +24,8 @@ export class UpdateInventarioDto {
   @IsUUID()
   @IsOptional()
   proveedor_id?: string;
+
+  @IsUUID()
+  @IsOptional()
+  categoria_id?: string;
 }

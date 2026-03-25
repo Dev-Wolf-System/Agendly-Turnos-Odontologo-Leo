@@ -145,7 +145,7 @@ export default function FichaPacientePage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-5 gap-4">
         <Card>
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium text-muted-foreground">
@@ -165,6 +165,21 @@ export default function FichaPacientePage() {
           <CardContent>
             <p className="text-2xl font-bold">
               {kpis.ultimoTurno ? formatFecha(kpis.ultimoTurno) : "—"}
+            </p>
+          </CardContent>
+        </Card>
+        <Card>
+          <CardHeader className="pb-2">
+            <CardTitle className="text-sm font-medium text-muted-foreground">
+              Historial Clinico
+            </CardTitle>
+          </CardHeader>
+          <CardContent>
+            <p className="text-2xl font-bold text-blue-600">
+              {historialMedico.length}
+            </p>
+            <p className="text-xs text-muted-foreground">
+              {historialMedico.length === 1 ? "procedimiento" : "procedimientos"}
             </p>
           </CardContent>
         </Card>
@@ -193,6 +208,44 @@ export default function FichaPacientePage() {
           </CardContent>
         </Card>
       </div>
+
+      {/* Ultimos Procedimientos */}
+      {historialMedico.length > 0 && (
+        <Card>
+          <CardHeader>
+            <CardTitle>Ultimos Procedimientos</CardTitle>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {historialMedico.slice(0, 5).map((h) => (
+                <div
+                  key={h.id}
+                  className="flex items-start justify-between border-b pb-3 last:border-0 last:pb-0"
+                >
+                  <div className="space-y-1">
+                    <p className="font-medium text-sm">
+                      {h.tratamiento || "Sin tratamiento registrado"}
+                    </p>
+                    {h.diagnostico && (
+                      <p className="text-sm text-muted-foreground">
+                        Dx: {h.diagnostico}
+                      </p>
+                    )}
+                    {h.observaciones && (
+                      <p className="text-xs text-muted-foreground">
+                        {h.observaciones}
+                      </p>
+                    )}
+                  </div>
+                  <Badge variant="outline" className="text-xs shrink-0 ml-4">
+                    {formatFecha(h.fecha)}
+                  </Badge>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+      )}
 
       {/* Tabs */}
       <Tabs defaultValue="proximos" className="space-y-4">

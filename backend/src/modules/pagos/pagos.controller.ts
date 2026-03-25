@@ -22,11 +22,10 @@ export class PagosController {
   @Get()
   findAll(
     @CurrentClinica() clinicaId: string,
-    @Query('turno_id') turnoId?: string,
     @Query() filters?: FilterPagosDto,
   ) {
-    if (turnoId) {
-      return this.pagosService.findByTurno(clinicaId, turnoId);
+    if (filters?.turno_id) {
+      return this.pagosService.findByTurno(clinicaId, filters.turno_id);
     }
     return this.pagosService.findAll(clinicaId, filters);
   }

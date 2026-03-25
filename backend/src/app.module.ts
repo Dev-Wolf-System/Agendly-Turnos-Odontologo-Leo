@@ -16,6 +16,7 @@ import { HistorialMedicoModule } from './modules/historial-medico/historial-medi
 import { PagosModule } from './modules/pagos/pagos.module';
 import { InventarioModule } from './modules/inventario/inventario.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
+import { CategoriasModule } from './modules/categorias/categorias.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 
 @Module({
@@ -31,6 +32,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     PagosModule,
     InventarioModule,
     ProveedoresModule,
+    CategoriasModule,
     DashboardModule,
   ],
   providers: [

@@ -20,7 +20,13 @@ export class TurnosService {
 
   async findAll(
     clinicaId: string,
-    filters?: { fecha?: string; estado?: EstadoTurno; user_id?: string },
+    filters?: {
+      fecha?: string;
+      fecha_desde?: string;
+      fecha_hasta?: string;
+      estado?: EstadoTurno;
+      user_id?: string;
+    },
   ): Promise<Turno[]> {
     const qb = this.turnoRepository
       .createQueryBuilder('t')
@@ -28,7 +34,13 @@ export class TurnosService {
       .leftJoinAndSelect('t.user', 'user')
       .where('t.clinica_id = :clinicaId', { clinicaId });
 
-    if (filters?.fecha) {
+    if (filters?.fecha_desde && filters?.fecha_hasta) {
+      const start = new Date(filters.fecha_desde);
+      start.setHours(0, 0, 0, 0);
+      const end = new Date(filters.fecha_hasta);
+      end.setHours(23, 59, 59, 999);
+      qb.andWhere('t.start_time BETWEEN :start AND :end', { start, end });
+    } else if (filters?.fecha) {
       const start = new Date(filters.fecha);
       start.setHours(0, 0, 0, 0);
       const end = new Date(filters.fecha);
@@ -47,7 +59,7 @@ export class TurnosService {
     qb.select([
       't.id', 't.clinica_id', 't.paciente_id', 't.user_id',
       't.start_time', 't.end_time', 't.estado', 't.source',
-      't.notas', 't.created_at',
+      't.tipo_tratamiento', 't.notas', 't.created_at',
       'paciente.id', 'paciente.nombre', 'paciente.apellido', 'paciente.dni', 'paciente.cel',
       'user.id', 'user.nombre', 'user.apellido', 'user.email',
     ]);
@@ -94,6 +106,7 @@ export class TurnosService {
       end_time: endTime,
       estado: EstadoTurno.PENDIENTE,
       source: createTurnoDto.source,
+      tipo_tratamiento: createTurnoDto.tipo_tratamiento,
       notas: createTurnoDto.notas,
     });
 

@@ -114,6 +114,21 @@ export class PagosService {
       throw new BadRequestException('El turno no existe o no pertenece a tu clínica');
     }
 
+    // Verificar si ya existe un pago pendiente o aprobado para este turno
+    const pagoExistente = await this.pagoRepository
+      .createQueryBuilder('p')
+      .where('p.turno_id = :turnoId', { turnoId: dto.turno_id })
+      .andWhere('p.estado IN (:...estados)', {
+        estados: [EstadoPago.PENDIENTE, EstadoPago.APROBADO],
+      })
+      .getOne();
+    if (pagoExistente) {
+      const msg = pagoExistente.estado === EstadoPago.APROBADO
+        ? 'Este turno ya tiene un pago aprobado. No se puede cobrar dos veces.'
+        : 'Este turno ya tiene un pago pendiente. Apruébalo o recházalo antes de crear otro.';
+      throw new BadRequestException(msg);
+    }
+
     const pago = this.pagoRepository.create({
       ...dto,
       estado: EstadoPago.PENDIENTE,

@@ -15,6 +15,7 @@ export interface Pago {
     start_time: string;
     end_time: string;
     estado: string;
+    tipo_tratamiento: string | null;
     paciente?: {
       id: string;
       nombre: string;

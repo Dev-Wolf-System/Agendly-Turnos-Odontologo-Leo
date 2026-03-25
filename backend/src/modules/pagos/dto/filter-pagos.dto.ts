@@ -1,7 +1,11 @@
-import { IsEnum, IsOptional, IsString } from 'class-validator';
+import { IsEnum, IsOptional, IsString, IsUUID } from 'class-validator';
 import { EstadoPago } from '../../../common/enums';
 
 export class FilterPagosDto {
+  @IsUUID()
+  @IsOptional()
+  turno_id?: string;
+
   @IsEnum(EstadoPago)
   @IsOptional()
   estado?: EstadoPago;

@@ -173,21 +173,41 @@ export class DashboardService {
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    const result = await this.historialRepository
-      .createQueryBuilder('h')
-      .leftJoin('h.paciente', 'paciente')
-      .where('paciente.clinica_id = :clinicaId', { clinicaId })
-      .andWhere('h.tratamiento IS NOT NULL')
-      .andWhere('h.tratamiento != \'\'')
-      .andWhere('h.created_at BETWEEN :start AND :end', { start: monthStart, end: monthEnd })
-      .select('h.tratamiento', 'nombre')
-      .addSelect('COUNT(h.id)', 'cantidad')
-      .groupBy('h.tratamiento')
+    // Contar tipo_tratamiento de turnos del mes
+    const turnoResult = await this.turnoRepository
+      .createQueryBuilder('t')
+      .where('t.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('t.tipo_tratamiento IS NOT NULL')
+      .andWhere('t.start_time BETWEEN :start AND :end', { start: monthStart, end: monthEnd })
+      .select('t.tipo_tratamiento', 'nombre')
+      .addSelect('COUNT(t.id)', 'cantidad')
+      .groupBy('t.tipo_tratamiento')
       .orderBy('cantidad', 'DESC')
-      .limit(8)
       .getRawMany();
 
-    return result.map((r: { nombre: string; cantidad: string }) => ({
+    // Fallback: si no hay tipo_tratamiento en turnos, usar historial_medico
+    if (turnoResult.length === 0) {
+      const historialResult = await this.historialRepository
+        .createQueryBuilder('h')
+        .leftJoin('h.paciente', 'paciente')
+        .where('paciente.clinica_id = :clinicaId', { clinicaId })
+        .andWhere('h.tratamiento IS NOT NULL')
+        .andWhere('h.tratamiento != \'\'')
+        .andWhere('h.created_at BETWEEN :start AND :end', { start: monthStart, end: monthEnd })
+        .select('h.tratamiento', 'nombre')
+        .addSelect('COUNT(h.id)', 'cantidad')
+        .groupBy('h.tratamiento')
+        .orderBy('cantidad', 'DESC')
+        .limit(8)
+        .getRawMany();
+
+      return historialResult.map((r: { nombre: string; cantidad: string }) => ({
+        nombre: r.nombre,
+        cantidad: parseInt(r.cantidad),
+      }));
+    }
+
+    return turnoResult.map((r: { nombre: string; cantidad: string }) => ({
       nombre: r.nombre,
       cantidad: parseInt(r.cantidad),
     }));

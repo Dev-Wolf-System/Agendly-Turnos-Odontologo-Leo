@@ -15,7 +15,7 @@ export class InventarioService {
   async findAll(clinicaId: string): Promise<Inventario[]> {
     return this.inventarioRepository.find({
       where: { clinica_id: clinicaId },
-      relations: ['proveedor'],
+      relations: ['proveedor', 'categoria'],
       order: { nombre: 'ASC' },
     });
   }
@@ -24,6 +24,7 @@ export class InventarioService {
     return this.inventarioRepository
       .createQueryBuilder('i')
       .leftJoinAndSelect('i.proveedor', 'proveedor')
+      .leftJoinAndSelect('i.categoria', 'categoria')
       .where('i.clinica_id = :clinicaId', { clinicaId })
       .andWhere('i.cantidad <= i.stock_min')
       .orderBy('i.cantidad', 'ASC')
@@ -33,7 +34,7 @@ export class InventarioService {
   async findOne(id: string, clinicaId: string): Promise<Inventario> {
     const item = await this.inventarioRepository.findOne({
       where: { id, clinica_id: clinicaId },
-      relations: ['proveedor'],
+      relations: ['proveedor', 'categoria'],
     });
     if (!item) {
       throw new NotFoundException('Ítem de inventario no encontrado');

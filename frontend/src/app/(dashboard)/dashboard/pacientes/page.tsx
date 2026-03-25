@@ -36,6 +36,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { Eye, Pencil, Trash2 } from "lucide-react";
 
 function calcularEdad(fechaNacimiento: string | null): string {
   if (!fechaNacimiento) return "—";
@@ -210,7 +211,7 @@ export default function PacientesPage() {
                   <TableHead>Edad</TableHead>
                   <TableHead>Celular</TableHead>
                   <TableHead>Email</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead className="w-[120px] text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -226,31 +227,38 @@ export default function PacientesPage() {
                     <TableCell>{calcularEdad(paciente.fecha_nacimiento)}</TableCell>
                     <TableCell>{paciente.cel || "—"}</TableCell>
                     <TableCell>{paciente.email || "—"}</TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() =>
-                          router.push(`/dashboard/pacientes/${paciente.id}`)
-                        }
-                      >
-                        Ver
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEdit(paciente)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => openDelete(paciente)}
-                      >
-                        Eliminar
-                      </Button>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-all duration-200 hover:scale-110"
+                          onClick={() =>
+                            router.push(`/dashboard/pacientes/${paciente.id}`)
+                          }
+                          title="Ver ficha"
+                        >
+                          <Eye className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all duration-200 hover:scale-110"
+                          onClick={() => openEdit(paciente)}
+                          title="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all duration-200 hover:scale-110"
+                          onClick={() => openDelete(paciente)}
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}

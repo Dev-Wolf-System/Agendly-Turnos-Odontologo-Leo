@@ -12,12 +12,12 @@ export class CreatePagoDto {
   turno_id: string;
 
   @IsNumber({ maxDecimalPlaces: 2 })
-  @IsOptional()
-  total?: number;
+  @IsNotEmpty({ message: 'El monto es obligatorio' })
+  total: number;
 
   @IsString()
-  @IsOptional()
-  method?: string;
+  @IsNotEmpty({ message: 'El método de pago es obligatorio' })
+  method: string;
 
   @IsString()
   @IsOptional()

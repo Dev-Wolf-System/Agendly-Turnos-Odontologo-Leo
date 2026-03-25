@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
 import { TenantBaseEntity } from '../../../common/entities/tenant-base.entity';
-import { EstadoTurno, SourceTurno } from '../../../common/enums';
+import { EstadoTurno, SourceTurno, TipoTratamiento } from '../../../common/enums';
 import { Clinica } from '../../clinicas/entities/clinica.entity';
 import { Paciente } from '../../pacientes/entities/paciente.entity';
 import { User } from '../../users/entities/user.entity';
@@ -27,6 +27,9 @@ export class Turno extends TenantBaseEntity {
 
   @Column({ type: 'text', nullable: true })
   source: SourceTurno;
+
+  @Column({ type: 'text', nullable: true })
+  tipo_tratamiento: TipoTratamiento;
 
   @Column({ type: 'text', nullable: true })
   notas: string;

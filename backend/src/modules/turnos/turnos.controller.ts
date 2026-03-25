@@ -23,11 +23,15 @@ export class TurnosController {
   findAll(
     @CurrentClinica() clinicaId: string,
     @Query('fecha') fecha?: string,
+    @Query('fecha_desde') fechaDesde?: string,
+    @Query('fecha_hasta') fechaHasta?: string,
     @Query('estado') estado?: EstadoTurno,
     @Query('user_id') userId?: string,
   ) {
     return this.turnosService.findAll(clinicaId, {
       fecha,
+      fecha_desde: fechaDesde,
+      fecha_hasta: fechaHasta,
       estado,
       user_id: userId,
     });

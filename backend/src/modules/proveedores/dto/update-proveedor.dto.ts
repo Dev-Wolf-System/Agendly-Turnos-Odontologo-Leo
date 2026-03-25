@@ -1,6 +1,8 @@
 import {
+  IsArray,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 
 export class UpdateProveedorDto {
@@ -19,4 +21,9 @@ export class UpdateProveedorDto {
   @IsString()
   @IsOptional()
   cel?: string;
+
+  @IsArray()
+  @IsUUID('4', { each: true })
+  @IsOptional()
+  categoria_ids?: string[];
 }

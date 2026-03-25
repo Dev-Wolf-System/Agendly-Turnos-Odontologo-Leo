@@ -6,7 +6,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { SourceTurno } from '../../../common/enums';
+import { SourceTurno, TipoTratamiento } from '../../../common/enums';
 
 export class CreateTurnoDto {
   @IsUUID()
@@ -28,6 +28,10 @@ export class CreateTurnoDto {
   @IsEnum(SourceTurno)
   @IsOptional()
   source?: SourceTurno;
+
+  @IsEnum(TipoTratamiento)
+  @IsOptional()
+  tipo_tratamiento?: TipoTratamiento;
 
   @IsString()
   @IsOptional()

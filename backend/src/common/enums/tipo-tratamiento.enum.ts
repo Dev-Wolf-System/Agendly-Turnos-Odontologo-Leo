@@ -1,0 +1,16 @@
+export enum TipoTratamiento {
+  CONSULTA = 'consulta',
+  LIMPIEZA = 'limpieza',
+  EXTRACCION = 'extraccion',
+  EMPASTE = 'empaste',
+  ENDODONCIA = 'endodoncia',
+  ORTODONCIA = 'ortodoncia',
+  IMPLANTE = 'implante',
+  BLANQUEAMIENTO = 'blanqueamiento',
+  PROTESIS = 'protesis',
+  RADIOGRAFIA = 'radiografia',
+  CIRUGIA = 'cirugia',
+  CONTROL = 'control',
+  URGENCIA = 'urgencia',
+  OTRO = 'otro',
+}

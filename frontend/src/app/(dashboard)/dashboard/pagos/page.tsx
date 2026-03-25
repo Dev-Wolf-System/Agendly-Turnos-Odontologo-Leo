@@ -7,7 +7,7 @@ import pagosService, {
   PagoResumen,
   EstadoPago,
 } from "@/services/pagos.service";
-import turnosService, { Turno } from "@/services/turnos.service";
+import turnosService, { Turno, TRATAMIENTOS_LABELS, type TipoTratamiento } from "@/services/turnos.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -44,6 +44,7 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { Pencil, Trash2, CircleDollarSign, Clock, CheckCircle2, XCircle } from "lucide-react";
 
 const estadoColors: Record<string, string> = {
   pendiente:
@@ -223,39 +224,105 @@ export default function PagosPage() {
         <Button onClick={openCreate}>+ Nuevo Pago</Button>
       </div>
 
-      {/* Resumen de ingresos */}
+      {/* KPIs */}
       {resumen && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          {/* Aprobados */}
           <Card>
             <CardHeader className="pb-2">
-              <CardDescription>Total Aprobados</CardDescription>
-              <CardTitle className="text-2xl text-green-600">
+              <div className="flex items-center justify-between">
+                <CardDescription>Total Aprobados</CardDescription>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
+                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl text-emerald-600 dark:text-emerald-400">
                 {formatCurrency(resumen.total)}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground">
-                {resumen.cantidad} pago{resumen.cantidad !== 1 ? "s" : ""}
+                {resumen.cantidad} pago{resumen.cantidad !== 1 ? "s" : ""} aprobado{resumen.cantidad !== 1 ? "s" : ""}
               </p>
             </CardContent>
           </Card>
-          {resumen.por_metodo.map((m) => (
-            <Card key={m.method}>
-              <CardHeader className="pb-2">
-                <CardDescription>
-                  {methodLabels[m.method] || m.method}
-                </CardDescription>
-                <CardTitle className="text-2xl">
-                  {formatCurrency(m.total)}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">
-                  {m.cantidad} pago{m.cantidad !== 1 ? "s" : ""}
-                </p>
-              </CardContent>
-            </Card>
-          ))}
+
+          {/* Pendientes */}
+          {(() => {
+            const pendientes = pagos.filter((p) => p.estado === "pendiente");
+            const totalPendiente = pendientes.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+            return (
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardDescription>Pendientes</CardDescription>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
+                      <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl text-amber-600 dark:text-amber-400">
+                    {formatCurrency(totalPendiente)}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">
+                    {pendientes.length} pago{pendientes.length !== 1 ? "s" : ""} por aprobar
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Rechazados */}
+          {(() => {
+            const rechazados = pagos.filter((p) => p.estado === "rechazado");
+            const totalRechazado = rechazados.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+            return (
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardDescription>Rechazados</CardDescription>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/40">
+                      <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl text-red-600 dark:text-red-400">
+                    {formatCurrency(totalRechazado)}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">
+                    {rechazados.length} pago{rechazados.length !== 1 ? "s" : ""} rechazado{rechazados.length !== 1 ? "s" : ""}
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })()}
+
+          {/* Total General */}
+          {(() => {
+            const totalGeneral = pagos.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
+            return (
+              <Card>
+                <CardHeader className="pb-2">
+                  <div className="flex items-center justify-between">
+                    <CardDescription>Total General</CardDescription>
+                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
+                      <CircleDollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                    </div>
+                  </div>
+                  <CardTitle className="text-2xl">
+                    {formatCurrency(totalGeneral)}
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <p className="text-xs text-muted-foreground">
+                    {pagos.length} pago{pagos.length !== 1 ? "s" : ""} en total
+                  </p>
+                </CardContent>
+              </Card>
+            );
+          })()}
         </div>
       )}
 
@@ -323,7 +390,7 @@ export default function PagosPage() {
         </CardHeader>
         <CardContent>
           {isLoading ? (
-            <TableSkeleton rows={5} cols={7} />
+            <TableSkeleton rows={5} cols={9} />
           ) : pagos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
               <p>No hay pagos registrados</p>
@@ -336,10 +403,11 @@ export default function PagosPage() {
                   <TableHead>Paciente</TableHead>
                   <TableHead>Odontólogo</TableHead>
                   <TableHead>Turno</TableHead>
+                  <TableHead>Tratamiento</TableHead>
                   <TableHead>Total</TableHead>
                   <TableHead>Método</TableHead>
                   <TableHead>Estado</TableHead>
-                  <TableHead className="text-right">Acciones</TableHead>
+                  <TableHead className="w-[100px] text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
@@ -361,6 +429,11 @@ export default function PagosPage() {
                         ? `${formatDate(pago.turno.start_time)} ${formatTime(pago.turno.start_time)}`
                         : "—"}
                     </TableCell>
+                    <TableCell>
+                      {pago.turno?.tipo_tratamiento
+                        ? TRATAMIENTOS_LABELS[pago.turno.tipo_tratamiento as TipoTratamiento] || pago.turno.tipo_tratamiento
+                        : "—"}
+                    </TableCell>
                     <TableCell className="font-medium">
                       {formatCurrency(pago.total)}
                     </TableCell>
@@ -375,22 +448,27 @@ export default function PagosPage() {
                           pago.estado.slice(1)}
                       </Badge>
                     </TableCell>
-                    <TableCell className="text-right space-x-2">
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => openEdit(pago)}
-                      >
-                        Editar
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        className="text-destructive hover:text-destructive"
-                        onClick={() => handleDelete(pago.id)}
-                      >
-                        Eliminar
-                      </Button>
+                    <TableCell>
+                      <div className="flex items-center justify-center gap-1">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all duration-200 hover:scale-110"
+                          onClick={() => openEdit(pago)}
+                          title="Editar"
+                        >
+                          <Pencil className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all duration-200 hover:scale-110"
+                          onClick={() => handleDelete(pago.id)}
+                          title="Eliminar"
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
                     </TableCell>
                   </TableRow>
                 ))}
@@ -441,18 +519,20 @@ export default function PagosPage() {
               </div>
             )}
             <div className="space-y-2">
-              <Label htmlFor="total">Total ($)</Label>
+              <Label htmlFor="total">Total ($) *</Label>
               <Input
                 id="total"
                 type="number"
                 step="0.01"
+                min="0.01"
+                required
                 value={form.total}
                 onChange={(e) => setForm({ ...form, total: e.target.value })}
                 placeholder="0.00"
               />
             </div>
             <div className="space-y-2">
-              <Label htmlFor="method">Método de pago</Label>
+              <Label htmlFor="method">Método de pago *</Label>
               <Select
                 value={form.method}
                 onValueChange={(v: string | null) =>
@@ -500,7 +580,7 @@ export default function PagosPage() {
               </Button>
               <Button
                 type="submit"
-                disabled={isSaving || (!editing && !form.turno_id)}
+                disabled={isSaving || (!editing && !form.turno_id) || !form.total || !form.method}
               >
                 {isSaving ? "Guardando..." : "Guardar"}
               </Button>
