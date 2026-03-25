@@ -13,6 +13,7 @@ import {
   CardHeader,
   CardTitle,
 } from "@/components/ui/card";
+import Image from "next/image";
 import { useAuth } from "@/components/providers/auth-provider";
 
 export default function LoginPage() {
@@ -43,9 +44,13 @@ export default function LoginPage() {
   return (
     <Card className="w-full max-w-md">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-xl">
-          A
-        </div>
+        <Image
+          src="/logo.png"
+          alt="Agendly"
+          width={64}
+          height={64}
+          className="mx-auto mb-4 rounded-xl"
+        />
         <CardTitle className="text-2xl">Agendly</CardTitle>
         <CardDescription>
           Ingresá a tu cuenta para gestionar tu clínica

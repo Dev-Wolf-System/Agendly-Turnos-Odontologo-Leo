@@ -1,6 +1,7 @@
 "use client";
 
 import Link from "next/link";
+import Image from "next/image";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -22,9 +23,13 @@ export function Sidebar() {
   return (
     <aside className="flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground">
       <div className="flex h-16 items-center gap-2 px-6 border-b border-sidebar-border">
-        <div className="h-8 w-8 rounded-lg bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground font-bold text-sm">
-          A
-        </div>
+        <Image
+          src="/logo.png"
+          alt="Agendly"
+          width={36}
+          height={36}
+          className="rounded-lg"
+        />
         <span className="text-lg font-bold">Agendly</span>
       </div>
 

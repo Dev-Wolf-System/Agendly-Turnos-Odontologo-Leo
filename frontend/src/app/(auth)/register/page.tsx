@@ -2,6 +2,7 @@
 
 import { useState } from "react";
 import Link from "next/link";
+import Image from "next/image";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -75,9 +76,13 @@ export default function RegisterPage() {
   return (
     <Card className="w-full max-w-lg">
       <CardHeader className="text-center">
-        <div className="mx-auto mb-4 flex h-12 w-12 items-center justify-center rounded-xl bg-primary text-primary-foreground font-bold text-xl">
-          A
-        </div>
+        <Image
+          src="/logo.png"
+          alt="Agendly"
+          width={64}
+          height={64}
+          className="mx-auto mb-4 rounded-xl"
+        />
         <CardTitle className="text-2xl">Crear Cuenta</CardTitle>
         <CardDescription>
           Registrá tu clínica y empezá a gestionar tus turnos
