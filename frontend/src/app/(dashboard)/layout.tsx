@@ -1,8 +1,9 @@
 "use client";
 
 import { useAuth } from "@/components/providers/auth-provider";
-import { Sidebar } from "@/components/layout/sidebar";
+import { Sidebar, SidebarProvider } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { HealthLoader } from "@/components/ui/health-loader";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 
@@ -17,23 +18,23 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   }, [user, isLoading, router]);
 
   if (isLoading) {
-    return (
-      <div className="flex h-screen items-center justify-center">
-        <div className="text-muted-foreground">Cargando...</div>
-      </div>
-    );
+    return <HealthLoader />;
   }
 
   if (!user) return null;
 
   return (
-    <div className="flex h-screen overflow-hidden">
-      <Sidebar />
-      <div className="flex flex-1 flex-col overflow-hidden">
-        <Header />
-        <main className="flex-1 overflow-auto p-6">{children}</main>
+    <SidebarProvider>
+      <div className="flex h-screen overflow-hidden">
+        <Sidebar />
+        <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+          <div className="relative z-10 shrink-0">
+            <Header />
+          </div>
+          <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
+        </div>
       </div>
-    </div>
+    </SidebarProvider>
   );
 }
 

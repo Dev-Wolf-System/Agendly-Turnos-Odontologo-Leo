@@ -48,7 +48,32 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Pencil, Trash2, CircleDollarSign, Clock, CheckCircle2, XCircle } from "lucide-react";
+import {
+  Pencil,
+  Trash2,
+  CircleDollarSign,
+  Clock,
+  CheckCircle2,
+  XCircle,
+  Banknote,
+  CreditCard,
+  ArrowRightLeft,
+  Smartphone,
+  Download,
+  Search,
+  TrendingUp,
+  Receipt,
+  AlertTriangle,
+} from "lucide-react";
+import {
+  PieChart,
+  Pie,
+  Cell,
+  ResponsiveContainer,
+  Tooltip,
+} from "recharts";
+
+/* ─── Constantes ─── */
 
 const estadoColors: Record<string, string> = {
   pendiente:
@@ -58,16 +83,43 @@ const estadoColors: Record<string, string> = {
   rechazado: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
 };
 
-const methodLabels: Record<string, string> = {
-  efectivo: "Efectivo",
-  mercadopago: "MercadoPago",
-  transferencia: "Transferencia",
-  tarjeta: "Tarjeta",
+const METHOD_CONFIG: Record<
+  string,
+  { label: string; icon: typeof Banknote; color: string; chartColor: string }
+> = {
+  efectivo: {
+    label: "Efectivo",
+    icon: Banknote,
+    color: "text-green-600",
+    chartColor: "#22c55e",
+  },
+  mercadopago: {
+    label: "MercadoPago",
+    icon: Smartphone,
+    color: "text-sky-600",
+    chartColor: "#0ea5e9",
+  },
+  transferencia: {
+    label: "Transferencia",
+    icon: ArrowRightLeft,
+    color: "text-violet-600",
+    chartColor: "#8b5cf6",
+  },
+  tarjeta: {
+    label: "Tarjeta",
+    icon: CreditCard,
+    color: "text-orange-600",
+    chartColor: "#f97316",
+  },
 };
+
+/* ─── Helpers ─── */
 
 function formatCurrency(value: number | null) {
   if (value == null) return "—";
-  return `$${Number(value).toLocaleString("es-AR", { minimumFractionDigits: 2 })}`;
+  return `$${Number(value).toLocaleString("es-AR", {
+    minimumFractionDigits: 2,
+  })}`;
 }
 
 function formatDate(dateStr: string) {
@@ -85,9 +137,47 @@ function formatTime(dateStr: string) {
   });
 }
 
+function exportCSV(pagos: Pago[]) {
+  const header =
+    "Fecha,Paciente,Profesional,Turno,Tratamiento,Total,Método,Estado";
+  const rows = pagos.map((p) => {
+    const paciente = p.turno?.paciente
+      ? `${p.turno.paciente.nombre} ${p.turno.paciente.apellido}`
+      : "";
+    const profesional = p.turno?.user
+      ? `${p.turno.user.nombre} ${p.turno.user.apellido}`
+      : "";
+    const turno = p.turno?.start_time
+      ? `${formatDate(p.turno.start_time)} ${formatTime(p.turno.start_time)}`
+      : "";
+    const tratamiento = p.turno?.tipo_tratamiento
+      ? TRATAMIENTOS_LABELS[p.turno.tipo_tratamiento] ||
+        p.turno.tipo_tratamiento
+      : "";
+    const total = p.total != null ? p.total.toString() : "";
+    const method = METHOD_CONFIG[p.method || ""]?.label || p.method || "";
+    return `${formatDate(p.created_at)},"${paciente}","${profesional}","${turno}","${tratamiento}",${total},${method},${p.estado}`;
+  });
+  const csv = [header, ...rows].join("\n");
+  const blob = new Blob(["\uFEFF" + csv], { type: "text/csv;charset=utf-8;" });
+  const url = URL.createObjectURL(blob);
+  const a = document.createElement("a");
+  a.href = url;
+  a.download = `pagos_${new Date().toISOString().split("T")[0]}.csv`;
+  a.click();
+  URL.revokeObjectURL(url);
+}
+
+/* ─── Componente ─── */
+
 export default function PagosPage() {
   const [pagos, setPagos] = useState<Pago[]>([]);
-  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [meta, setMeta] = useState<PaginationMeta>({
+    page: 1,
+    limit: 20,
+    total: 0,
+    totalPages: 0,
+  });
   const [page, setPage] = useState(1);
   const [limit, setLimit] = useState(20);
   const [sortBy, setSortBy] = useState("created_at");
@@ -96,6 +186,7 @@ export default function PagosPage() {
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [deleteDialog, setDeleteDialog] = useState<Pago | null>(null);
   const [editing, setEditing] = useState<Pago | null>(null);
   const [isSaving, setIsSaving] = useState(false);
 
@@ -104,6 +195,7 @@ export default function PagosPage() {
   const [filtroMethod, setFiltroMethod] = useState<string>("all");
   const [filtroDesde, setFiltroDesde] = useState<string>("");
   const [filtroHasta, setFiltroHasta] = useState<string>("");
+  const [filtroPaciente, setFiltroPaciente] = useState<string>("");
 
   const [form, setForm] = useState({
     turno_id: "",
@@ -211,13 +303,27 @@ export default function PagosPage() {
     }
   };
 
-  const handleDelete = async (id: string) => {
+  const handleDelete = async () => {
+    if (!deleteDialog) return;
     try {
-      await pagosService.delete(id);
+      await pagosService.delete(deleteDialog.id);
       toast.success("Pago eliminado");
+      setDeleteDialog(null);
       loadPagos();
     } catch {
       toast.error("Error al eliminar pago");
+    }
+  };
+
+  const handleQuickStatus = async (pago: Pago, estado: EstadoPago) => {
+    try {
+      await pagosService.update(pago.id, { estado });
+      toast.success(
+        estado === "aprobado" ? "Pago aprobado" : "Pago rechazado"
+      );
+      loadPagos();
+    } catch {
+      toast.error("Error al actualizar estado");
     }
   };
 
@@ -226,11 +332,55 @@ export default function PagosPage() {
     setFiltroMethod("all");
     setFiltroDesde("");
     setFiltroHasta("");
+    setFiltroPaciente("");
     setPage(1);
   };
 
+  const hasFilters =
+    filtroEstado !== "all" ||
+    filtroMethod !== "all" ||
+    filtroDesde ||
+    filtroHasta ||
+    filtroPaciente;
+
+  // Filtro local por paciente (nombre)
+  const pagosFiltrados = filtroPaciente
+    ? pagos.filter((p) => {
+        const nombre =
+          `${p.turno?.paciente?.nombre || ""} ${p.turno?.paciente?.apellido || ""}`.toLowerCase();
+        return nombre.includes(filtroPaciente.toLowerCase());
+      })
+    : pagos;
+
+  // Datos para gráfico de dona (distribución por método)
+  const chartData =
+    resumen?.por_metodo
+      .filter((m) => m.cantidad > 0)
+      .map((m) => ({
+        name: METHOD_CONFIG[m.method]?.label || m.method,
+        value: m.total,
+        cantidad: m.cantidad,
+        color: METHOD_CONFIG[m.method]?.chartColor || "#94a3b8",
+      })) || [];
+
+  // Estadísticas derivadas
+  const totalAprobados = resumen?.total || 0;
+  const cantPendientes = pagos.filter((p) => p.estado === "pendiente").length;
+  const totalPendientes = pagos
+    .filter((p) => p.estado === "pendiente")
+    .reduce((s, p) => s + (Number(p.total) || 0), 0);
+  const cantRechazados = pagos.filter((p) => p.estado === "rechazado").length;
+  const totalRechazados = pagos
+    .filter((p) => p.estado === "rechazado")
+    .reduce((s, p) => s + (Number(p.total) || 0), 0);
+  const ticketPromedio =
+    resumen && resumen.cantidad > 0
+      ? resumen.total / resumen.cantidad
+      : 0;
+
   return (
     <div className="space-y-6">
+      {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pagos</h1>
@@ -238,126 +388,289 @@ export default function PagosPage() {
             Gestiona los pagos y facturación
           </p>
         </div>
-        <Button onClick={openCreate}>+ Nuevo Pago</Button>
+        <div className="flex items-center gap-2">
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => exportCSV(pagosFiltrados)}
+            disabled={pagosFiltrados.length === 0}
+          >
+            <Download className="h-4 w-4 mr-1.5" />
+            Exportar CSV
+          </Button>
+          <Button onClick={openCreate}>+ Nuevo Pago</Button>
+        </div>
       </div>
 
-      {/* KPIs */}
+      {/* KPIs Row */}
       {resumen && (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
           {/* Aprobados */}
-          <Card>
+          <Card className="border-l-4 border-l-emerald-500">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardDescription>Total Aprobados</CardDescription>
+                <CardDescription>Ingresos Aprobados</CardDescription>
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
               </div>
               <CardTitle className="text-2xl text-emerald-600 dark:text-emerald-400">
-                {formatCurrency(resumen.total)}
+                {formatCurrency(totalAprobados)}
               </CardTitle>
             </CardHeader>
             <CardContent>
               <p className="text-xs text-muted-foreground">
-                {resumen.cantidad} pago{resumen.cantidad !== 1 ? "s" : ""} aprobado{resumen.cantidad !== 1 ? "s" : ""}
+                {resumen.cantidad} pago
+                {resumen.cantidad !== 1 ? "s" : ""} aprobado
+                {resumen.cantidad !== 1 ? "s" : ""}
               </p>
             </CardContent>
           </Card>
 
           {/* Pendientes */}
-          {(() => {
-            const pendientes = pagos.filter((p) => p.estado === "pendiente");
-            const totalPendiente = pendientes.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
-            return (
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardDescription>Pendientes</CardDescription>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
-                      <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl text-amber-600 dark:text-amber-400">
-                    {formatCurrency(totalPendiente)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    {pendientes.length} pago{pendientes.length !== 1 ? "s" : ""} por aprobar
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })()}
+          <Card className="border-l-4 border-l-amber-500">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardDescription>Pendientes de Cobro</CardDescription>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
+                  <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl text-amber-600 dark:text-amber-400">
+                {formatCurrency(totalPendientes)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                {cantPendientes} pago{cantPendientes !== 1 ? "s" : ""} por
+                aprobar
+              </p>
+            </CardContent>
+          </Card>
 
           {/* Rechazados */}
-          {(() => {
-            const rechazados = pagos.filter((p) => p.estado === "rechazado");
-            const totalRechazado = rechazados.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
-            return (
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardDescription>Rechazados</CardDescription>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/40">
-                      <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl text-red-600 dark:text-red-400">
-                    {formatCurrency(totalRechazado)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    {rechazados.length} pago{rechazados.length !== 1 ? "s" : ""} rechazado{rechazados.length !== 1 ? "s" : ""}
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })()}
+          <Card className="border-l-4 border-l-red-500">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardDescription>Rechazados</CardDescription>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/40">
+                  <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl text-red-600 dark:text-red-400">
+                {formatCurrency(totalRechazados)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                {cantRechazados} pago{cantRechazados !== 1 ? "s" : ""}{" "}
+                rechazado{cantRechazados !== 1 ? "s" : ""}
+              </p>
+            </CardContent>
+          </Card>
 
-          {/* Total General */}
-          {(() => {
-            const totalGeneral = pagos.reduce((sum, p) => sum + (Number(p.total) || 0), 0);
-            return (
-              <Card>
-                <CardHeader className="pb-2">
-                  <div className="flex items-center justify-between">
-                    <CardDescription>Total General</CardDescription>
-                    <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                      <CircleDollarSign className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-                    </div>
-                  </div>
-                  <CardTitle className="text-2xl">
-                    {formatCurrency(totalGeneral)}
-                  </CardTitle>
-                </CardHeader>
-                <CardContent>
-                  <p className="text-xs text-muted-foreground">
-                    {pagos.length} pago{pagos.length !== 1 ? "s" : ""} en total
-                  </p>
-                </CardContent>
-              </Card>
-            );
-          })()}
+          {/* Ticket Promedio */}
+          <Card className="border-l-4 border-l-blue-500">
+            <CardHeader className="pb-2">
+              <div className="flex items-center justify-between">
+                <CardDescription>Ticket Promedio</CardDescription>
+                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
+                  <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                </div>
+              </div>
+              <CardTitle className="text-2xl text-blue-600 dark:text-blue-400">
+                {formatCurrency(ticketPromedio)}
+              </CardTitle>
+            </CardHeader>
+            <CardContent>
+              <p className="text-xs text-muted-foreground">
+                Promedio por pago aprobado
+              </p>
+            </CardContent>
+          </Card>
         </div>
       )}
 
-      {/* Filtros */}
+      {/* Desglose por método + Gráfico */}
+      {resumen && resumen.por_metodo.length > 0 && (
+        <div className="grid gap-4 lg:grid-cols-3">
+          {/* Distribución por método — Cards */}
+          <Card className="lg:col-span-2">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">
+                Desglose por Método de Pago
+              </CardTitle>
+              <CardDescription>Solo pagos aprobados</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid gap-3 sm:grid-cols-2">
+                {resumen.por_metodo.map((m) => {
+                  const config = METHOD_CONFIG[m.method];
+                  const Icon = config?.icon || CircleDollarSign;
+                  const pct =
+                    totalAprobados > 0
+                      ? ((m.total / totalAprobados) * 100).toFixed(1)
+                      : "0";
+                  return (
+                    <div
+                      key={m.method}
+                      className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                    >
+                      <div
+                        className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
+                        style={{
+                          backgroundColor: `${config?.chartColor || "#94a3b8"}15`,
+                        }}
+                      >
+                        <Icon
+                          className="h-5 w-5"
+                          style={{ color: config?.chartColor || "#94a3b8" }}
+                        />
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <div className="flex items-center justify-between">
+                          <span className="text-sm font-medium">
+                            {config?.label || m.method}
+                          </span>
+                          <span className="text-sm font-semibold">
+                            {formatCurrency(m.total)}
+                          </span>
+                        </div>
+                        <div className="flex items-center justify-between mt-1">
+                          <span className="text-xs text-muted-foreground">
+                            {m.cantidad} pago{m.cantidad !== 1 ? "s" : ""}
+                          </span>
+                          <span className="text-xs text-muted-foreground">
+                            {pct}%
+                          </span>
+                        </div>
+                        <div className="mt-1.5 h-1.5 w-full rounded-full bg-muted overflow-hidden">
+                          <div
+                            className="h-full rounded-full transition-all duration-500"
+                            style={{
+                              width: `${pct}%`,
+                              backgroundColor:
+                                config?.chartColor || "#94a3b8",
+                            }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Gráfico Donut */}
+          <Card>
+            <CardHeader className="pb-3">
+              <CardTitle className="text-base">Distribución</CardTitle>
+              <CardDescription>Por método de pago</CardDescription>
+            </CardHeader>
+            <CardContent className="flex flex-col items-center justify-center">
+              {chartData.length > 0 ? (
+                <>
+                  <ResponsiveContainer width="100%" height={180}>
+                    <PieChart>
+                      <Pie
+                        data={chartData}
+                        cx="50%"
+                        cy="50%"
+                        innerRadius={50}
+                        outerRadius={75}
+                        paddingAngle={3}
+                        dataKey="value"
+                        strokeWidth={0}
+                      >
+                        {chartData.map((entry, i) => (
+                          <Cell key={i} fill={entry.color} />
+                        ))}
+                      </Pie>
+                      <Tooltip
+                        formatter={(value) => formatCurrency(Number(value))}
+                        contentStyle={{
+                          borderRadius: "8px",
+                          border: "1px solid hsl(var(--border))",
+                          background: "hsl(var(--background))",
+                          fontSize: "12px",
+                        }}
+                      />
+                    </PieChart>
+                  </ResponsiveContainer>
+                  <div className="flex flex-wrap justify-center gap-3 mt-2">
+                    {chartData.map((d) => (
+                      <div
+                        key={d.name}
+                        className="flex items-center gap-1.5 text-xs"
+                      >
+                        <span
+                          className="h-2.5 w-2.5 rounded-full"
+                          style={{ backgroundColor: d.color }}
+                        />
+                        {d.name}
+                      </div>
+                    ))}
+                  </div>
+                </>
+              ) : (
+                <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
+                  <Receipt className="h-8 w-8 mb-2 opacity-40" />
+                  <span className="text-sm">Sin datos</span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </div>
+      )}
+
+      {/* Tabla de Pagos */}
       <Card>
         <CardHeader>
           <CardTitle>Lista de Pagos</CardTitle>
-          <CardDescription>Todos los pagos registrados</CardDescription>
+          <CardDescription>
+            {meta.total} pago{meta.total !== 1 ? "s" : ""} registrado
+            {meta.total !== 1 ? "s" : ""}
+          </CardDescription>
+
+          {/* Filtros */}
           <div className="flex flex-wrap items-end gap-3 pt-2">
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Estado</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">
+                Buscar paciente
+              </span>
+              <div className="relative">
+                <Search className="absolute left-2.5 top-2.5 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Nombre..."
+                  value={filtroPaciente}
+                  onChange={(e) => setFiltroPaciente(e.target.value)}
+                  className="w-44 pl-8"
+                />
+              </div>
+            </div>
+
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">
+                Estado
+              </span>
               <Select
                 value={filtroEstado}
-                onValueChange={(v: string | null) => { v && setFiltroEstado(v); setPage(1); }}
+                onValueChange={(v: string | null) => {
+                  v && setFiltroEstado(v);
+                  setPage(1);
+                }}
               >
                 <SelectTrigger className="w-44">
                   <span>
-                    {{ all: "Todos los estados", pendiente: "Pendiente", aprobado: "Aprobado", rechazado: "Rechazado" }[filtroEstado]}
+                    {
+                      {
+                        all: "Todos los estados",
+                        pendiente: "Pendiente",
+                        aprobado: "Aprobado",
+                        rechazado: "Rechazado",
+                      }[filtroEstado]
+                    }
                   </span>
                 </SelectTrigger>
                 <SelectContent>
@@ -369,15 +682,28 @@ export default function PagosPage() {
               </Select>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Método de pago</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">
+                Método de pago
+              </span>
               <Select
                 value={filtroMethod}
-                onValueChange={(v: string | null) => { v && setFiltroMethod(v); setPage(1); }}
+                onValueChange={(v: string | null) => {
+                  v && setFiltroMethod(v);
+                  setPage(1);
+                }}
               >
                 <SelectTrigger className="w-44">
                   <span>
-                    {{ all: "Todos los métodos", efectivo: "Efectivo", mercadopago: "MercadoPago", transferencia: "Transferencia", tarjeta: "Tarjeta" }[filtroMethod]}
+                    {
+                      {
+                        all: "Todos los métodos",
+                        efectivo: "Efectivo",
+                        mercadopago: "MercadoPago",
+                        transferencia: "Transferencia",
+                        tarjeta: "Tarjeta",
+                      }[filtroMethod]
+                    }
                   </span>
                 </SelectTrigger>
                 <SelectContent>
@@ -390,30 +716,42 @@ export default function PagosPage() {
               </Select>
             </div>
 
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Desde</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">
+                Desde
+              </span>
               <Input
                 type="date"
                 value={filtroDesde}
-                onChange={(e) => { setFiltroDesde(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  setFiltroDesde(e.target.value);
+                  setPage(1);
+                }}
                 className="w-40"
               />
             </div>
-            <div className="space-y-1">
-              <span className="text-xs font-medium text-muted-foreground">Hasta</span>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">
+                Hasta
+              </span>
               <Input
                 type="date"
                 value={filtroHasta}
-                onChange={(e) => { setFiltroHasta(e.target.value); setPage(1); }}
+                onChange={(e) => {
+                  setFiltroHasta(e.target.value);
+                  setPage(1);
+                }}
                 className="w-40"
               />
             </div>
 
-            {(filtroEstado !== "all" ||
-              filtroMethod !== "all" ||
-              filtroDesde ||
-              filtroHasta) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters} className="mb-0.5">
+            {hasFilters && (
+              <Button
+                variant="ghost"
+                size="sm"
+                onClick={clearFilters}
+                className="mb-0.5"
+              >
                 Limpiar filtros
               </Button>
             )}
@@ -422,92 +760,174 @@ export default function PagosPage() {
         <CardContent>
           {isLoading ? (
             <TableSkeleton rows={5} cols={9} />
-          ) : pagos.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <p>No hay pagos registrados</p>
+          ) : pagosFiltrados.length === 0 ? (
+            <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+              <Receipt className="h-12 w-12 mb-3 opacity-30" />
+              <p className="text-base font-medium">No hay pagos registrados</p>
+              <p className="text-sm mt-1">
+                {hasFilters
+                  ? "Intenta ajustar los filtros para ver resultados"
+                  : "Registra tu primer pago desde un turno o con el botón superior"}
+              </p>
             </div>
           ) : (
             <Table>
               <TableHeader>
                 <TableRow>
-                  <SortableHeader label="Fecha" field="created_at" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader
+                    label="Fecha"
+                    field="created_at"
+                    currentSort={sortBy}
+                    currentOrder={sortOrder}
+                    onSort={handleSort}
+                  />
                   <TableHead>Paciente</TableHead>
-                  <TableHead>Odontólogo</TableHead>
+                  <TableHead>Profesional</TableHead>
                   <TableHead>Turno</TableHead>
                   <TableHead>Tratamiento</TableHead>
-                  <SortableHeader label="Total" field="total" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <SortableHeader label="Método" field="method" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <SortableHeader label="Estado" field="estado" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <TableHead className="w-[100px] text-center">Acciones</TableHead>
+                  <SortableHeader
+                    label="Total"
+                    field="total"
+                    currentSort={sortBy}
+                    currentOrder={sortOrder}
+                    onSort={handleSort}
+                  />
+                  <SortableHeader
+                    label="Método"
+                    field="method"
+                    currentSort={sortBy}
+                    currentOrder={sortOrder}
+                    onSort={handleSort}
+                  />
+                  <SortableHeader
+                    label="Estado"
+                    field="estado"
+                    currentSort={sortBy}
+                    currentOrder={sortOrder}
+                    onSort={handleSort}
+                  />
+                  <TableHead className="w-[140px] text-center">
+                    Acciones
+                  </TableHead>
                 </TableRow>
               </TableHeader>
               <TableBody>
-                {pagos.map((pago) => (
-                  <TableRow key={pago.id}>
-                    <TableCell>{formatDate(pago.created_at)}</TableCell>
-                    <TableCell>
-                      {pago.turno?.paciente ? (
-                        <Link
-                          href={`/dashboard/pacientes/${pago.turno.paciente.id}`}
-                          className="text-primary hover:underline font-medium"
+                {pagosFiltrados.map((pago) => {
+                  const methodConf = METHOD_CONFIG[pago.method || ""];
+                  const MethodIcon = methodConf?.icon || CircleDollarSign;
+
+                  return (
+                    <TableRow key={pago.id}>
+                      <TableCell className="text-sm">
+                        {formatDate(pago.created_at)}
+                      </TableCell>
+                      <TableCell>
+                        {pago.turno?.paciente ? (
+                          <Link
+                            href={`/dashboard/pacientes/${pago.turno.paciente.id}`}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {pago.turno.paciente.nombre}{" "}
+                            {pago.turno.paciente.apellido}
+                          </Link>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {pago.turno?.user
+                          ? `${pago.turno.user.nombre} ${pago.turno.user.apellido}`
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {pago.turno?.start_time
+                          ? `${formatDate(pago.turno.start_time)} ${formatTime(pago.turno.start_time)}`
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="text-sm">
+                        {pago.turno?.tipo_tratamiento
+                          ? TRATAMIENTOS_LABELS[
+                              pago.turno.tipo_tratamiento
+                            ] || pago.turno.tipo_tratamiento
+                          : "—"}
+                      </TableCell>
+                      <TableCell className="font-semibold">
+                        {formatCurrency(pago.total)}
+                      </TableCell>
+                      <TableCell>
+                        {pago.method ? (
+                          <div className="flex items-center gap-1.5">
+                            <MethodIcon
+                              className={`h-3.5 w-3.5 ${methodConf?.color || "text-muted-foreground"}`}
+                            />
+                            <span className="text-sm">
+                              {methodConf?.label || pago.method}
+                            </span>
+                          </div>
+                        ) : (
+                          "—"
+                        )}
+                      </TableCell>
+                      <TableCell>
+                        <Badge
+                          className={estadoColors[pago.estado] || ""}
                         >
-                          {pago.turno.paciente.nombre} {pago.turno.paciente.apellido}
-                        </Link>
-                      ) : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {pago.turno?.user
-                        ? `${pago.turno.user.nombre} ${pago.turno.user.apellido}`
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="text-sm">
-                      {pago.turno?.start_time
-                        ? `${formatDate(pago.turno.start_time)} ${formatTime(pago.turno.start_time)}`
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      {pago.turno?.tipo_tratamiento
-                        ? TRATAMIENTOS_LABELS[pago.turno.tipo_tratamiento] || pago.turno.tipo_tratamiento
-                        : "—"}
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {formatCurrency(pago.total)}
-                    </TableCell>
-                    <TableCell>
-                      {pago.method
-                        ? methodLabels[pago.method] || pago.method
-                        : "—"}
-                    </TableCell>
-                    <TableCell>
-                      <Badge className={estadoColors[pago.estado] || ""}>
-                        {pago.estado.charAt(0).toUpperCase() +
-                          pago.estado.slice(1)}
-                      </Badge>
-                    </TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all duration-200 hover:scale-110"
-                          onClick={() => openEdit(pago)}
-                          title="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all duration-200 hover:scale-110"
-                          onClick={() => handleDelete(pago.id)}
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
+                          {pago.estado.charAt(0).toUpperCase() +
+                            pago.estado.slice(1)}
+                        </Badge>
+                      </TableCell>
+                      <TableCell>
+                        <div className="flex items-center justify-center gap-0.5">
+                          {/* Acciones rápidas para pendientes */}
+                          {pago.estado === "pendiente" && (
+                            <>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all duration-200 hover:scale-110"
+                                onClick={() =>
+                                  handleQuickStatus(pago, "aprobado")
+                                }
+                                title="Aprobar pago"
+                              >
+                                <CheckCircle2 className="h-4 w-4" />
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
+                                className="h-8 w-8 text-orange-500 hover:text-orange-600 hover:bg-orange-50 dark:hover:bg-orange-950/40 transition-all duration-200 hover:scale-110"
+                                onClick={() =>
+                                  handleQuickStatus(pago, "rechazado")
+                                }
+                                title="Rechazar pago"
+                              >
+                                <XCircle className="h-4 w-4" />
+                              </Button>
+                            </>
+                          )}
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all duration-200 hover:scale-110"
+                            onClick={() => openEdit(pago)}
+                            title="Editar"
+                          >
+                            <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all duration-200 hover:scale-110"
+                            onClick={() => setDeleteDialog(pago)}
+                            title="Eliminar"
+                          >
+                            <Trash2 className="h-4 w-4" />
+                          </Button>
+                        </div>
+                      </TableCell>
+                    </TableRow>
+                  );
+                })}
               </TableBody>
             </Table>
           )}
@@ -515,7 +935,10 @@ export default function PagosPage() {
             <Pagination
               meta={meta}
               onPageChange={setPage}
-              onLimitChange={(l) => { setLimit(l); setPage(1); }}
+              onLimitChange={(l) => {
+                setLimit(l);
+                setPage(1);
+              }}
             />
           )}
         </CardContent>
@@ -545,7 +968,18 @@ export default function PagosPage() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue placeholder="Seleccionar turno" />
+                    <span>
+                      {form.turno_id
+                        ? (() => {
+                            const t = turnos.find((t) => t.id === form.turno_id);
+                            if (!t) return "Seleccionar turno";
+                            const pac = t.paciente
+                              ? `${t.paciente.nombre} ${t.paciente.apellido}`
+                              : "Sin paciente";
+                            return `${pac} — ${formatDate(t.start_time)} ${formatTime(t.start_time)}`;
+                          })()
+                        : "Seleccionar turno"}
+                    </span>
                   </SelectTrigger>
                   <SelectContent>
                     {turnos.map((t) => (
@@ -586,10 +1020,17 @@ export default function PagosPage() {
                   <SelectValue placeholder="Seleccionar método" />
                 </SelectTrigger>
                 <SelectContent>
-                  <SelectItem value="efectivo">Efectivo</SelectItem>
-                  <SelectItem value="mercadopago">MercadoPago</SelectItem>
-                  <SelectItem value="transferencia">Transferencia</SelectItem>
-                  <SelectItem value="tarjeta">Tarjeta</SelectItem>
+                  {Object.entries(METHOD_CONFIG).map(([key, conf]) => {
+                    const Icon = conf.icon;
+                    return (
+                      <SelectItem key={key} value={key}>
+                        <div className="flex items-center gap-2">
+                          <Icon className={`h-4 w-4 ${conf.color}`} />
+                          {conf.label}
+                        </div>
+                      </SelectItem>
+                    );
+                  })}
                 </SelectContent>
               </Select>
             </div>
@@ -623,12 +1064,57 @@ export default function PagosPage() {
               </Button>
               <Button
                 type="submit"
-                disabled={isSaving || (!editing && !form.turno_id) || !form.total || !form.method}
+                disabled={
+                  isSaving ||
+                  (!editing && !form.turno_id) ||
+                  !form.total ||
+                  !form.method
+                }
               >
                 {isSaving ? "Guardando..." : "Guardar"}
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Confirmar Eliminar */}
+      <Dialog
+        open={!!deleteDialog}
+        onOpenChange={(open) => !open && setDeleteDialog(null)}
+      >
+        <DialogContent className="sm:max-w-[400px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <AlertTriangle className="h-5 w-5 text-red-500" />
+              Confirmar eliminación
+            </DialogTitle>
+            <DialogDescription>
+              ¿Estás seguro de que deseas eliminar este pago de{" "}
+              <span className="font-semibold text-foreground">
+                {formatCurrency(deleteDialog?.total ?? null)}
+              </span>
+              {deleteDialog?.turno?.paciente && (
+                <>
+                  {" "}
+                  de{" "}
+                  <span className="font-semibold text-foreground">
+                    {deleteDialog.turno.paciente.nombre}{" "}
+                    {deleteDialog.turno.paciente.apellido}
+                  </span>
+                </>
+              )}
+              ? Esta acción no se puede deshacer.
+            </DialogDescription>
+          </DialogHeader>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setDeleteDialog(null)}>
+              Cancelar
+            </Button>
+            <Button variant="destructive" onClick={handleDelete}>
+              Eliminar
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

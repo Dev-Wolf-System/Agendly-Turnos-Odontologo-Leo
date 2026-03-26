@@ -1,11 +1,55 @@
 "use client";
 
+import { createContext, useContext, useState, useEffect } from "react";
 import Link from "next/link";
 import { usePathname } from "next/navigation";
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useClinica } from "@/components/providers/clinica-provider";
 import { ClinicLogo } from "@/components/ui/clinic-logo";
+
+/* ─── Sidebar Context ─── */
+
+interface SidebarContextType {
+  collapsed: boolean;
+  setCollapsed: (v: boolean) => void;
+  mobileOpen: boolean;
+  setMobileOpen: (v: boolean) => void;
+}
+
+const SidebarContext = createContext<SidebarContextType>({
+  collapsed: false,
+  setCollapsed: () => {},
+  mobileOpen: false,
+  setMobileOpen: () => {},
+});
+
+export const useSidebar = () => useContext(SidebarContext);
+
+export function SidebarProvider({ children }: { children: React.ReactNode }) {
+  const [collapsed, setCollapsed] = useState(false);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  // Persist collapsed state
+  useEffect(() => {
+    const saved = localStorage.getItem("sidebar-collapsed");
+    if (saved === "true") setCollapsed(true);
+  }, []);
+
+  useEffect(() => {
+    localStorage.setItem("sidebar-collapsed", String(collapsed));
+  }, [collapsed]);
+
+  return (
+    <SidebarContext.Provider
+      value={{ collapsed, setCollapsed, mobileOpen, setMobileOpen }}
+    >
+      {children}
+    </SidebarContext.Provider>
+  );
+}
+
+/* ─── Navigation ─── */
 
 const navigation = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
@@ -18,69 +62,191 @@ const navigation = [
   { name: "Configuración", href: "/dashboard/configuracion", icon: SettingsIcon },
 ];
 
+/* ─── Sidebar Component ─── */
+
 export function Sidebar() {
   const pathname = usePathname();
   const { user, logout } = useAuth();
   const { clinica } = useClinica();
+  const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
 
-  return (
-    <aside className="flex h-full w-64 flex-col bg-sidebar text-sidebar-foreground">
-      <div className="flex h-16 items-center gap-2 px-6 border-b border-sidebar-border">
-        <ClinicLogo
-          logoUrl={clinica?.logo_url ?? null}
-          especialidad={clinica?.especialidad ?? null}
-          size={36}
-        />
-        <span className="text-lg font-bold truncate">
-          {clinica?.nombre || "Agendly"}
-        </span>
+  // Close mobile sidebar on route change
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname, setMobileOpen]);
+
+  // Close mobile sidebar on Escape
+  useEffect(() => {
+    const handler = (e: KeyboardEvent) => {
+      if (e.key === "Escape") setMobileOpen(false);
+    };
+    if (mobileOpen) window.addEventListener("keydown", handler);
+    return () => window.removeEventListener("keydown", handler);
+  }, [mobileOpen, setMobileOpen]);
+
+  const sidebarContent = (
+    <aside
+      className={cn(
+        "flex h-full flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out overflow-hidden",
+        collapsed ? "w-[72px]" : "w-64"
+      )}
+    >
+      {/* Logo + Clinic name */}
+      <div
+        className={cn(
+          "flex h-16 items-center border-b border-sidebar-border shrink-0 transition-all duration-300",
+          collapsed ? "justify-center px-2" : "gap-3 px-4"
+        )}
+      >
+        <div className="shrink-0">
+          <ClinicLogo
+            logoUrl={clinica?.logo_url ?? null}
+            especialidad={clinica?.especialidad ?? null}
+            size={collapsed ? 32 : 36}
+          />
+        </div>
+        {!collapsed && (
+          <div className="min-w-0 flex-1 overflow-hidden">
+            <p className="text-base font-bold leading-tight truncate" title={clinica?.nombre || "Agendly"}>
+              {clinica?.nombre || "Agendly"}
+            </p>
+            {clinica?.especialidad && (
+              <p className="text-[11px] text-sidebar-foreground/50 truncate capitalize">
+                {clinica.especialidad}
+              </p>
+            )}
+          </div>
+        )}
       </div>
 
-      <nav className="flex-1 space-y-1 px-3 py-4">
+      {/* Collapse toggle — desktop only */}
+      <div className="hidden lg:flex justify-end px-2 pt-2">
+        <button
+          onClick={() => setCollapsed(!collapsed)}
+          className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+          title={collapsed ? "Expandir menú" : "Colapsar menú"}
+        >
+          <CollapseIcon className={cn("h-4 w-4 transition-transform duration-300", collapsed && "rotate-180")} />
+        </button>
+      </div>
+
+      {/* Navigation */}
+      <nav className={cn("flex-1 space-y-1 px-2 py-3", collapsed ? "overflow-hidden" : "overflow-y-auto")}>
         {navigation.map((item) => {
-          const isActive = pathname === item.href;
+          const isActive =
+            item.href === "/dashboard"
+              ? pathname === "/dashboard"
+              : pathname.startsWith(item.href);
+
           return (
-            <Link
-              key={item.name}
-              href={item.href}
-              className={cn(
-                "flex items-center gap-3 rounded-lg px-3 py-2 text-sm font-medium transition-colors",
-                isActive
-                  ? "bg-sidebar-accent text-sidebar-accent-foreground"
-                  : "text-sidebar-foreground/70 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+            <div key={item.name} className="relative group">
+              <Link
+                href={item.href}
+                className={cn(
+                  "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
+                  collapsed
+                    ? "justify-center px-0 py-2.5 mx-1"
+                    : "gap-3 px-3 py-2.5",
+                  isActive
+                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
+                    : "text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
+                )}
+              >
+                {/* Active indicator */}
+                {isActive && (
+                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-sidebar-primary transition-all duration-300" />
+                )}
+                <item.icon className={cn("shrink-0 transition-all duration-200", collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+                {!collapsed && <span>{item.name}</span>}
+              </Link>
+
+              {/* Tooltip when collapsed */}
+              {collapsed && (
+                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1.5 rounded-md bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 z-50 shadow-lg">
+                  {item.name}
+                </div>
               )}
-            >
-              <item.icon className="h-5 w-5" />
-              {item.name}
-            </Link>
+            </div>
           );
         })}
       </nav>
 
-      <div className="border-t border-sidebar-border p-4">
-        <div className="flex items-center gap-3">
-          <div className="h-9 w-9 rounded-full bg-sidebar-primary flex items-center justify-center text-sidebar-primary-foreground text-sm font-medium">
-            {user?.nombre?.charAt(0)}
-            {user?.apellido?.charAt(0)}
+      {/* User section */}
+      <div className="border-t border-sidebar-border p-3 shrink-0">
+        {collapsed ? (
+          <div className="flex flex-col items-center gap-2">
+            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 flex items-center justify-center text-sidebar-primary-foreground text-sm font-semibold shadow-sm">
+              {user?.nombre?.charAt(0)}
+              {user?.apellido?.charAt(0)}
+            </div>
+            <button
+              onClick={logout}
+              className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              title="Cerrar sesión"
+            >
+              <LogOutIcon className="h-4 w-4" />
+            </button>
           </div>
-          <div className="flex-1 min-w-0">
-            <p className="text-sm font-medium truncate">
-              {user?.nombre} {user?.apellido}
-            </p>
-            <p className="text-xs text-sidebar-foreground/60 truncate">
-              {user?.email}
-            </p>
+        ) : (
+          <div className="flex items-center gap-3">
+            <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 flex items-center justify-center text-sidebar-primary-foreground text-sm font-semibold shadow-sm">
+              {user?.nombre?.charAt(0)}
+              {user?.apellido?.charAt(0)}
+            </div>
+            <div className="flex-1 min-w-0">
+              <p className="text-sm font-medium truncate">
+                {user?.nombre} {user?.apellido}
+              </p>
+              <p className="text-xs text-sidebar-foreground/50 truncate">
+                {user?.email}
+              </p>
+            </div>
+            <button
+              onClick={logout}
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              title="Cerrar sesión"
+            >
+              <LogOutIcon className="h-4 w-4" />
+            </button>
           </div>
-          <button
-            onClick={logout}
-            className="text-sidebar-foreground/60 hover:text-sidebar-foreground"
-            aria-label="Cerrar sesión"
-          >
-            <LogOutIcon className="h-4 w-4" />
-          </button>
-        </div>
+        )}
       </div>
     </aside>
+  );
+
+  return (
+    <>
+      {/* Desktop sidebar */}
+      <div className="hidden lg:block shrink-0">{sidebarContent}</div>
+
+      {/* Mobile overlay */}
+      {mobileOpen && (
+        <div
+          className="fixed inset-0 z-40 bg-black/50 backdrop-blur-sm lg:hidden animate-in fade-in duration-200"
+          onClick={() => setMobileOpen(false)}
+        />
+      )}
+
+      {/* Mobile sidebar */}
+      <div
+        className={cn(
+          "fixed inset-y-0 left-0 z-50 lg:hidden transition-transform duration-300 ease-in-out",
+          mobileOpen ? "translate-x-0" : "-translate-x-full"
+        )}
+      >
+        {sidebarContent}
+      </div>
+    </>
+  );
+}
+
+/* ─── Icons ─── */
+
+function CollapseIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="m11 17-5-5 5-5" /><path d="m18 17-5-5 5-5" />
+    </svg>
   );
 }
 

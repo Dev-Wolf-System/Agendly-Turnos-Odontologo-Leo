@@ -22,15 +22,25 @@ export class PagosController {
   @Get()
   findAll(
     @CurrentClinica() clinicaId: string,
-    @Query() filters?: FilterPagosDto,
+    @Query('turno_id') turnoId?: string,
+    @Query('estado') estado?: string,
+    @Query('method') method?: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sortBy') sortBy?: string,
     @Query('sortOrder') sortOrder?: string,
   ) {
-    if (filters?.turno_id) {
-      return this.pagosService.findByTurno(clinicaId, filters.turno_id);
+    if (turnoId) {
+      return this.pagosService.findByTurno(clinicaId, turnoId);
     }
+    const filters: FilterPagosDto = {};
+    if (estado) filters.estado = estado as any;
+    if (method) filters.method = method;
+    if (desde) filters.desde = desde;
+    if (hasta) filters.hasta = hasta;
+
     return this.pagosService.findAll(clinicaId, filters, {
       page: page ? parseInt(page) : undefined,
       limit: limit ? parseInt(limit) : undefined,
@@ -42,8 +52,12 @@ export class PagosController {
   @Get('resumen')
   getResumen(
     @CurrentClinica() clinicaId: string,
-    @Query() filters?: FilterPagosDto,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
   ) {
+    const filters: FilterPagosDto = {};
+    if (desde) filters.desde = desde;
+    if (hasta) filters.hasta = hasta;
     return this.pagosService.getResumen(clinicaId, filters);
   }
 

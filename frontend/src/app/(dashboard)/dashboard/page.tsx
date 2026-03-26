@@ -25,6 +25,7 @@ import {
   Area,
 } from "recharts";
 import { useRouter } from "next/navigation";
+import { WelcomeBanner } from "@/components/ui/welcome-banner";
 import dashboardService, {
   DashboardStats,
   TurnoHoy,
@@ -129,6 +130,8 @@ export default function DashboardPage() {
 
   return (
     <div className="space-y-6">
+      <WelcomeBanner />
+
       <div>
         <h1 className="text-3xl font-bold">Dashboard</h1>
         <p className="text-muted-foreground">Resumen general de tu clínica</p>

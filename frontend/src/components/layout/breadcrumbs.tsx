@@ -17,8 +17,8 @@ export function Breadcrumbs() {
   const pathname = usePathname();
   const segments = pathname.split("/").filter(Boolean);
 
-  // No mostrar breadcrumbs en la raíz del dashboard
-  if (segments.length <= 1) return null;
+  // En la raíz del dashboard, retornar un span vacío para mantener el layout
+  if (segments.length <= 1) return <span />;
 
   const crumbs = segments.map((segment, index) => {
     const href = "/" + segments.slice(0, index + 1).join("/");
