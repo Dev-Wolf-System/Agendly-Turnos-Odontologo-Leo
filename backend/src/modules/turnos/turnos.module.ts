@@ -7,9 +7,13 @@ import { Clinica } from '../clinicas/entities/clinica.entity';
 import { TurnosService } from './turnos.service';
 import { TurnosController } from './turnos.controller';
 import { WebhookService } from '../../common/services/webhook.service';
+import { NotificacionesModule } from '../notificaciones/notificaciones.module';
 
 @Module({
-  imports: [TypeOrmModule.forFeature([Turno, Pago, HistorialMedico, Clinica])],
+  imports: [
+    TypeOrmModule.forFeature([Turno, Pago, HistorialMedico, Clinica]),
+    NotificacionesModule,
+  ],
   controllers: [TurnosController],
   providers: [TurnosService, WebhookService],
   exports: [TurnosService],

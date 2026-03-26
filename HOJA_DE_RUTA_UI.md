@@ -150,21 +150,36 @@
 
 ---
 
-## Fase G: Sistema de Notificaciones ❌ PENDIENTE
+## Fase G: Sistema de Notificaciones ✅ COMPLETADA
 
-- [ ] Backend: endpoint + generación automática
-- [ ] Frontend: campana en header, dropdown, tipos (info/warning/alert)
+### Backend
+- [x] Entidad Notificacion (tipo, titulo, mensaje, leida, metadata, user_id)
+- [x] Enum TipoNotificacion (turno_proximo, stock_bajo, pago_pendiente, turno_cancelado, turno_confirmado, turno_perdido, info)
+- [x] Endpoints: GET /, GET /sin-leer, GET /count, PATCH /leer-todas, PATCH /:id/leer, DELETE /:id
+- [x] Cron @EVERY_30_MINUTES: verificar stock bajo (sin duplicar notificaciones existentes)
+- [x] Cron @EVERY_30_MINUTES: verificar turnos próximos (1 hora antes)
+- [x] Notificaciones automáticas al cambiar estado de turno (confirmado, cancelado, perdido)
+
+### Frontend
+- [x] Servicio notificaciones.service.ts
+- [x] Componente NotificationBell con dropdown en header
+- [x] Badge con contador de sin leer (polling cada 60s)
+- [x] Iconos y colores por tipo de notificación
+- [x] Marcar como leída (individual y todas)
+- [x] Eliminar notificación
+- [x] Click en notificación → navega a la sección relevante
+- [x] Empty state y timeAgo relativo
 
 ---
 
-## Fase H: Navegación Cruzada entre Secciones ❌ PENDIENTE
+## Fase H: Navegación Cruzada entre Secciones ✅ COMPLETADA
 
-- [ ] Nombre del paciente clickeable en turnos → ficha
-- [ ] Nombre del paciente clickeable en pagos → ficha
-- [ ] Desde ficha: botón "Nuevo turno" pre-cargado
-- [ ] Desde ficha: botón "Agregar historial" pre-cargado
-- [ ] Odontólogo clickeable → filtrar turnos
-- [ ] Turno asociado con link en historial médico
+- [x] Nombre del paciente clickeable en turnos → ficha
+- [x] Nombre del paciente clickeable en pagos → ficha
+- [x] Desde ficha: botón "Nuevo turno" pre-cargado
+- [x] Desde ficha: botón "Agregar historial" pre-cargado
+- [x] Odontólogo clickeable → filtrar turnos
+- [x] Turno asociado con link en historial médico
 
 ---
 
@@ -178,5 +193,5 @@
 | **D** | Logo de Clínica y Branding Dinámico | ✅ Completada |
 | **E** | Configuración de la Clínica (5 tabs) | ✅ Completada |
 | **F** | Webhooks y Recordatorios Nativos | ✅ Completada |
-| **G** | Notificaciones | ❌ Pendiente |
-| **H** | Navegación Cruzada | ❌ Pendiente |
+| **G** | Notificaciones | ✅ Completada |
+| **H** | Navegación Cruzada | ✅ Completada |

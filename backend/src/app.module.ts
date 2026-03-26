@@ -20,6 +20,7 @@ import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { CategoriasModule } from './modules/categorias/categorias.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { TratamientosModule } from './modules/tratamientos/tratamientos.module';
+import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
 
 @Module({
   imports: [
@@ -38,6 +39,7 @@ import { TratamientosModule } from './modules/tratamientos/tratamientos.module';
     CategoriasModule,
     DashboardModule,
     TratamientosModule,
+    NotificacionesModule,
   ],
   providers: [
     {

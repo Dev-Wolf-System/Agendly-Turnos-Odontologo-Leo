@@ -15,6 +15,7 @@ import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
 import { EstadoTurno } from '../../common/enums';
 import { WebhookService } from '../../common/services/webhook.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 
 @Injectable()
 export class TurnosService {
@@ -28,6 +29,7 @@ export class TurnosService {
     @InjectRepository(HistorialMedico)
     private readonly historialRepository: Repository<HistorialMedico>,
     private readonly webhookService: WebhookService,
+    private readonly notificacionesService: NotificacionesService,
   ) {}
 
   async findAll(
@@ -176,9 +178,17 @@ export class TurnosService {
     await this.turnoRepository.save(turno);
     const full = await this.findOne(id, clinicaId);
 
-    // Disparar webhook si el estado cambió
+    // Disparar webhook y notificación si el estado cambió
     if (updateTurnoDto.estado && updateTurnoDto.estado !== estadoAnterior) {
       this.fireWebhook(clinicaId, updateTurnoDto.estado, full);
+      const pacNombre = `${full.paciente?.nombre || ''} ${full.paciente?.apellido || ''}`.trim();
+      this.notificacionesService.notificarCambioEstadoTurno(
+        clinicaId,
+        updateTurnoDto.estado as EstadoTurno,
+        pacNombre,
+        full.id,
+        full.user_id,
+      ).catch(() => {});
     }
 
     return full;

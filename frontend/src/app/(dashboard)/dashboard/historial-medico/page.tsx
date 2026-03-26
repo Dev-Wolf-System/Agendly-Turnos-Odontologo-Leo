@@ -425,11 +425,14 @@ export default function HistorialMedicoPage() {
                             </Badge>
                           </div>
                           {registro.turno && (
-                            <p className="text-xs text-muted-foreground pl-5">
+                            <Link
+                              href={`/dashboard/turnos?turno_id=${registro.turno.id}`}
+                              className="text-xs text-primary hover:underline pl-5 inline-block"
+                            >
                               Turno: {new Date(registro.turno.start_time).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
                               {" - "}
                               {new Date(registro.turno.end_time).toLocaleTimeString("es-AR", { hour: "2-digit", minute: "2-digit" })}
-                            </p>
+                            </Link>
                           )}
                         </div>
                         <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity duration-200">

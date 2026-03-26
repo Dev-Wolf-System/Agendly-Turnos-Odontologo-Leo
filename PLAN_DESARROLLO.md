@@ -157,18 +157,19 @@
 - [x] Login: mensajes de error descriptivos (401 → "Contraseña incorrecta")
 - [x] Label "Odontólogo" renombrado a "Profesional"
 
-### Navegación cruzada entre secciones ❌ PENDIENTE
-- [ ] Nombre del paciente clickeable en turnos → ficha del paciente
-- [ ] Nombre del paciente clickeable en pagos → ficha del paciente
-- [ ] Desde ficha del paciente: botón "Nuevo turno" pre-cargado
-- [ ] Desde ficha del paciente: botón "Agregar historial" pre-cargado
-- [ ] Nombre del odontólogo clickeable en turnos → filtrar por odontólogo
-- [ ] Mostrar turno asociado con link en historial médico
+### Navegación cruzada entre secciones ✅
+- [x] Nombre del paciente clickeable en turnos → ficha del paciente
+- [x] Nombre del paciente clickeable en pagos → ficha del paciente
+- [x] Desde ficha del paciente: botón "Nuevo turno" pre-cargado
+- [x] Desde ficha del paciente: botón "Agregar historial" pre-cargado
+- [x] Nombre del odontólogo clickeable en turnos → filtrar por odontólogo
+- [x] Turno asociado con link en historial médico
 
-### Sistema de notificaciones ❌ PENDIENTE
-- [ ] Backend: endpoint GET /notificaciones + generación automática
-- [ ] Frontend: campana en header con badge, dropdown, marcar como leída
-- [ ] Tipos: info (turno próximo), warning (stock bajo), alert (pago vencido)
+### Sistema de notificaciones ✅
+- [x] Backend: entidad Notificacion + endpoints CRUD + generación automática por cron
+- [x] Crons: stock bajo (@30min), turnos próximos (@30min), cambio estado turno (evento)
+- [x] Frontend: campana NotificationBell en header con badge, dropdown, marcar como leída
+- [x] Tipos: turno_proximo, stock_bajo, pago_pendiente, turno_cancelado, turno_confirmado, turno_perdido, info
 
 ---
 
@@ -286,7 +287,7 @@
 | **2** | Módulos CRUD Core (10 módulos + 10 páginas) | ✅ Completada |
 | **3** | Dashboard y Gráficos | ✅ Completada |
 | **4** | Mejoras UI/UX (calendario, KPIs, validaciones, logo) | ✅ Completada |
-| **5** | Mejoras UI/UX Avanzadas (tratamientos, config, webhooks, logo) | 🔶 Parcial |
+| **5** | Mejoras UI/UX Avanzadas (tratamientos, config, webhooks, notificaciones) | ✅ Completada |
 | **6** | Integración Mercado Pago (pagos pacientes) | ❌ Pendiente |
 | **7** | Integraciones Google | ❌ Pendiente |
 | **8** | WhatsApp + n8n + IA | ❌ Pendiente |
