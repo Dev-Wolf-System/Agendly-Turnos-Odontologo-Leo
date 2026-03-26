@@ -32,9 +32,9 @@ export default function LoginPage() {
     try {
       await login({ email, password });
       router.push("/dashboard");
-    } catch (err: unknown) {
+    } catch (err: any) {
       const message =
-        err instanceof Error ? err.message : "Email o contraseña incorrectos";
+        err?.response?.data?.message || err?.message || "Email o contraseña incorrectos";
       setError(message);
     } finally {
       setIsLoading(false);

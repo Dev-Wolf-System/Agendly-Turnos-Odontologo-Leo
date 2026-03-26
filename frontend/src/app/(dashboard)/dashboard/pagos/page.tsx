@@ -1,13 +1,17 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import Link from "next/link";
 import pagosService, {
   Pago,
   PagoFilters,
   PagoResumen,
   EstadoPago,
 } from "@/services/pagos.service";
-import turnosService, { Turno, TRATAMIENTOS_LABELS, type TipoTratamiento } from "@/services/turnos.service";
+import type { PaginationMeta } from "@/services/pacientes.service";
+import { Pagination } from "@/components/ui/pagination";
+import { SortableHeader } from "@/components/ui/sortable-header";
+import turnosService, { Turno, TRATAMIENTOS_LABELS } from "@/services/turnos.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -83,6 +87,11 @@ function formatTime(dateStr: string) {
 
 export default function PagosPage() {
   const [pagos, setPagos] = useState<Pago[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [sortBy, setSortBy] = useState("created_at");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("DESC");
   const [resumen, setResumen] = useState<PagoResumen | null>(null);
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -116,21 +125,28 @@ export default function PagosPage() {
     try {
       setIsLoading(true);
       const filters = buildFilters();
-      const [pagosData, resumenData] = await Promise.all([
-        pagosService.getAll(filters),
+      const [pagosResult, resumenData] = await Promise.all([
+        pagosService.getAll(filters, { page, limit, sortBy, sortOrder }),
         pagosService.getResumen({
           desde: filters.desde,
           hasta: filters.hasta,
         }),
       ]);
-      setPagos(pagosData);
+      setPagos(pagosResult.data);
+      setMeta(pagosResult.meta);
       setResumen(resumenData);
     } catch {
       toast.error("Error al cargar pagos");
     } finally {
       setIsLoading(false);
     }
-  }, [buildFilters]);
+  }, [buildFilters, page, limit, sortBy, sortOrder]);
+
+  const handleSort = (field: string, order: "ASC" | "DESC") => {
+    setSortBy(field);
+    setSortOrder(order);
+    setPage(1);
+  };
 
   const loadTurnos = useCallback(async () => {
     try {
@@ -210,6 +226,7 @@ export default function PagosPage() {
     setFiltroMethod("all");
     setFiltroDesde("");
     setFiltroHasta("");
+    setPage(1);
   };
 
   return (
@@ -331,58 +348,72 @@ export default function PagosPage() {
         <CardHeader>
           <CardTitle>Lista de Pagos</CardTitle>
           <CardDescription>Todos los pagos registrados</CardDescription>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <Select
-              value={filtroEstado}
-              onValueChange={(v: string | null) => v && setFiltroEstado(v)}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Estado" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="pendiente">Pendiente</SelectItem>
-                <SelectItem value="aprobado">Aprobado</SelectItem>
-                <SelectItem value="rechazado">Rechazado</SelectItem>
-              </SelectContent>
-            </Select>
+          <div className="flex flex-wrap items-end gap-3 pt-2">
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Estado</span>
+              <Select
+                value={filtroEstado}
+                onValueChange={(v: string | null) => { v && setFiltroEstado(v); setPage(1); }}
+              >
+                <SelectTrigger className="w-44">
+                  <span>
+                    {{ all: "Todos los estados", pendiente: "Pendiente", aprobado: "Aprobado", rechazado: "Rechazado" }[filtroEstado]}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="pendiente">Pendiente</SelectItem>
+                  <SelectItem value="aprobado">Aprobado</SelectItem>
+                  <SelectItem value="rechazado">Rechazado</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Select
-              value={filtroMethod}
-              onValueChange={(v: string | null) => v && setFiltroMethod(v)}
-            >
-              <SelectTrigger className="w-40">
-                <SelectValue placeholder="Método" />
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los métodos</SelectItem>
-                <SelectItem value="efectivo">Efectivo</SelectItem>
-                <SelectItem value="mercadopago">MercadoPago</SelectItem>
-                <SelectItem value="transferencia">Transferencia</SelectItem>
-                <SelectItem value="tarjeta">Tarjeta</SelectItem>
-              </SelectContent>
-            </Select>
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Método de pago</span>
+              <Select
+                value={filtroMethod}
+                onValueChange={(v: string | null) => { v && setFiltroMethod(v); setPage(1); }}
+              >
+                <SelectTrigger className="w-44">
+                  <span>
+                    {{ all: "Todos los métodos", efectivo: "Efectivo", mercadopago: "MercadoPago", transferencia: "Transferencia", tarjeta: "Tarjeta" }[filtroMethod]}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los métodos</SelectItem>
+                  <SelectItem value="efectivo">Efectivo</SelectItem>
+                  <SelectItem value="mercadopago">MercadoPago</SelectItem>
+                  <SelectItem value="transferencia">Transferencia</SelectItem>
+                  <SelectItem value="tarjeta">Tarjeta</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
 
-            <Input
-              type="date"
-              value={filtroDesde}
-              onChange={(e) => setFiltroDesde(e.target.value)}
-              className="w-40"
-              placeholder="Desde"
-            />
-            <Input
-              type="date"
-              value={filtroHasta}
-              onChange={(e) => setFiltroHasta(e.target.value)}
-              className="w-40"
-              placeholder="Hasta"
-            />
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Desde</span>
+              <Input
+                type="date"
+                value={filtroDesde}
+                onChange={(e) => { setFiltroDesde(e.target.value); setPage(1); }}
+                className="w-40"
+              />
+            </div>
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Hasta</span>
+              <Input
+                type="date"
+                value={filtroHasta}
+                onChange={(e) => { setFiltroHasta(e.target.value); setPage(1); }}
+                className="w-40"
+              />
+            </div>
 
             {(filtroEstado !== "all" ||
               filtroMethod !== "all" ||
               filtroDesde ||
               filtroHasta) && (
-              <Button variant="ghost" size="sm" onClick={clearFilters}>
+              <Button variant="ghost" size="sm" onClick={clearFilters} className="mb-0.5">
                 Limpiar filtros
               </Button>
             )}
@@ -399,14 +430,14 @@ export default function PagosPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Fecha</TableHead>
+                  <SortableHeader label="Fecha" field="created_at" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                   <TableHead>Paciente</TableHead>
                   <TableHead>Odontólogo</TableHead>
                   <TableHead>Turno</TableHead>
                   <TableHead>Tratamiento</TableHead>
-                  <TableHead>Total</TableHead>
-                  <TableHead>Método</TableHead>
-                  <TableHead>Estado</TableHead>
+                  <SortableHeader label="Total" field="total" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Método" field="method" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Estado" field="estado" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                   <TableHead className="w-[100px] text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -415,9 +446,14 @@ export default function PagosPage() {
                   <TableRow key={pago.id}>
                     <TableCell>{formatDate(pago.created_at)}</TableCell>
                     <TableCell>
-                      {pago.turno?.paciente
-                        ? `${pago.turno.paciente.nombre} ${pago.turno.paciente.apellido}`
-                        : "—"}
+                      {pago.turno?.paciente ? (
+                        <Link
+                          href={`/dashboard/pacientes/${pago.turno.paciente.id}`}
+                          className="text-primary hover:underline font-medium"
+                        >
+                          {pago.turno.paciente.nombre} {pago.turno.paciente.apellido}
+                        </Link>
+                      ) : "—"}
                     </TableCell>
                     <TableCell>
                       {pago.turno?.user
@@ -431,7 +467,7 @@ export default function PagosPage() {
                     </TableCell>
                     <TableCell>
                       {pago.turno?.tipo_tratamiento
-                        ? TRATAMIENTOS_LABELS[pago.turno.tipo_tratamiento as TipoTratamiento] || pago.turno.tipo_tratamiento
+                        ? TRATAMIENTOS_LABELS[pago.turno.tipo_tratamiento] || pago.turno.tipo_tratamiento
                         : "—"}
                     </TableCell>
                     <TableCell className="font-medium">
@@ -474,6 +510,13 @@ export default function PagosPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
+          {!isLoading && meta.total > 0 && (
+            <Pagination
+              meta={meta}
+              onPageChange={setPage}
+              onLimitChange={(l) => { setLimit(l); setPage(1); }}
+            />
           )}
         </CardContent>
       </Card>

@@ -6,6 +6,7 @@ import { Turno } from '../turnos/entities/turno.entity';
 import { CreatePagoDto } from './dto/create-pago.dto';
 import { UpdatePagoDto } from './dto/update-pago.dto';
 import { FilterPagosDto } from './dto/filter-pagos.dto';
+import { PaginationDto, PaginatedResponse } from '../../common/dto/pagination.dto';
 import { EstadoPago } from '../../common/enums';
 
 @Injectable()
@@ -33,7 +34,19 @@ export class PagosService {
       .getMany();
   }
 
-  async findAll(clinicaId: string, filters?: FilterPagosDto): Promise<Pago[]> {
+  async findAll(
+    clinicaId: string,
+    filters?: FilterPagosDto,
+    pagination?: PaginationDto,
+  ): Promise<PaginatedResponse<Pago>> {
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 20;
+    const sortBy = pagination?.sortBy || 'created_at';
+    const sortOrder = (pagination?.sortOrder?.toUpperCase() === 'ASC' ? 'ASC' : 'DESC') as 'ASC' | 'DESC';
+
+    const allowedSortFields = ['created_at', 'total', 'estado', 'method'];
+    const safeSort = allowedSortFields.includes(sortBy) ? sortBy : 'created_at';
+
     const qb = this.baseQuery(clinicaId);
 
     if (filters?.estado) {
@@ -49,7 +62,18 @@ export class PagosService {
       qb.andWhere('p.created_at <= :hasta', { hasta: `${filters.hasta}T23:59:59` });
     }
 
-    return qb.orderBy('p.created_at', 'DESC').getMany();
+    const total = await qb.getCount();
+
+    qb.orderBy(`p.${safeSort}`, sortOrder)
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const data = await qb.getMany();
+
+    return {
+      data,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async getResumen(clinicaId: string, filters?: FilterPagosDto) {
@@ -150,6 +174,7 @@ export class PagosService {
 
   async remove(id: string, clinicaId: string): Promise<void> {
     const pago = await this.findOne(id, clinicaId);
-    await this.pagoRepository.remove(pago);
+    pago.estado = EstadoPago.PENDIENTE;
+    await this.pagoRepository.save(pago);
   }
 }

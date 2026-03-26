@@ -1,4 +1,5 @@
 import api from "./api";
+import type { PaginationParams, PaginatedResponse } from "./pacientes.service";
 
 export interface Proveedor {
   id: string;
@@ -25,8 +26,10 @@ export interface UpdateProveedorPayload {
 }
 
 const proveedoresService = {
-  getAll: () =>
-    api.get<Proveedor[]>("/proveedores").then((r) => r.data),
+  getAll: (pagination?: PaginationParams) =>
+    api.get<PaginatedResponse<Proveedor>>("/proveedores", {
+      params: pagination || {},
+    }).then((r) => r.data),
 
   getById: (id: string) =>
     api.get<Proveedor>(`/proveedores/${id}`).then((r) => r.data),

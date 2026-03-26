@@ -1,5 +1,24 @@
 import api from "./api";
 
+export interface PaginationMeta {
+  page: number;
+  limit: number;
+  total: number;
+  totalPages: number;
+}
+
+export interface PaginatedResponse<T> {
+  data: T[];
+  meta: PaginationMeta;
+}
+
+export interface PaginationParams {
+  page?: number;
+  limit?: number;
+  sortBy?: string;
+  sortOrder?: "ASC" | "DESC";
+}
+
 export interface Paciente {
   id: string;
   clinica_id: string;
@@ -74,8 +93,10 @@ export interface FichaPaciente {
 }
 
 const pacientesService = {
-  getAll: (search?: string) =>
-    api.get<Paciente[]>("/pacientes", { params: search ? { search } : {} }).then((r) => r.data),
+  getAll: (search?: string, pagination?: PaginationParams) =>
+    api.get<PaginatedResponse<Paciente>>("/pacientes", {
+      params: { ...(search ? { search } : {}), ...pagination },
+    }).then((r) => r.data),
 
   getById: (id: string) =>
     api.get<Paciente>(`/pacientes/${id}`).then((r) => r.data),

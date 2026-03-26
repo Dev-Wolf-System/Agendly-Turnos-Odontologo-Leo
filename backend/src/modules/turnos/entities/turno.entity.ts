@@ -1,6 +1,6 @@
 import { Entity, Column, ManyToOne, OneToMany, JoinColumn, Index } from 'typeorm';
 import { TenantBaseEntity } from '../../../common/entities/tenant-base.entity';
-import { EstadoTurno, SourceTurno, TipoTratamiento } from '../../../common/enums';
+import { EstadoTurno, SourceTurno } from '../../../common/enums';
 import { Clinica } from '../../clinicas/entities/clinica.entity';
 import { Paciente } from '../../pacientes/entities/paciente.entity';
 import { User } from '../../users/entities/user.entity';
@@ -29,10 +29,19 @@ export class Turno extends TenantBaseEntity {
   source: SourceTurno;
 
   @Column({ type: 'text', nullable: true })
-  tipo_tratamiento: TipoTratamiento;
+  tipo_tratamiento: string;
 
   @Column({ type: 'text', nullable: true })
   notas: string;
+
+  @Column({ type: 'boolean', default: false })
+  fue_reprogramado: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  es_reprogramacion: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  recordatorio_enviado: boolean;
 
   @ManyToOne(() => Clinica, (clinica) => clinica.turnos)
   @JoinColumn({ name: 'clinica_id' })

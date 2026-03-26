@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { ProveedoresService } from './proveedores.service';
@@ -18,8 +19,19 @@ export class ProveedoresController {
   constructor(private readonly proveedoresService: ProveedoresService) {}
 
   @Get()
-  findAll(@CurrentClinica() clinicaId: string) {
-    return this.proveedoresService.findAll(clinicaId);
+  findAll(
+    @CurrentClinica() clinicaId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
+  ) {
+    return this.proveedoresService.findAll(clinicaId, {
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      sortBy,
+      sortOrder: sortOrder as any,
+    });
   }
 
   @Get(':id')

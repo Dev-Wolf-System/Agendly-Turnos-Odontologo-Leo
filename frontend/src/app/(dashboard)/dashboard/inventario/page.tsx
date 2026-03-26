@@ -2,6 +2,9 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import api from "@/services/api";
+import type { PaginationMeta } from "@/services/pacientes.service";
+import { Pagination } from "@/components/ui/pagination";
+import { SortableHeader } from "@/components/ui/sortable-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -71,6 +74,11 @@ interface InventarioItem {
 
 export default function InventarioPage() {
   const [items, setItems] = useState<InventarioItem[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [sortBy, setSortBy] = useState("nombre");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC");
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [categorias, setCategorias] = useState<Categoria[]>([]);
   const [isLoading, setIsLoading] = useState(true);
@@ -97,19 +105,28 @@ export default function InventarioPage() {
     try {
       setIsLoading(true);
       const [invRes, provRes, cats] = await Promise.all([
-        api.get<InventarioItem[]>("/inventario"),
-        api.get<Proveedor[]>("/proveedores"),
+        api.get<{ data: InventarioItem[]; meta: PaginationMeta }>("/inventario", {
+          params: { page, limit, sortBy, sortOrder },
+        }),
+        api.get<{ data: Proveedor[]; meta: PaginationMeta }>("/proveedores"),
         categoriasService.getAll(),
       ]);
-      setItems(invRes.data);
-      setProveedores(provRes.data);
+      setItems(invRes.data.data);
+      setMeta(invRes.data.meta);
+      setProveedores(provRes.data.data);
       setCategorias(cats);
     } catch {
       toast.error("Error al cargar inventario");
     } finally {
       setIsLoading(false);
     }
-  }, []);
+  }, [page, limit, sortBy, sortOrder]);
+
+  const handleSort = (field: string, order: "ASC" | "DESC") => {
+    setSortBy(field);
+    setSortOrder(order);
+    setPage(1);
+  };
 
   useEffect(() => {
     loadData();
@@ -316,54 +333,63 @@ export default function InventarioPage() {
           <CardDescription>
             Gestiona cantidades y alertas de stock mínimo
           </CardDescription>
-          <div className="flex flex-wrap gap-3 pt-2">
-            <div className="relative flex-1 max-w-sm">
-              <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
-              <Input
-                placeholder="Buscar material o proveedor..."
-                value={search}
-                onChange={(e) => setSearch(e.target.value)}
-                className="pl-10"
-              />
+          <div className="flex flex-wrap items-end gap-3 pt-2">
+            <div className="space-y-1 flex-1 max-w-sm">
+              <span className="text-xs font-medium text-muted-foreground">Buscar</span>
+              <div className="relative">
+                <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+                <Input
+                  placeholder="Buscar material o proveedor..."
+                  value={search}
+                  onChange={(e) => setSearch(e.target.value)}
+                  className="pl-10"
+                />
+              </div>
             </div>
-            <Select
-              value={filterStock}
-              onValueChange={(v: string | null) => v && setFilterStock(v)}
-            >
-              <SelectTrigger className="w-44">
-                <span>
-                  {{ all: "Todos los estados", low: "Stock bajo", ok: "Stock normal" }[filterStock]}
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todos los estados</SelectItem>
-                <SelectItem value="low">Stock bajo</SelectItem>
-                <SelectItem value="ok">Stock normal</SelectItem>
-              </SelectContent>
-            </Select>
-            <Select
-              value={filterCat}
-              onValueChange={(v: string | null) => v && setFilterCat(v)}
-            >
-              <SelectTrigger className="w-48">
-                <span>
-                  {filterCat === "all"
-                    ? "Todas las categorías"
-                    : filterCat === "__none__"
-                      ? "Sin categoría"
-                      : categorias.find((c) => c.id === filterCat)?.nombre || "Categoría"}
-                </span>
-              </SelectTrigger>
-              <SelectContent>
-                <SelectItem value="all">Todas las categorías</SelectItem>
-                <SelectItem value="__none__">Sin categoría</SelectItem>
-                {categorias.map((c) => (
-                  <SelectItem key={c.id} value={c.id}>
-                    {c.nombre}
-                  </SelectItem>
-                ))}
-              </SelectContent>
-            </Select>
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Nivel de stock</span>
+              <Select
+                value={filterStock}
+                onValueChange={(v: string | null) => v && setFilterStock(v)}
+              >
+                <SelectTrigger className="w-44">
+                  <span>
+                    {{ all: "Todos los niveles", low: "Stock bajo", ok: "Stock normal" }[filterStock]}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los niveles</SelectItem>
+                  <SelectItem value="low">Stock bajo</SelectItem>
+                  <SelectItem value="ok">Stock normal</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div className="space-y-1">
+              <span className="text-xs font-medium text-muted-foreground">Categoría</span>
+              <Select
+                value={filterCat}
+                onValueChange={(v: string | null) => v && setFilterCat(v)}
+              >
+                <SelectTrigger className="w-48">
+                  <span>
+                    {filterCat === "all"
+                      ? "Todas las categorías"
+                      : filterCat === "__none__"
+                        ? "Sin categoría"
+                        : categorias.find((c) => c.id === filterCat)?.nombre || "Categoría"}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todas las categorías</SelectItem>
+                  <SelectItem value="__none__">Sin categoría</SelectItem>
+                  {categorias.map((c) => (
+                    <SelectItem key={c.id} value={c.id}>
+                      {c.nombre}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
+            </div>
           </div>
         </CardHeader>
         <CardContent>
@@ -389,12 +415,12 @@ export default function InventarioPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>Material</TableHead>
-                  <TableHead className="w-[180px]">Stock</TableHead>
-                  <TableHead>Mínimo</TableHead>
+                  <SortableHeader label="Material" field="nombre" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Stock" field="cantidad" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} className="w-[180px]" />
+                  <SortableHeader label="Mínimo" field="stock_min" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                   <TableHead>Categoría</TableHead>
                   <TableHead>Proveedor</TableHead>
-                  <TableHead>Actualización</TableHead>
+                  <SortableHeader label="Actualización" field="created_at" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                   <TableHead className="w-[100px] text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -498,6 +524,13 @@ export default function InventarioPage() {
                 })}
               </TableBody>
             </Table>
+          )}
+          {!isLoading && meta.total > 0 && (
+            <Pagination
+              meta={meta}
+              onPageChange={setPage}
+              onLimitChange={(l) => { setLimit(l); setPage(1); }}
+            />
           )}
         </CardContent>
       </Card>

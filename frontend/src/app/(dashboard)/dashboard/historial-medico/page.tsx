@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import historialMedicoService, {
   HistorialMedico,
   CreateHistorialPayload,
@@ -73,6 +75,8 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function HistorialMedicoPage() {
+  const searchParams = useSearchParams();
+  const preloadPacienteId = searchParams.get("paciente_id");
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [selectedPaciente, setSelectedPaciente] = useState<Paciente | null>(null);
   const [historial, setHistorial] = useState<HistorialMedico[]>([]);
@@ -97,8 +101,8 @@ export default function HistorialMedicoPage() {
     }
     try {
       setIsLoading(true);
-      const data = await pacientesService.getAll(search);
-      setPacientes(data);
+      const result = await pacientesService.getAll(search);
+      setPacientes(result.data);
     } catch {
       toast.error("Error al buscar pacientes");
     } finally {
@@ -124,6 +128,20 @@ export default function HistorialMedicoPage() {
       setIsLoadingHistorial(false);
     }
   }, []);
+
+  // Auto-seleccionar paciente si viene desde ficha
+  useEffect(() => {
+    if (preloadPacienteId && !selectedPaciente) {
+      pacientesService.getAll("").then((result) => {
+        const found = result.data.find((p) => p.id === preloadPacienteId);
+        if (found) {
+          setSelectedPaciente(found);
+          loadHistorial(found.id);
+        }
+      }).catch(() => {});
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preloadPacienteId]);
 
   const selectPaciente = (paciente: Paciente) => {
     setSelectedPaciente(paciente);
@@ -317,6 +335,12 @@ export default function HistorialMedicoPage() {
                 </div>
               </div>
               <div className="flex items-center gap-2 shrink-0">
+                <Link href={`/dashboard/pacientes/${selectedPaciente.id}`}>
+                  <Badge variant="outline" className="gap-1 cursor-pointer hover:bg-accent transition-colors">
+                    <UserRound className="h-3 w-3" />
+                    Ver ficha
+                  </Badge>
+                </Link>
                 <Badge variant="secondary" className="gap-1">
                   <FileText className="h-3 w-3" />
                   {historial.length} registro{historial.length !== 1 ? "s" : ""}

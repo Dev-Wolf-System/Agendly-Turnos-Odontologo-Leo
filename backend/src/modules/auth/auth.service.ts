@@ -69,7 +69,7 @@ export class AuthService {
     });
 
     if (!user) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException('No existe una cuenta con ese email');
     }
 
     const isPasswordValid = await bcrypt.compare(
@@ -78,7 +78,7 @@ export class AuthService {
     );
 
     if (!isPasswordValid) {
-      throw new UnauthorizedException('Credenciales inválidas');
+      throw new UnauthorizedException('Contraseña incorrecta');
     }
 
     const tokens = await this.generateTokens(user);

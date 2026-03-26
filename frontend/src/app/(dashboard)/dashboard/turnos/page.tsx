@@ -1,14 +1,16 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { useSearchParams } from "next/navigation";
+import Link from "next/link";
 import turnosService, {
   Turno,
   EstadoTurno,
   CreateTurnoPayload,
   UpdateTurnoPayload,
-  TipoTratamiento,
   TRATAMIENTOS_LABELS,
 } from "@/services/turnos.service";
+import tratamientosService, { Tratamiento } from "@/services/tratamientos.service";
 import pagosService from "@/services/pagos.service";
 import pacientesService, { Paciente } from "@/services/pacientes.service";
 import usersService, { User } from "@/services/users.service";
@@ -58,6 +60,8 @@ import {
   CheckCircle2,
   CalendarDays,
   XCircle,
+  UserX,
+  RefreshCw,
 } from "lucide-react";
 import type { Pago } from "@/services/pagos.service";
 import { WeekCalendar } from "@/components/calendar/WeekCalendar";
@@ -69,6 +73,7 @@ const estadoColors: Record<EstadoTurno, string> = {
   confirmado: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
   completado: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
   cancelado: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
+  perdido: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
 };
 
 const estadoLabels: Record<EstadoTurno, string> = {
@@ -76,6 +81,7 @@ const estadoLabels: Record<EstadoTurno, string> = {
   confirmado: "Confirmado",
   completado: "Completado",
   cancelado: "Cancelado",
+  perdido: "Perdido",
 };
 
 function formatTime(dateStr: string) {
@@ -107,6 +113,9 @@ function toLocalDatetimeFromDate(d: Date) {
 }
 
 export default function TurnosPage() {
+  const searchParams = useSearchParams();
+  const preloadPacienteId = searchParams.get("paciente_id");
+
   // View state
   const [activeView, setActiveView] = useState<string>("semana");
   const [calendarDate, setCalendarDate] = useState<Date>(new Date());
@@ -114,12 +123,14 @@ export default function TurnosPage() {
   // Table view state
   const [fecha, setFecha] = useState(() => new Date().toISOString().split("T")[0]);
   const [filtroEstado, setFiltroEstado] = useState<string>("all");
+  const [filtroOdontologo, setFiltroOdontologo] = useState<string>("all");
 
   // Data
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [calendarTurnos, setCalendarTurnos] = useState<Turno[]>([]);
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [odontologos, setOdontologos] = useState<User[]>([]);
+  const [tratamientos, setTratamientos] = useState<Tratamiento[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
   // Dialogs
@@ -130,6 +141,8 @@ export default function TurnosPage() {
   const [editing, setEditing] = useState<Turno | null>(null);
   const [changingStatus, setChangingStatus] = useState<Turno | null>(null);
   const [deleting, setDeleting] = useState<Turno | null>(null);
+  const [deletePagosInfo, setDeletePagosInfo] = useState<{ count: number; total: number } | null>(null);
+  const [loadingDeleteCheck, setLoadingDeleteCheck] = useState(false);
   const [pagoTurno, setPagoTurno] = useState<Turno | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [newEstado, setNewEstado] = useState<EstadoTurno>("pendiente");
@@ -138,6 +151,7 @@ export default function TurnosPage() {
   const [loadingPago, setLoadingPago] = useState(false);
   const [overlapWarning, setOverlapWarning] = useState<string | null>(null);
   const [checkingOverlap, setCheckingOverlap] = useState(false);
+  const [isReprogramacion, setIsReprogramacion] = useState(false);
   const [form, setForm] = useState({
     paciente_id: "",
     user_id: "",
@@ -154,6 +168,7 @@ export default function TurnosPage() {
       const params: Record<string, string> = {};
       if (fecha) params.fecha = fecha;
       if (filtroEstado !== "all") params.estado = filtroEstado;
+      if (filtroOdontologo !== "all") params.user_id = filtroOdontologo;
       const data = await turnosService.getAll(params as any);
       setTurnos(data);
     } catch {
@@ -161,7 +176,7 @@ export default function TurnosPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [fecha, filtroEstado]);
+  }, [fecha, filtroEstado, filtroOdontologo]);
 
   // Load calendar data (week range or single day)
   const loadCalendarTurnos = useCallback(async () => {
@@ -186,12 +201,14 @@ export default function TurnosPage() {
 
   const loadOptions = useCallback(async () => {
     try {
-      const [pacs, users] = await Promise.all([
-        pacientesService.getAll(),
+      const [pacsResult, users, tratamientosData] = await Promise.all([
+        pacientesService.getAll(undefined, { limit: 1000 }),
         usersService.getAll(),
+        tratamientosService.getActive(),
       ]);
-      setPacientes(pacs);
+      setPacientes(pacsResult.data);
       setOdontologos(users.filter((u) => u.role !== "assistant"));
+      setTratamientos(tratamientosData);
     } catch {
       // silently fail
     }
@@ -213,6 +230,37 @@ export default function TurnosPage() {
     loadOptions();
   }, [loadOptions]);
 
+  // Mapa nombre tratamiento: busca en dinámicos, luego fallback histórico
+  const getTratamientoLabel = useCallback(
+    (value: string | null) => {
+      if (!value) return "—";
+      const found = tratamientos.find((t) => t.nombre === value);
+      if (found) return found.nombre;
+      return TRATAMIENTOS_LABELS[value] || value;
+    },
+    [tratamientos],
+  );
+
+  // Auto-abrir diálogo si viene con paciente_id desde ficha
+  useEffect(() => {
+    if (preloadPacienteId && pacientes.length > 0) {
+      setEditing(null);
+      setIsReprogramacion(false);
+      const defaultStart = `${fecha}T09:00`;
+      const defaultEnd = `${fecha}T09:30`;
+      setForm({
+        paciente_id: preloadPacienteId,
+        user_id: "",
+        start_time: defaultStart,
+        end_time: defaultEnd,
+        tipo_tratamiento: "",
+        notas: "",
+      });
+      setDialogOpen(true);
+    }
+  // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [preloadPacienteId, pacientes]);
+
   // Check overlap when user_id, start_time or end_time change
   useEffect(() => {
     setOverlapWarning(null);
@@ -230,7 +278,7 @@ export default function TurnosPage() {
         const conflict = allTurnos.find((t) => {
           if (t.user_id !== form.user_id) return false;
           if (editing && t.id === editing.id) return false;
-          if (t.estado === "cancelado") return false;
+          if (t.estado === "cancelado" || t.estado === "perdido") return false;
           const tStart = new Date(t.start_time);
           const tEnd = new Date(t.end_time);
           return tStart < end && tEnd > start;
@@ -261,12 +309,14 @@ export default function TurnosPage() {
     const confirmados = source.filter((t) => t.estado === "confirmado").length;
     const completados = source.filter((t) => t.estado === "completado").length;
     const cancelados = source.filter((t) => t.estado === "cancelado").length;
-    return { total: source.length, pendientes, confirmados, completados, cancelados };
+    const perdidos = source.filter((t) => t.estado === "perdido" && !t.fue_reprogramado).length;
+    return { total: source.length, pendientes, confirmados, completados, cancelados, perdidos };
   }, [turnos, calendarTurnos, activeView]);
 
   // Actions
   const openCreate = () => {
     setEditing(null);
+    setIsReprogramacion(false);
     const defaultStart = `${fecha}T09:00`;
     const defaultEnd = `${fecha}T09:30`;
     setForm({
@@ -282,6 +332,7 @@ export default function TurnosPage() {
 
   const openCreateFromCalendar = (start: Date, end: Date) => {
     setEditing(null);
+    setIsReprogramacion(false);
     setForm({
       paciente_id: "",
       user_id: "",
@@ -312,9 +363,19 @@ export default function TurnosPage() {
     setStatusDialogOpen(true);
   };
 
-  const openDelete = (turno: Turno) => {
+  const openDelete = async (turno: Turno) => {
     setDeleting(turno);
+    setDeletePagosInfo(null);
+    setLoadingDeleteCheck(true);
     setDeleteDialogOpen(true);
+    try {
+      const info = await turnosService.getPagosCount(turno.id);
+      setDeletePagosInfo(info);
+    } catch {
+      setDeletePagosInfo({ count: 0, total: 0 });
+    } finally {
+      setLoadingDeleteCheck(false);
+    }
   };
 
   const openPago = async (turno: Turno) => {
@@ -324,7 +385,7 @@ export default function TurnosPage() {
     setLoadingPago(true);
     setPagoDialogOpen(true);
     try {
-      const pagos = await pagosService.getAll({ turno_id: turno.id });
+      const pagos = await pagosService.getByTurno(turno.id);
       const activo = pagos.find(
         (p) => p.estado === "pendiente" || p.estado === "aprobado",
       );
@@ -354,7 +415,7 @@ export default function TurnosPage() {
         if (newStart !== editing.start_time) payload.start_time = newStart;
         if (newEnd !== editing.end_time) payload.end_time = newEnd;
         if (form.tipo_tratamiento !== (editing.tipo_tratamiento || ""))
-          payload.tipo_tratamiento = (form.tipo_tratamiento || undefined) as TipoTratamiento | undefined;
+          payload.tipo_tratamiento = form.tipo_tratamiento || undefined;
         if (form.notas !== (editing.notas || "")) payload.notas = form.notas;
         await turnosService.update(editing.id, payload);
         toast.success("Turno actualizado");
@@ -366,9 +427,11 @@ export default function TurnosPage() {
           end_time: new Date(form.end_time).toISOString(),
           source: "dashboard",
         };
-        if (form.tipo_tratamiento) payload.tipo_tratamiento = form.tipo_tratamiento as TipoTratamiento;
+        if (form.tipo_tratamiento) payload.tipo_tratamiento = form.tipo_tratamiento;
         if (form.notas) payload.notas = form.notas;
+        if (isReprogramacion) payload.es_reprogramacion = true;
         await turnosService.create(payload);
+        setIsReprogramacion(false);
         toast.success("Turno creado");
       }
       setDialogOpen(false);
@@ -411,6 +474,28 @@ export default function TurnosPage() {
     }
   };
 
+  const handleReprogramar = async (turno: Turno) => {
+    try {
+      await turnosService.reprogramar(turno.id);
+      setEditing(null);
+      setIsReprogramacion(true);
+      setForm({
+        paciente_id: turno.paciente_id,
+        user_id: turno.user_id,
+        start_time: "",
+        end_time: "",
+        tipo_tratamiento: turno.tipo_tratamiento || "",
+        notas: turno.notas ? `Reprogramado: ${turno.notas}` : "Turno reprogramado",
+      });
+      setDialogOpen(true);
+      reloadAll();
+      toast.info("Selecciona nuevo horario para reprogramar el turno");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Error al reprogramar";
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleting) return;
     try {
@@ -441,7 +526,7 @@ export default function TurnosPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className="grid gap-4 grid-cols-2 lg:grid-cols-4">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
         <Card>
           <CardContent className="flex items-center gap-3 py-3 px-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
@@ -486,6 +571,17 @@ export default function TurnosPage() {
             </div>
           </CardContent>
         </Card>
+        <Card>
+          <CardContent className="flex items-center gap-3 py-3 px-4">
+            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/40">
+              <UserX className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+            </div>
+            <div>
+              <p className="text-2xl font-bold leading-none">{kpiStats.perdidos}</p>
+              <p className="text-xs text-muted-foreground mt-0.5">Perdidos</p>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
       {/* Calendar / Table toggle */}
@@ -527,28 +623,65 @@ export default function TurnosPage() {
                 Ver Calendario
               </button>
             </div>
-            <div className="flex gap-4 pt-2">
-              <Input
-                type="date"
-                value={fecha}
-                onChange={(e) => setFecha(e.target.value)}
-                className="w-44"
-              />
-              <Select
-                value={filtroEstado}
-                onValueChange={(v: string | null) => v && setFiltroEstado(v)}
-              >
-                <SelectTrigger className="w-44">
-                  <SelectValue placeholder="Todos los estados" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="all">Todos</SelectItem>
-                  <SelectItem value="pendiente">Pendiente</SelectItem>
-                  <SelectItem value="confirmado">Confirmado</SelectItem>
-                  <SelectItem value="completado">Completado</SelectItem>
-                  <SelectItem value="cancelado">Cancelado</SelectItem>
-                </SelectContent>
-              </Select>
+            <div className="flex flex-wrap items-end gap-4 pt-2">
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground">Fecha</span>
+                <Input
+                  type="date"
+                  value={fecha}
+                  onChange={(e) => setFecha(e.target.value)}
+                  className="w-44"
+                />
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground">Estado</span>
+                <Select
+                  value={filtroEstado}
+                  onValueChange={(v: string | null) => v && setFiltroEstado(v)}
+                >
+                  <SelectTrigger className="w-44">
+                    <span>
+                      {{ all: "Todos los estados", pendiente: "Pendiente", confirmado: "Confirmado", completado: "Completado", cancelado: "Cancelado", perdido: "Perdido" }[filtroEstado]}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los estados</SelectItem>
+                    <SelectItem value="pendiente">Pendiente</SelectItem>
+                    <SelectItem value="confirmado">Confirmado</SelectItem>
+                    <SelectItem value="completado">Completado</SelectItem>
+                    <SelectItem value="cancelado">Cancelado</SelectItem>
+                    <SelectItem value="perdido">Perdido</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+              <div className="flex flex-col gap-1">
+                <span className="text-xs font-medium text-muted-foreground">Profesional</span>
+                <Select
+                  value={filtroOdontologo}
+                  onValueChange={(v: string | null) => v && setFiltroOdontologo(v)}
+                >
+                  <SelectTrigger className="w-52">
+                    <span className="flex flex-1 text-left truncate text-sm">
+                      {filtroOdontologo !== "all" ? (
+                        (() => {
+                          const u = odontologos.find((o) => o.id === filtroOdontologo);
+                          return u ? `${u.nombre} ${u.apellido}` : "Odontólogo";
+                        })()
+                      ) : (
+                        "Todos los odontólogos"
+                      )}
+                    </span>
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="all">Todos los odontólogos</SelectItem>
+                    {odontologos.map((u) => (
+                      <SelectItem key={u.id} value={u.id}>
+                        {u.nombre} {u.apellido}
+                      </SelectItem>
+                    ))}
+                  </SelectContent>
+                </Select>
+              </div>
             </div>
           </CardHeader>
           <CardContent>
@@ -579,19 +712,32 @@ export default function TurnosPage() {
                         {formatTime(turno.start_time)} - {formatTime(turno.end_time)}
                       </TableCell>
                       <TableCell>
-                        {turno.paciente
-                          ? `${turno.paciente.nombre} ${turno.paciente.apellido}`
-                          : "\u2014"}
+                        {turno.paciente ? (
+                          <Link
+                            href={`/dashboard/pacientes/${turno.paciente.id}`}
+                            className="text-primary hover:underline font-medium"
+                          >
+                            {turno.paciente.nombre} {turno.paciente.apellido}
+                          </Link>
+                        ) : "—"}
                       </TableCell>
                       <TableCell>
-                        {turno.user
-                          ? `${turno.user.nombre} ${turno.user.apellido}`
-                          : "\u2014"}
+                        {turno.user ? (
+                          <button
+                            type="button"
+                            className="text-primary hover:underline font-medium text-left"
+                            onClick={() => {
+                              setFiltroOdontologo(turno.user_id);
+                              toast.info(`Filtrando turnos de ${turno.user!.nombre} ${turno.user!.apellido}`);
+                            }}
+                            title={`Filtrar turnos de ${turno.user.nombre} ${turno.user.apellido}`}
+                          >
+                            {turno.user.nombre} {turno.user.apellido}
+                          </button>
+                        ) : "—"}
                       </TableCell>
                       <TableCell>
-                        {turno.tipo_tratamiento
-                          ? TRATAMIENTOS_LABELS[turno.tipo_tratamiento] || turno.tipo_tratamiento
-                          : "\u2014"}
+                        {getTratamientoLabel(turno.tipo_tratamiento)}
                       </TableCell>
                       <TableCell>
                         <button type="button" onClick={() => openStatusChange(turno)}>
@@ -616,16 +762,28 @@ export default function TurnosPage() {
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-1">
-                          <Button
-                            variant="ghost"
-                            size="icon"
-                            className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all duration-200 hover:scale-110"
-                            onClick={() => openPago(turno)}
-                            disabled={turno.estado === "cancelado"}
-                            title="Cobrar"
-                          >
-                            <DollarSign className="h-4 w-4" />
-                          </Button>
+                          {turno.estado === "perdido" && !turno.fue_reprogramado ? (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-orange-600 hover:text-orange-700 hover:bg-orange-50 dark:hover:bg-orange-950/40 transition-all duration-200 hover:scale-110"
+                              onClick={() => handleReprogramar(turno)}
+                              title="Reprogramar"
+                            >
+                              <RefreshCw className="h-4 w-4" />
+                            </Button>
+                          ) : (
+                            <Button
+                              variant="ghost"
+                              size="icon"
+                              className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all duration-200 hover:scale-110"
+                              onClick={() => openPago(turno)}
+                              disabled={turno.estado === "cancelado" || turno.estado === "perdido"}
+                              title="Cobrar"
+                            >
+                              <DollarSign className="h-4 w-4" />
+                            </Button>
+                          )}
                           <Button
                             variant="ghost"
                             size="icon"
@@ -633,7 +791,8 @@ export default function TurnosPage() {
                             onClick={() => openEdit(turno)}
                             disabled={
                               turno.estado === "cancelado" ||
-                              turno.estado === "completado"
+                              turno.estado === "completado" ||
+                              turno.estado === "perdido"
                             }
                             title="Editar"
                           >
@@ -756,7 +915,7 @@ export default function TurnosPage() {
                 <SelectTrigger>
                   <span className="flex flex-1 text-left truncate text-sm">
                     {form.tipo_tratamiento ? (
-                      TRATAMIENTOS_LABELS[form.tipo_tratamiento as TipoTratamiento] || form.tipo_tratamiento
+                      getTratamientoLabel(form.tipo_tratamiento)
                     ) : (
                       <span className="text-muted-foreground">
                         Seleccionar tratamiento
@@ -765,9 +924,22 @@ export default function TurnosPage() {
                   </span>
                 </SelectTrigger>
                 <SelectContent>
-                  {Object.entries(TRATAMIENTOS_LABELS).map(([key, label]) => (
-                    <SelectItem key={key} value={key}>
-                      {label}
+                  {tratamientos.map((t) => (
+                    <SelectItem key={t.id} value={t.nombre}>
+                      <span className="flex items-center gap-2">
+                        {t.color && (
+                          <span
+                            className="inline-block h-2.5 w-2.5 rounded-full shrink-0"
+                            style={{ backgroundColor: t.color }}
+                          />
+                        )}
+                        {t.nombre}
+                        {t.duracion_min && (
+                          <span className="text-muted-foreground text-xs">
+                            ({t.duracion_min} min)
+                          </span>
+                        )}
+                      </span>
                     </SelectItem>
                   ))}
                 </SelectContent>
@@ -867,6 +1039,7 @@ export default function TurnosPage() {
               <SelectItem value="confirmado">Confirmado</SelectItem>
               <SelectItem value="completado">Completado</SelectItem>
               <SelectItem value="cancelado">Cancelado</SelectItem>
+              <SelectItem value="perdido">Perdido</SelectItem>
             </SelectContent>
           </Select>
           <DialogFooter>
@@ -883,11 +1056,11 @@ export default function TurnosPage() {
 
       {/* Dialog Confirmar Eliminacion */}
       <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[440px]">
           <DialogHeader>
-            <DialogTitle>Confirmar Eliminacion</DialogTitle>
+            <DialogTitle>Confirmar Eliminación</DialogTitle>
             <DialogDescription>
-              Esta accion no se puede deshacer. Se eliminara el turno de{" "}
+              Esta acción no se puede deshacer. Se eliminará el turno de{" "}
               <strong>
                 {deleting?.paciente
                   ? `${deleting.paciente.nombre} ${deleting.paciente.apellido}`
@@ -897,6 +1070,27 @@ export default function TurnosPage() {
               {deleting ? formatTime(deleting.start_time) : ""}.
             </DialogDescription>
           </DialogHeader>
+          {loadingDeleteCheck ? (
+            <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
+              <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
+              Verificando pagos asociados...
+            </div>
+          ) : deletePagosInfo && deletePagosInfo.count > 0 ? (
+            <div className="flex items-start gap-3 rounded-lg border border-amber-300 bg-amber-50 dark:border-amber-700 dark:bg-amber-950/40 p-3">
+              <AlertTriangle className="h-5 w-5 text-amber-500 shrink-0 mt-0.5" />
+              <div className="text-sm">
+                <p className="font-medium text-amber-800 dark:text-amber-300">
+                  Este turno tiene {deletePagosInfo.count} pago{deletePagosInfo.count > 1 ? "s" : ""} asociado{deletePagosInfo.count > 1 ? "s" : ""}
+                </p>
+                <p className="text-amber-700 dark:text-amber-400 mt-1">
+                  Total cobrado: ${Number(deletePagosInfo.total).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                </p>
+                <p className="text-amber-700 dark:text-amber-400 mt-1 font-medium">
+                  Al eliminar el turno también se eliminarán todos los pagos asociados.
+                </p>
+              </div>
+            </div>
+          ) : null}
           <DialogFooter>
             <Button
               variant="outline"
@@ -904,8 +1098,10 @@ export default function TurnosPage() {
             >
               Cancelar
             </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Eliminar
+            <Button variant="destructive" onClick={handleDelete} disabled={loadingDeleteCheck}>
+              {deletePagosInfo && deletePagosInfo.count > 0
+                ? "Eliminar turno y pagos"
+                : "Eliminar"}
             </Button>
           </DialogFooter>
         </DialogContent>

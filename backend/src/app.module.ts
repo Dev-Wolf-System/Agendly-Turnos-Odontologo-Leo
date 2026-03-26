@@ -1,6 +1,7 @@
 import { Module } from '@nestjs/common';
 import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
+import { ScheduleModule } from '@nestjs/schedule';
 import { APP_GUARD, APP_FILTER } from '@nestjs/core';
 import { databaseConfig } from './config/database.config';
 import { JwtAuthGuard } from './common/guards/jwt-auth.guard';
@@ -18,10 +19,12 @@ import { InventarioModule } from './modules/inventario/inventario.module';
 import { ProveedoresModule } from './modules/proveedores/proveedores.module';
 import { CategoriasModule } from './modules/categorias/categorias.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
+import { TratamientosModule } from './modules/tratamientos/tratamientos.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
+    ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync(databaseConfig),
     AuthModule,
     ClinicasModule,
@@ -34,6 +37,7 @@ import { DashboardModule } from './modules/dashboard/dashboard.module';
     ProveedoresModule,
     CategoriasModule,
     DashboardModule,
+    TratamientosModule,
   ],
   providers: [
     {

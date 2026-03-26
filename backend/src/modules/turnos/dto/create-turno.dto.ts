@@ -1,4 +1,5 @@
 import {
+  IsBoolean,
   IsDateString,
   IsEnum,
   IsNotEmpty,
@@ -6,7 +7,7 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
-import { SourceTurno, TipoTratamiento } from '../../../common/enums';
+import { SourceTurno } from '../../../common/enums';
 
 export class CreateTurnoDto {
   @IsUUID()
@@ -29,11 +30,15 @@ export class CreateTurnoDto {
   @IsOptional()
   source?: SourceTurno;
 
-  @IsEnum(TipoTratamiento)
+  @IsString()
   @IsOptional()
-  tipo_tratamiento?: TipoTratamiento;
+  tipo_tratamiento?: string;
 
   @IsString()
   @IsOptional()
   notas?: string;
+
+  @IsBoolean()
+  @IsOptional()
+  es_reprogramacion?: boolean;
 }

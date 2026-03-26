@@ -1,7 +1,7 @@
 "use client";
 
 import type { Turno } from "@/services/turnos.service";
-import { TRATAMIENTOS_LABELS, type TipoTratamiento } from "@/services/turnos.service";
+import { TRATAMIENTOS_LABELS } from "@/services/turnos.service";
 
 const estadoStyles: Record<string, { bg: string; border: string; text: string; dot: string; hover: string }> = {
   pendiente: {
@@ -32,6 +32,13 @@ const estadoStyles: Record<string, { bg: string; border: string; text: string; d
     dot: "bg-red-400",
     hover: "hover:bg-red-100/60 dark:hover:bg-red-950/40",
   },
+  perdido: {
+    bg: "bg-orange-50/60 dark:bg-orange-950/30",
+    border: "border-orange-400 dark:border-orange-500",
+    text: "text-orange-600 dark:text-orange-400",
+    dot: "bg-orange-400",
+    hover: "hover:bg-orange-100/60 dark:hover:bg-orange-950/40",
+  },
 };
 
 interface CalendarEventProps {
@@ -61,6 +68,7 @@ export function CalendarEvent({
     minute: "2-digit",
   });
   const isCancelled = turno.estado === "cancelado";
+  const isLost = turno.estado === "perdido";
 
   const widthPercent = 100 / columnCount;
   const leftPercent = columnIndex * widthPercent;
@@ -83,9 +91,9 @@ export function CalendarEvent({
       }}
     >
       <div className="flex items-start gap-1.5">
-        <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${style.dot} ${!isCancelled ? "animate-pulse" : "opacity-50"}`} />
+        <div className={`mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full ${style.dot} ${!isCancelled && !isLost ? "animate-pulse" : "opacity-50"}`} />
         <div className="min-w-0 flex-1">
-          <p className={`text-xs font-semibold leading-tight truncate ${style.text} ${isCancelled ? "line-through opacity-60" : ""}`}>
+          <p className={`text-xs font-semibold leading-tight truncate ${style.text} ${isCancelled || isLost ? "line-through opacity-60" : ""}`}>
             {turno.paciente
               ? `${turno.paciente.nombre} ${turno.paciente.apellido}`
               : "Sin paciente"}
@@ -97,7 +105,7 @@ export function CalendarEvent({
           )}
           {height >= 54 && turno.tipo_tratamiento && (
             <p className={`text-[10px] leading-tight mt-0.5 ${style.text} opacity-60 truncate`}>
-              {TRATAMIENTOS_LABELS[turno.tipo_tratamiento as TipoTratamiento] || turno.tipo_tratamiento}
+              {TRATAMIENTOS_LABELS[turno.tipo_tratamiento] || turno.tipo_tratamiento}
             </p>
           )}
         </div>

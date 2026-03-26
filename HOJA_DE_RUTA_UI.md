@@ -1,109 +1,170 @@
 # Hoja de Ruta — Reestilizado y Mejoras UI/UX
 
-> Última actualización: 2026-03-24
+> Última actualización: 2026-03-26
 
 ## Fixes aplicados
 - [x] Select de Paciente y Odontólogo en Nuevo Turno mostraba UUID en vez del nombre — corregido con display manual
+- [x] Select de Proveedor en Inventario mostraba UUID — corregido con patrón `<span>`
+- [x] Select controlled/uncontrolled error — corregido con sentinel `__none__`
+- [x] Doble cobro permitido — validación backend + warning frontend
+- [x] 400 Bad Request en cobro (turno_id faltaba en FilterPagosDto) — corregido
+- [x] Search dropdown oculto en historial médico — fix overflow-visible + z-50
+- [x] Solapamiento de turnos sin aviso — validación frontend en tiempo real
+
+## Infraestructura
+- [x] Repositorio Git inicializado (monorepo: backend + frontend)
+- [x] `.gitignore` configurado (raíz, backend, frontend)
+- [x] Commit inicial + commits de mejoras UI
+- [ ] Subir a GitHub remoto (pendiente `git remote add` + `git push`)
 
 ---
 
-## Fase A: Ficha del Paciente (Vista Unificada)
+## Fase A: Ficha del Paciente (Vista Unificada) ✅ COMPLETADA
 
 ### Backend
-- [x] Endpoint GET `/pacientes/:id/ficha` — devuelve datos del paciente + turnos + historial médico + pagos en una sola llamada
+- [x] Endpoint GET `/pacientes/:id/ficha`
 
 ### Frontend
-- [x] Nueva página `/dashboard/pacientes/[id]` — vista completa del paciente
-- [x] Sección: Datos personales (nombre, DNI, edad, contacto)
-- [x] Sección: Próximos turnos (tabla con estado, fecha, odontólogo)
-- [x] Sección: Historial de turnos pasados
-- [x] Sección: Historial médico (diagnóstico, tratamiento, observaciones por fecha)
-- [x] Sección: Pagos del paciente (total pagado, pendientes, detalle)
-- [x] KPI cards en la ficha: Total turnos, Último turno, Total pagado, Saldo pendiente
-- [x] Botón "Ver" en la tabla de pacientes que lleva a esta ficha
+- [x] Nueva página `/dashboard/pacientes/[id]`
+- [x] Secciones: datos personales, turnos, historial médico, pagos
+- [x] KPI cards en la ficha
+- [x] Botón "Ver" en tabla de pacientes
 
 ---
 
-## Fase B: Navegación Cruzada entre Secciones
+## Fase B: Mejoras Visuales y Funcionales ✅ COMPLETADA
 
-### Pacientes
-- [ ] Botón "Ver ficha" en tabla de pacientes → `/dashboard/pacientes/[id]`
-- [ ] Desde ficha del paciente: botón "Nuevo turno" pre-cargado con el paciente
-- [ ] Desde ficha del paciente: botón "Agregar historial" pre-cargado
+### Categorías
+- [x] Módulo Categorías backend completo (entity, DTOs, service, controller)
+- [x] Categoría asignable a ítems de inventario (ManyToOne)
+- [x] Categorías múltiples en proveedores (ManyToMany)
+- [x] Creación inline de categorías desde inventario y proveedores
+- [x] Filtro por categoría en inventario y proveedores
 
-### Turnos
-- [ ] Nombre del paciente clickeable → lleva a ficha del paciente
-- [ ] Nombre del odontólogo clickeable → filtra turnos por ese odontólogo
-- [ ] Botón "Ver historial" que lleva al historial del paciente del turno
+### Calendario de Turnos
+- [x] Vista semanal, diaria y tabla con switcher pill
+- [x] Eventos con colores por estado, hover/scale, dot animado
+- [x] Conteo de turnos por día, indicador hora actual
+- [x] Click en slot → crear turno, click en evento → editar
 
-### Pagos
-- [ ] Nombre del paciente clickeable → lleva a ficha del paciente
-- [ ] Fecha del turno clickeable → lleva a la vista de turnos de ese día
+### KPIs en todas las secciones
+- [x] Dashboard: 4 KPIs clickeables → redirigen a secciones
+- [x] Turnos: pendientes, confirmados, completados, cancelados
+- [x] Pagos: aprobados, pendientes, rechazados, total
+- [x] Inventario: total, stock normal, stock bajo
 
-### Historial Médico
-- [ ] Mostrar turno asociado con fecha y link al turno
-- [ ] Desde la ficha del paciente poder agregar historial directamente
+### Acciones con iconos
+- [x] Todas las tablas/cards usan iconos Lucide con hover:scale-110
+- [x] Proveedores: acciones hover-only en cards
 
----
+### Validaciones
+- [x] Solapamiento turnos: warning en tiempo real + botón deshabilitado
+- [x] Doble cobro: warning en diálogo de cobro
 
-## Fase C: Dashboard Principal Interactivo
-
-### KPIs clickeables
-- [ ] "Turnos Hoy" → redirige a `/dashboard/turnos` con fecha de hoy
-- [ ] "Pacientes" → redirige a `/dashboard/pacientes`
-- [ ] "Ingresos del Mes" → redirige a `/dashboard/pagos` con filtro del mes
-- [ ] "Stock Bajo" → redirige a `/dashboard/inventario` filtrado por stock bajo
-
-### Turnos de hoy clickeables
-- [ ] Click en un turno → abre detalle rápido o redirige a turnos
-
-### Mejoras visuales
-- [ ] Indicador de tendencia en KPIs (↑ ↓ vs mes anterior)
-- [ ] Gráficos con tooltips mejorados
+### Branding
+- [x] Logo Agendly en sidebar, login y register
 
 ---
 
-## Fase D: Mejoras en Tablas (Todas las secciones)
+## Fase C: Tratamientos Dinámicos y Mejoras de Formularios ✅ COMPLETADA
 
-### Paginación
-- [ ] Backend: agregar parámetros `page` y `limit` a todos los endpoints GET de listado
-- [ ] Frontend: componente de paginación reutilizable
-- [ ] Aplicar en: Pacientes, Turnos, Pagos, Inventario, Proveedores, Historial Médico
+### Tratamientos dinámicos
+- [x] Backend: módulo Tratamientos completo (entity, DTOs, service, controller)
+- [x] tipo_tratamiento cambiado de enum a string en turno entity y DTOs
+- [x] Frontend: Select dinámico de tratamientos con colores y duración
+- [x] Fallback TRATAMIENTOS_LABELS para turnos históricos
+- [x] Tratamientos integrados en: formulario turnos, tabla, calendario, pagos
 
-### Ordenamiento por columnas
-- [ ] Backend: agregar parámetros `sortBy` y `sortOrder` a los endpoints
-- [ ] Frontend: headers de tabla clickeables con indicador de orden (▲ ▼)
-- [ ] Aplicar en todas las tablas
-
-### Búsqueda y filtros avanzados
-- [ ] Pacientes: filtro por rango de edad, fecha de registro
-- [ ] Turnos: filtro por odontólogo
-- [ ] Inventario: filtro por proveedor, solo stock bajo
-- [ ] Pagos: ya tiene filtros (mantener)
+### Mejoras en filtros y formularios
+- [x] Fix layout filtro fecha en turnos (label encima del input, no al lado)
+- [x] Label "Odontólogo" renombrado a "Profesional"
+- [x] Login: mensajes de error descriptivos (401 → "Contraseña incorrecta")
 
 ---
 
-## Fase E: Configuración de la Clínica
+## Fase D: Logo de Clínica y Branding Dinámico ✅ COMPLETADA
 
-- [ ] Nueva página `/dashboard/configuracion`
-- [ ] Datos de la clínica (nombre, dirección, teléfono, logo)
-- [ ] Horarios de atención (lunes a sábado, hora inicio/fin)
-- [ ] Gestión de usuarios/equipo (lista de odontólogos y asistentes)
-- [ ] Agregar al sidebar como última opción con ícono de engranaje
+### Logo por especialidad
+- [x] Iconos SVG predeterminados por especialidad (odontología, kinesiología, nutrición, etc.)
+- [x] Componente ClinicLogo reutilizable
+- [x] Selector de icono por especialidad en configuración
+- [x] Opción "Logo Propio" con upload de imagen (2MB máx)
+- [x] Convención `__esp:especialidad` para iconos default vs data URI para custom
+
+### ClinicaProvider
+- [x] Context global React para datos de clínica (logo, nombre, especialidad)
+- [x] Sidebar dinámico: muestra logo y nombre de la clínica real
+- [x] Hook useClinica() disponible en toda la app
 
 ---
 
-## Fase F: Sistema de Notificaciones
+## Fase E: Configuración de la Clínica ✅ COMPLETADA
 
-### Backend
-- [ ] Endpoint GET `/notificaciones` — notificaciones recientes
-- [ ] Generar notificaciones automáticas: turno próximo (30 min), stock bajo, pagos pendientes
+### Página `/dashboard/configuracion`
+- [x] 5 tabs: Clínica, Horarios, Equipo, Tratamientos, Integraciones
+- [x] Agregada al sidebar con ícono de engranaje
 
-### Frontend
-- [ ] Ícono de campana en el header con badge de cantidad
-- [ ] Dropdown con lista de notificaciones
-- [ ] Marcar como leída
-- [ ] Tipos: info (turno próximo), warning (stock bajo), alert (pago vencido)
+### Tab Clínica
+- [x] Datos básicos (nombre, dirección, teléfono, especialidad)
+- [x] Sección de logo con preview y selector de especialidad/custom
+
+### Tab Horarios
+- [x] Horarios mañana/tarde independientes por día (lunes a sábado)
+- [x] Switches independientes para cada turno (mañana amber, tarde indigo)
+- [x] Migración automática de formato viejo a nuevo (migrateHorarios)
+
+### Tab Equipo
+- [x] Lista de profesionales con roles
+- [x] CRUD de usuarios del equipo
+
+### Tab Tratamientos
+- [x] CRUD de tratamientos con nombre, duración, precio, color, estado
+
+### Tab Integraciones
+- [x] 6 webhooks configurables por estado (confirmado, completado, cancelado, perdido, pendiente, recordatorio)
+- [x] Switch + URL input por cada webhook
+- [x] Visor de ejemplo JSON del payload
+- [x] Card de recordatorio nativo con selector de horas (2/4/12/24/48)
+- [x] Explicación paso a paso del sistema de recordatorios
+
+---
+
+## Fase F: Webhooks y Recordatorios Nativos ✅ COMPLETADA
+
+### Backend — WebhookService
+- [x] Servicio WebhookService con dispararWebhook() y dispararRecordatorio()
+- [x] Payload completo: horario, paciente, tratamiento, estado_turno, estado_pago, profesional, clínica
+- [x] Fire-and-forget (no bloquea la API)
+- [x] Webhooks disparados en: crear turno (pendiente), cambiar estado
+
+### Backend — Recordatorios nativos
+- [x] Campo recordatorio_enviado en turno entity
+- [x] Campo recordatorio_horas_antes en clínica entity
+- [x] Cron @EVERY_10_MINUTES para enviar recordatorios
+- [x] Query inteligente: start_time <= NOW() + interval horas
+- [x] Fallback: webhook recordatorio → webhook confirmado
+
+### Frontend — Configuración webhooks
+- [x] Campos webhooks y recordatorio_horas_antes en clinica.service.ts
+- [x] UI completa en tab Integraciones de configuración
+
+---
+
+## Fase G: Sistema de Notificaciones ❌ PENDIENTE
+
+- [ ] Backend: endpoint + generación automática
+- [ ] Frontend: campana en header, dropdown, tipos (info/warning/alert)
+
+---
+
+## Fase H: Navegación Cruzada entre Secciones ❌ PENDIENTE
+
+- [ ] Nombre del paciente clickeable en turnos → ficha
+- [ ] Nombre del paciente clickeable en pagos → ficha
+- [ ] Desde ficha: botón "Nuevo turno" pre-cargado
+- [ ] Desde ficha: botón "Agregar historial" pre-cargado
+- [ ] Odontólogo clickeable → filtrar turnos
+- [ ] Turno asociado con link en historial médico
 
 ---
 
@@ -112,8 +173,10 @@
 | Fase | Descripción | Estado |
 |------|-------------|--------|
 | **A** | Ficha del Paciente | ✅ Completada |
-| **B** | Navegación Cruzada | ❌ Pendiente |
-| **C** | Dashboard Interactivo | ❌ Pendiente |
-| **D** | Mejoras en Tablas | ❌ Pendiente |
-| **E** | Configuración Clínica | ❌ Pendiente |
-| **F** | Notificaciones | ❌ Pendiente |
+| **B** | Mejoras Visuales y Funcionales | ✅ Completada |
+| **C** | Tratamientos Dinámicos y Mejoras Formularios | ✅ Completada |
+| **D** | Logo de Clínica y Branding Dinámico | ✅ Completada |
+| **E** | Configuración de la Clínica (5 tabs) | ✅ Completada |
+| **F** | Webhooks y Recordatorios Nativos | ✅ Completada |
+| **G** | Notificaciones | ❌ Pendiente |
+| **H** | Navegación Cruzada | ❌ Pendiente |

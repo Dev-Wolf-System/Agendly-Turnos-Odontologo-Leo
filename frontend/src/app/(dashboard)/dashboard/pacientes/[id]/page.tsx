@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
+import Link from "next/link";
 import pacientesService, {
   FichaPaciente,
 } from "@/services/pacientes.service";
@@ -141,6 +142,18 @@ export default function FichaPacientePage() {
             {paciente.cel && <> &middot; {paciente.cel}</>}
             {paciente.email && <> &middot; {paciente.email}</>}
           </p>
+        </div>
+        <div className="flex gap-2">
+          <Link href={`/dashboard/turnos?paciente_id=${id}`}>
+            <Button variant="outline" size="sm">
+              + Nuevo Turno
+            </Button>
+          </Link>
+          <Link href={`/dashboard/historial-medico?paciente_id=${id}`}>
+            <Button variant="outline" size="sm">
+              + Agregar Historial
+            </Button>
+          </Link>
         </div>
       </div>
 

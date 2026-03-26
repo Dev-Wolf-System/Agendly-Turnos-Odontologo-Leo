@@ -6,6 +6,7 @@ import {
   Delete,
   Body,
   Param,
+  Query,
   ParseUUIDPipe,
 } from '@nestjs/common';
 import { InventarioService } from './inventario.service';
@@ -18,8 +19,19 @@ export class InventarioController {
   constructor(private readonly inventarioService: InventarioService) {}
 
   @Get()
-  findAll(@CurrentClinica() clinicaId: string) {
-    return this.inventarioService.findAll(clinicaId);
+  findAll(
+    @CurrentClinica() clinicaId: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
+  ) {
+    return this.inventarioService.findAll(clinicaId, {
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      sortBy,
+      sortOrder: sortOrder as any,
+    });
   }
 
   @Get('low-stock')

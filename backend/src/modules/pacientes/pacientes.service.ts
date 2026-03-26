@@ -11,6 +11,7 @@ import { HistorialMedico } from '../historial-medico/entities/historial-medico.e
 import { Pago } from '../pagos/entities/pago.entity';
 import { CreatePacienteDto } from './dto/create-paciente.dto';
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
+import { PaginationDto, PaginatedResponse } from '../../common/dto/pagination.dto';
 import { EstadoPago } from '../../common/enums';
 
 @Injectable()
@@ -26,25 +27,47 @@ export class PacientesService {
     private readonly pagoRepository: Repository<Pago>,
   ) {}
 
-  async findAll(clinicaId: string, search?: string): Promise<Paciente[]> {
-    const where: Record<string, unknown> = { clinica_id: clinicaId };
+  async findAll(
+    clinicaId: string,
+    search?: string,
+    pagination?: PaginationDto,
+  ): Promise<PaginatedResponse<Paciente>> {
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 20;
+    const sortBy = pagination?.sortBy || 'apellido';
+    const sortOrder = (pagination?.sortOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as 'ASC' | 'DESC';
+
+    const allowedSortFields = ['nombre', 'apellido', 'dni', 'email', 'cel', 'created_at'];
+    const safeSort = allowedSortFields.includes(sortBy) ? sortBy : 'apellido';
+
+    const qb = this.pacienteRepository
+      .createQueryBuilder('p')
+      .where('p.clinica_id = :clinicaId', { clinicaId });
 
     if (search) {
-      return this.pacienteRepository
-        .createQueryBuilder('p')
-        .where('p.clinica_id = :clinicaId', { clinicaId })
-        .andWhere(
-          '(p.nombre ILIKE :search OR p.apellido ILIKE :search OR p.dni ILIKE :search)',
-          { search: `%${search}%` },
-        )
-        .orderBy('p.apellido', 'ASC')
-        .getMany();
+      qb.andWhere(
+        '(p.nombre ILIKE :search OR p.apellido ILIKE :search OR p.dni ILIKE :search)',
+        { search: `%${search}%` },
+      );
     }
 
-    return this.pacienteRepository.find({
-      where,
-      order: { apellido: 'ASC' },
-    });
+    const total = await qb.getCount();
+
+    qb.orderBy(`p.${safeSort}`, sortOrder)
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const data = await qb.getMany();
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
   }
 
   async findOne(id: string, clinicaId: string): Promise<Paciente> {

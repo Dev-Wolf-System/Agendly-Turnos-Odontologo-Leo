@@ -1,4 +1,5 @@
 import api from "./api";
+import type { PaginationParams, PaginatedResponse } from "./pacientes.service";
 
 export interface Inventario {
   id: string;
@@ -30,8 +31,10 @@ export interface UpdateInventarioPayload {
 }
 
 const inventarioService = {
-  getAll: () =>
-    api.get<Inventario[]>("/inventario").then((r) => r.data),
+  getAll: (pagination?: PaginationParams) =>
+    api.get<PaginatedResponse<Inventario>>("/inventario", {
+      params: pagination || {},
+    }).then((r) => r.data),
 
   getLowStock: () =>
     api.get<Inventario[]>("/inventario/low-stock").then((r) => r.data),

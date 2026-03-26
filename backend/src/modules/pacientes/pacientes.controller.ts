@@ -22,8 +22,17 @@ export class PacientesController {
   findAll(
     @CurrentClinica() clinicaId: string,
     @Query('search') search?: string,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
-    return this.pacientesService.findAll(clinicaId, search);
+    return this.pacientesService.findAll(clinicaId, search, {
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      sortBy,
+      sortOrder: sortOrder as any,
+    });
   }
 
   @Get('count')

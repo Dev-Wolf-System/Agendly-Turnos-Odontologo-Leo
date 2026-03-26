@@ -23,11 +23,20 @@ export class PagosController {
   findAll(
     @CurrentClinica() clinicaId: string,
     @Query() filters?: FilterPagosDto,
+    @Query('page') page?: string,
+    @Query('limit') limit?: string,
+    @Query('sortBy') sortBy?: string,
+    @Query('sortOrder') sortOrder?: string,
   ) {
     if (filters?.turno_id) {
       return this.pagosService.findByTurno(clinicaId, filters.turno_id);
     }
-    return this.pagosService.findAll(clinicaId, filters);
+    return this.pagosService.findAll(clinicaId, filters, {
+      page: page ? parseInt(page) : undefined,
+      limit: limit ? parseInt(limit) : undefined,
+      sortBy,
+      sortOrder: sortOrder as any,
+    });
   }
 
   @Get('resumen')

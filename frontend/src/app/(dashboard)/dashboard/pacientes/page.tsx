@@ -6,7 +6,10 @@ import pacientesService, {
   Paciente,
   CreatePacientePayload,
   UpdatePacientePayload,
+  PaginationMeta,
 } from "@/services/pacientes.service";
+import { Pagination } from "@/components/ui/pagination";
+import { SortableHeader } from "@/components/ui/sortable-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -53,6 +56,11 @@ function calcularEdad(fechaNacimiento: string | null): string {
 export default function PacientesPage() {
   const router = useRouter();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
+  const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
+  const [page, setPage] = useState(1);
+  const [limit, setLimit] = useState(20);
+  const [sortBy, setSortBy] = useState("apellido");
+  const [sortOrder, setSortOrder] = useState<"ASC" | "DESC">("ASC");
   const [search, setSearch] = useState("");
   const [isLoading, setIsLoading] = useState(true);
   const [dialogOpen, setDialogOpen] = useState(false);
@@ -72,14 +80,20 @@ export default function PacientesPage() {
   const loadPacientes = useCallback(async () => {
     try {
       setIsLoading(true);
-      const data = await pacientesService.getAll(search || undefined);
-      setPacientes(data);
+      const result = await pacientesService.getAll(search || undefined, {
+        page,
+        limit,
+        sortBy,
+        sortOrder,
+      });
+      setPacientes(result.data);
+      setMeta(result.meta);
     } catch {
       toast.error("Error al cargar pacientes");
     } finally {
       setIsLoading(false);
     }
-  }, [search]);
+  }, [search, page, limit, sortBy, sortOrder]);
 
   useEffect(() => {
     const timer = setTimeout(() => {
@@ -87,6 +101,12 @@ export default function PacientesPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [loadPacientes]);
+
+  const handleSort = (field: string, order: "ASC" | "DESC") => {
+    setSortBy(field);
+    setSortOrder(order);
+    setPage(1);
+  };
 
   const openCreate = () => {
     setEditing(null);
@@ -184,7 +204,7 @@ export default function PacientesPage() {
             <Input
               placeholder="Buscar pacientes..."
               value={search}
-              onChange={(e) => setSearch(e.target.value)}
+              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
               className="max-w-sm"
             />
           </div>
@@ -205,12 +225,12 @@ export default function PacientesPage() {
             <Table>
               <TableHeader>
                 <TableRow>
-                  <TableHead>DNI</TableHead>
-                  <TableHead>Nombre</TableHead>
-                  <TableHead>Apellido</TableHead>
+                  <SortableHeader label="DNI" field="dni" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Nombre" field="nombre" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Apellido" field="apellido" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                   <TableHead>Edad</TableHead>
-                  <TableHead>Celular</TableHead>
-                  <TableHead>Email</TableHead>
+                  <SortableHeader label="Celular" field="cel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
+                  <SortableHeader label="Email" field="email" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
                   <TableHead className="w-[120px] text-center">Acciones</TableHead>
                 </TableRow>
               </TableHeader>
@@ -264,6 +284,13 @@ export default function PacientesPage() {
                 ))}
               </TableBody>
             </Table>
+          )}
+          {!isLoading && meta.total > 0 && (
+            <Pagination
+              meta={meta}
+              onPageChange={setPage}
+              onLimitChange={(l) => { setLimit(l); setPage(1); }}
+            />
           )}
         </CardContent>
       </Card>

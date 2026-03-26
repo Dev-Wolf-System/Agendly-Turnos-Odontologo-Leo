@@ -5,7 +5,6 @@ import { Turno } from '../turnos/entities/turno.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
 import { Pago } from '../pagos/entities/pago.entity';
 import { Inventario } from '../inventario/entities/inventario.entity';
-import { HistorialMedico } from '../historial-medico/entities/historial-medico.entity';
 import { EstadoPago } from '../../common/enums';
 
 @Injectable()
@@ -19,8 +18,6 @@ export class DashboardService {
     private readonly pagoRepository: Repository<Pago>,
     @InjectRepository(Inventario)
     private readonly inventarioRepository: Repository<Inventario>,
-    @InjectRepository(HistorialMedico)
-    private readonly historialRepository: Repository<HistorialMedico>,
   ) {}
 
   async getStats(clinicaId: string) {
@@ -173,8 +170,7 @@ export class DashboardService {
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    // Contar tipo_tratamiento de turnos del mes
-    const turnoResult = await this.turnoRepository
+    const result = await this.turnoRepository
       .createQueryBuilder('t')
       .where('t.clinica_id = :clinicaId', { clinicaId })
       .andWhere('t.tipo_tratamiento IS NOT NULL')
@@ -185,29 +181,7 @@ export class DashboardService {
       .orderBy('cantidad', 'DESC')
       .getRawMany();
 
-    // Fallback: si no hay tipo_tratamiento en turnos, usar historial_medico
-    if (turnoResult.length === 0) {
-      const historialResult = await this.historialRepository
-        .createQueryBuilder('h')
-        .leftJoin('h.paciente', 'paciente')
-        .where('paciente.clinica_id = :clinicaId', { clinicaId })
-        .andWhere('h.tratamiento IS NOT NULL')
-        .andWhere('h.tratamiento != \'\'')
-        .andWhere('h.created_at BETWEEN :start AND :end', { start: monthStart, end: monthEnd })
-        .select('h.tratamiento', 'nombre')
-        .addSelect('COUNT(h.id)', 'cantidad')
-        .groupBy('h.tratamiento')
-        .orderBy('cantidad', 'DESC')
-        .limit(8)
-        .getRawMany();
-
-      return historialResult.map((r: { nombre: string; cantidad: string }) => ({
-        nombre: r.nombre,
-        cantidad: parseInt(r.cantidad),
-      }));
-    }
-
-    return turnoResult.map((r: { nombre: string; cantidad: string }) => ({
+    return result.map((r: { nombre: string; cantidad: string }) => ({
       nombre: r.nombre,
       cantidad: parseInt(r.cantidad),
     }));

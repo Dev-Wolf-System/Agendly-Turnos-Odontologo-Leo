@@ -3,6 +3,7 @@ import { Plus_Jakarta_Sans, Geist_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
+import { ClinicaProvider } from "@/components/providers/clinica-provider";
 
 const plusJakarta = Plus_Jakarta_Sans({
   variable: "--font-sans",
@@ -33,7 +34,9 @@ export default function RootLayout({
     >
       <body className="min-h-full flex flex-col font-sans">
         <ThemeProvider>
-          <AuthProvider>{children}</AuthProvider>
+          <AuthProvider>
+            <ClinicaProvider>{children}</ClinicaProvider>
+          </AuthProvider>
         </ThemeProvider>
       </body>
     </html>

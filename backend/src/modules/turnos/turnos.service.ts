@@ -3,19 +3,31 @@ import {
   NotFoundException,
   ConflictException,
   BadRequestException,
+  Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, LessThan, MoreThan, Not } from 'typeorm';
+import { Repository, Between, LessThanOrEqual } from 'typeorm';
+import { Cron, CronExpression } from '@nestjs/schedule';
 import { Turno } from './entities/turno.entity';
+import { Pago } from '../pagos/entities/pago.entity';
+import { HistorialMedico } from '../historial-medico/entities/historial-medico.entity';
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
 import { EstadoTurno } from '../../common/enums';
+import { WebhookService } from '../../common/services/webhook.service';
 
 @Injectable()
 export class TurnosService {
+  private readonly logger = new Logger(TurnosService.name);
+
   constructor(
     @InjectRepository(Turno)
     private readonly turnoRepository: Repository<Turno>,
+    @InjectRepository(Pago)
+    private readonly pagoRepository: Repository<Pago>,
+    @InjectRepository(HistorialMedico)
+    private readonly historialRepository: Repository<HistorialMedico>,
+    private readonly webhookService: WebhookService,
   ) {}
 
   async findAll(
@@ -60,6 +72,7 @@ export class TurnosService {
       't.id', 't.clinica_id', 't.paciente_id', 't.user_id',
       't.start_time', 't.end_time', 't.estado', 't.source',
       't.tipo_tratamiento', 't.notas', 't.created_at',
+      't.fue_reprogramado', 't.es_reprogramacion',
       'paciente.id', 'paciente.nombre', 'paciente.apellido', 'paciente.dni', 'paciente.cel',
       'user.id', 'user.nombre', 'user.apellido', 'user.email',
     ]);
@@ -108,10 +121,13 @@ export class TurnosService {
       source: createTurnoDto.source,
       tipo_tratamiento: createTurnoDto.tipo_tratamiento,
       notas: createTurnoDto.notas,
+      es_reprogramacion: createTurnoDto.es_reprogramacion || false,
     });
 
     const saved = await this.turnoRepository.save(turno);
-    return this.findOne(saved.id, clinicaId);
+    const full = await this.findOne(saved.id, clinicaId);
+    this.fireWebhook(clinicaId, 'pendiente', full);
+    return full;
   }
 
   async update(
@@ -152,16 +168,56 @@ export class TurnosService {
       await this.checkOverlap(clinicaId, userId, startTime, endTime, id);
     }
 
+    const estadoAnterior = turno.estado;
     Object.assign(turno, updateTurnoDto);
     if (updateTurnoDto.start_time) turno.start_time = startTime;
     if (updateTurnoDto.end_time) turno.end_time = endTime;
 
     await this.turnoRepository.save(turno);
-    return this.findOne(id, clinicaId);
+    const full = await this.findOne(id, clinicaId);
+
+    // Disparar webhook si el estado cambió
+    if (updateTurnoDto.estado && updateTurnoDto.estado !== estadoAnterior) {
+      this.fireWebhook(clinicaId, updateTurnoDto.estado, full);
+    }
+
+    return full;
+  }
+
+  async reprogramar(
+    id: string,
+    clinicaId: string,
+  ): Promise<void> {
+    const turno = await this.findOne(id, clinicaId);
+
+    if (turno.estado !== EstadoTurno.PERDIDO) {
+      throw new BadRequestException(
+        'Solo se pueden reprogramar turnos con estado perdido',
+      );
+    }
+
+    turno.fue_reprogramado = true;
+    await this.turnoRepository.save(turno);
+  }
+
+  async getPagosCount(id: string, clinicaId: string): Promise<{ count: number; total: number }> {
+    await this.findOne(id, clinicaId);
+    const result = await this.pagoRepository
+      .createQueryBuilder('p')
+      .where('p.turno_id = :id', { id })
+      .select('COUNT(p.id)', 'count')
+      .addSelect('COALESCE(SUM(p.total), 0)', 'total')
+      .getRawOne();
+    return {
+      count: parseInt(result.count),
+      total: parseFloat(result.total),
+    };
   }
 
   async remove(id: string, clinicaId: string): Promise<void> {
     const turno = await this.findOne(id, clinicaId);
+    await this.historialRepository.delete({ turno_id: id });
+    await this.pagoRepository.delete({ turno_id: id });
     await this.turnoRepository.remove(turno);
   }
 
@@ -179,6 +235,104 @@ export class TurnosService {
     });
   }
 
+  /**
+   * Cron: cada 10 minutos marca como "perdido" los turnos confirmados
+   * cuyo start_time haya pasado hace más de 1 hora.
+   */
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async marcarTurnosPerdidos(): Promise<void> {
+    const unaHoraAtras = new Date();
+    unaHoraAtras.setHours(unaHoraAtras.getHours() - 1);
+
+    const result = await this.turnoRepository
+      .createQueryBuilder()
+      .update(Turno)
+      .set({ estado: EstadoTurno.PERDIDO })
+      .where('estado = :estado', { estado: EstadoTurno.CONFIRMADO })
+      .andWhere('start_time <= :limite', { limite: unaHoraAtras })
+      .execute();
+
+    if (result.affected && result.affected > 0) {
+      this.logger.log(
+        `Marcados ${result.affected} turno(s) como perdido(s)`,
+      );
+    }
+  }
+
+  /**
+   * Cron: cada 10 minutos revisa turnos confirmados que necesitan recordatorio.
+   * Busca turnos donde: start_time - recordatorio_horas_antes <= ahora
+   * y recordatorio_enviado = false.
+   * Agrupa por clínica para respetar la config de cada una.
+   */
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async enviarRecordatorios(): Promise<void> {
+    try {
+      // Obtener todas las clínicas con recordatorio configurado
+      // Para cada una, buscar turnos confirmados pendientes de recordatorio
+      const turnosPendientes = await this.turnoRepository
+        .createQueryBuilder('t')
+        .leftJoinAndSelect('t.paciente', 'paciente')
+        .leftJoinAndSelect('t.user', 'user')
+        .leftJoinAndSelect('t.clinica', 'clinica')
+        .where('t.estado = :estado', { estado: EstadoTurno.CONFIRMADO })
+        .andWhere('t.recordatorio_enviado = false')
+        .andWhere('t.start_time > NOW()')
+        .andWhere('clinica.recordatorio_horas_antes IS NOT NULL')
+        .andWhere(
+          "t.start_time <= NOW() + (clinica.recordatorio_horas_antes || ' hours')::interval",
+        )
+        .getMany();
+
+      if (turnosPendientes.length === 0) return;
+
+      this.logger.log(
+        `Enviando recordatorios para ${turnosPendientes.length} turno(s)`,
+      );
+
+      for (const turno of turnosPendientes) {
+        const enviado = await this.webhookService.dispararRecordatorio(
+          turno.clinica_id,
+          {
+            horario: {
+              start_time: turno.start_time?.toISOString(),
+              end_time: turno.end_time?.toISOString(),
+            },
+            paciente: {
+              nombre: turno.paciente?.nombre || '',
+              apellido: turno.paciente?.apellido || '',
+              cel: turno.paciente?.cel || null,
+              dni: turno.paciente?.dni || '',
+            },
+            tratamiento: turno.tipo_tratamiento || null,
+            estado_turno: 'confirmado',
+            estado_pago: 'pendiente',
+            profesional: {
+              nombre: turno.user?.nombre || '',
+              apellido: turno.user?.apellido || '',
+              email: turno.user?.email || '',
+            },
+            clinica: turno.clinica?.nombre || '',
+            recordatorio_horas_antes: turno.clinica?.recordatorio_horas_antes ?? null,
+            tipo: 'recordatorio',
+          },
+        );
+
+        if (enviado) {
+          await this.turnoRepository.update(turno.id, {
+            recordatorio_enviado: true,
+          });
+        }
+      }
+
+      this.logger.log(
+        `Recordatorios procesados: ${turnosPendientes.length}`,
+      );
+    } catch (err) {
+      this.logger.error(`Error en cron de recordatorios: ${err.message}`);
+    }
+  }
+
   private async checkOverlap(
     clinicaId: string,
     userId: string,
@@ -191,7 +345,7 @@ export class TurnosService {
       .where('t.clinica_id = :clinicaId', { clinicaId })
       .andWhere('t.user_id = :userId', { userId })
       .andWhere('t.estado NOT IN (:...excludedEstados)', {
-        excludedEstados: [EstadoTurno.CANCELADO],
+        excludedEstados: [EstadoTurno.CANCELADO, EstadoTurno.PERDIDO],
       })
       .andWhere('t.start_time < :endTime', { endTime })
       .andWhere('t.end_time > :startTime', { startTime });
@@ -204,8 +358,35 @@ export class TurnosService {
 
     if (overlap) {
       throw new ConflictException(
-        'El odontólogo ya tiene un turno en ese horario',
+        'El profesional ya tiene un turno en ese horario',
       );
     }
+  }
+
+  private fireWebhook(clinicaId: string, estado: string, turno: Turno): void {
+    const pagosTotal = turno.pagos?.reduce((s, p) => s + Number(p.total || 0), 0) || 0;
+    const tienePagos = pagosTotal > 0;
+    this.webhookService.dispararWebhook(clinicaId, estado, {
+      horario: {
+        start_time: turno.start_time?.toISOString(),
+        end_time: turno.end_time?.toISOString(),
+      },
+      paciente: {
+        nombre: turno.paciente?.nombre || '',
+        apellido: turno.paciente?.apellido || '',
+        cel: turno.paciente?.cel || null,
+        dni: turno.paciente?.dni || '',
+      },
+      tratamiento: turno.tipo_tratamiento || null,
+      estado_turno: estado,
+      estado_pago: tienePagos ? 'pagado' : 'pendiente',
+      profesional: {
+        nombre: turno.user?.nombre || '',
+        apellido: turno.user?.apellido || '',
+        email: turno.user?.email || '',
+      },
+      clinica: '',
+      recordatorio_horas_antes: null,
+    });
   }
 }

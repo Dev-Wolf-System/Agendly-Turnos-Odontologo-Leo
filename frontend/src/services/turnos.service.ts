@@ -1,24 +1,23 @@
 import api from "./api";
 
-export type EstadoTurno = "pendiente" | "confirmado" | "cancelado" | "completado";
+export type EstadoTurno = "pendiente" | "confirmado" | "cancelado" | "completado" | "perdido";
 export type SourceTurno = "whatsapp" | "dashboard";
-export type TipoTratamiento =
-  | "consulta" | "limpieza" | "extraccion" | "empaste"
-  | "endodoncia" | "ortodoncia" | "implante" | "blanqueamiento"
-  | "protesis" | "radiografia" | "cirugia" | "control" | "urgencia" | "otro";
+/** @deprecated Usar tratamientos dinámicos del servicio tratamientos.service.ts */
+export type TipoTratamiento = string;
 
-export const TRATAMIENTOS_LABELS: Record<TipoTratamiento, string> = {
+/** Fallback para turnos históricos que usaban el enum viejo */
+export const TRATAMIENTOS_LABELS: Record<string, string> = {
   consulta: "Consulta",
   limpieza: "Limpieza",
-  extraccion: "Extraccion",
+  extraccion: "Extracción",
   empaste: "Empaste",
   endodoncia: "Endodoncia",
   ortodoncia: "Ortodoncia",
   implante: "Implante",
   blanqueamiento: "Blanqueamiento",
-  protesis: "Protesis",
-  radiografia: "Radiografia",
-  cirugia: "Cirugia",
+  protesis: "Prótesis",
+  radiografia: "Radiografía",
+  cirugia: "Cirugía",
   control: "Control",
   urgencia: "Urgencia",
   otro: "Otro",
@@ -35,6 +34,9 @@ export interface Turno {
   source: SourceTurno | null;
   tipo_tratamiento: TipoTratamiento | null;
   notas: string | null;
+  fue_reprogramado: boolean;
+  es_reprogramacion: boolean;
+  recordatorio_enviado: boolean;
   created_at: string;
   paciente?: {
     id: string;
@@ -59,6 +61,7 @@ export interface CreateTurnoPayload {
   source?: SourceTurno;
   tipo_tratamiento?: TipoTratamiento;
   notas?: string;
+  es_reprogramacion?: boolean;
 }
 
 export interface UpdateTurnoPayload {
@@ -70,6 +73,7 @@ export interface UpdateTurnoPayload {
   source?: SourceTurno;
   tipo_tratamiento?: TipoTratamiento;
   notas?: string;
+  es_reprogramacion?: boolean;
 }
 
 const turnosService = {
@@ -87,6 +91,12 @@ const turnosService = {
 
   update: (id: string, data: UpdateTurnoPayload) =>
     api.patch<Turno>(`/turnos/${id}`, data).then((r) => r.data),
+
+  getPagosCount: (id: string) =>
+    api.get<{ count: number; total: number }>(`/turnos/${id}/pagos-count`).then((r) => r.data),
+
+  reprogramar: (id: string) =>
+    api.patch(`/turnos/${id}/reprogramar`).then((r) => r.data),
 
   delete: (id: string) =>
     api.delete(`/turnos/${id}`).then((r) => r.data),

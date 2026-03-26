@@ -67,6 +67,22 @@ export class TurnosController {
     return this.turnosService.update(id, clinicaId, updateTurnoDto);
   }
 
+  @Get(':id/pagos-count')
+  getPagosCount(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentClinica() clinicaId: string,
+  ) {
+    return this.turnosService.getPagosCount(id, clinicaId);
+  }
+
+  @Patch(':id/reprogramar')
+  reprogramar(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentClinica() clinicaId: string,
+  ) {
+    return this.turnosService.reprogramar(id, clinicaId);
+  }
+
   @Delete(':id')
   remove(
     @Param('id', ParseUUIDPipe) id: string,

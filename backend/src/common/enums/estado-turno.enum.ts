@@ -3,4 +3,5 @@ export enum EstadoTurno {
   CONFIRMADO = 'confirmado',
   CANCELADO = 'cancelado',
   COMPLETADO = 'completado',
+  PERDIDO = 'perdido',
 }

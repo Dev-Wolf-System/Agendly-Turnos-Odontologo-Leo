@@ -1,4 +1,5 @@
 import api from "./api";
+import type { PaginationParams, PaginatedResponse } from "./pacientes.service";
 
 export type EstadoPago = "pendiente" | "aprobado" | "rechazado";
 
@@ -63,8 +64,13 @@ export interface UpdatePagoPayload {
 }
 
 const pagosService = {
-  getAll: (filters?: PagoFilters) =>
-    api.get<Pago[]>("/pagos", { params: filters || {} }).then((r) => r.data),
+  getAll: (filters?: PagoFilters, pagination?: PaginationParams) =>
+    api.get<PaginatedResponse<Pago>>("/pagos", {
+      params: { ...(filters || {}), ...pagination },
+    }).then((r) => r.data),
+
+  getByTurno: (turnoId: string) =>
+    api.get<Pago[]>("/pagos", { params: { turno_id: turnoId } }).then((r) => r.data),
 
   getResumen: (filters?: Pick<PagoFilters, "desde" | "hasta">) =>
     api.get<PagoResumen>("/pagos/resumen", { params: filters || {} }).then((r) => r.data),

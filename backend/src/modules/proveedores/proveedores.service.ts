@@ -3,8 +3,10 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, In } from 'typeorm';
 import { Proveedor } from './entities/proveedor.entity';
 import { Categoria } from '../categorias/entities/categoria.entity';
+import { Inventario } from '../inventario/entities/inventario.entity';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
+import { PaginationDto, PaginatedResponse } from '../../common/dto/pagination.dto';
 
 @Injectable()
 export class ProveedoresService {
@@ -13,14 +15,40 @@ export class ProveedoresService {
     private readonly proveedorRepository: Repository<Proveedor>,
     @InjectRepository(Categoria)
     private readonly categoriaRepository: Repository<Categoria>,
+    @InjectRepository(Inventario)
+    private readonly inventarioRepository: Repository<Inventario>,
   ) {}
 
-  async findAll(clinicaId: string): Promise<Proveedor[]> {
-    return this.proveedorRepository.find({
-      where: { clinica_id: clinicaId },
-      relations: ['inventario', 'categorias'],
-      order: { nombre: 'ASC' },
-    });
+  async findAll(
+    clinicaId: string,
+    pagination?: PaginationDto,
+  ): Promise<PaginatedResponse<Proveedor>> {
+    const page = pagination?.page || 1;
+    const limit = pagination?.limit || 20;
+    const sortBy = pagination?.sortBy || 'nombre';
+    const sortOrder = (pagination?.sortOrder?.toUpperCase() === 'DESC' ? 'DESC' : 'ASC') as 'ASC' | 'DESC';
+
+    const allowedSortFields = ['nombre', 'contacto', 'email', 'created_at'];
+    const safeSort = allowedSortFields.includes(sortBy) ? sortBy : 'nombre';
+
+    const qb = this.proveedorRepository
+      .createQueryBuilder('p')
+      .leftJoinAndSelect('p.inventario', 'inventario')
+      .leftJoinAndSelect('p.categorias', 'categorias')
+      .where('p.clinica_id = :clinicaId', { clinicaId });
+
+    const total = await qb.getCount();
+
+    qb.orderBy(`p.${safeSort}`, sortOrder)
+      .skip((page - 1) * limit)
+      .take(limit);
+
+    const data = await qb.getMany();
+
+    return {
+      data,
+      meta: { page, limit, total, totalPages: Math.ceil(total / limit) },
+    };
   }
 
   async findOne(id: string, clinicaId: string): Promise<Proveedor> {
@@ -75,6 +103,15 @@ export class ProveedoresService {
 
   async remove(id: string, clinicaId: string): Promise<void> {
     const proveedor = await this.findOne(id, clinicaId);
+
+    // Desvincular insumos del proveedor (no eliminarlos)
+    await this.inventarioRepository
+      .createQueryBuilder()
+      .update()
+      .set({ proveedor_id: () => 'NULL' })
+      .where('proveedor_id = :id', { id })
+      .execute();
+
     await this.proveedorRepository.remove(proveedor);
   }
 }
