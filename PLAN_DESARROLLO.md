@@ -1,6 +1,6 @@
 # Plan de Desarrollo — Agendly CRM SaaS
 
-> Última actualización: 2026-03-26
+> Última actualización: 2026-03-26 (Fase 9.1-9.2 completadas)
 
 ---
 
@@ -220,18 +220,23 @@
 
 ## Fase 9: Panel de Administración SaaS (ver PLAN_ADMIN_PANEL.md)
 
-### Fase 9.1 — Cimientos
-- [ ] Nuevo rol `SUPERADMIN` sin clinica_id
-- [ ] Entidad `Plan` (nombre, precio, límites, features)
-- [ ] Entidad `Subscription` (clínica + plan + estado + fechas)
-- [ ] Ampliar entidad Clinica (is_active, email, telefono, etc.)
-- [ ] SubscriptionGuard global
+### Fase 9.1 — Cimientos ✅
+- [x] Rol `SUPERADMIN` sin clinica_id + SuperAdminGuard
+- [x] JWT adaptado (clinicaId opcional), ClinicaTenantGuard skip superadmin
+- [x] Entidad `Plan` (nombre, precio_mensual, max_usuarios, max_pacientes, features, is_active)
+- [x] Entidad `Subscription` (clinica_id, plan_id, estado enum, fechas, trial, auto_renew)
+- [x] Enum `EstadoSubscription` (trial, activa, suspendida, cancelada, vencida)
+- [x] Clinica entity ampliada con `is_active` + relación Subscription
+- [x] `SubscriptionGuard` global (valida suscripción activa/trial, skip @Public y superadmin)
+- [x] Módulos `PlansModule` y `SubscriptionsModule` con services y CRUD
 
-### Fase 9.2 — API Admin
-- [ ] CRUD clínicas (listar, detalle, suspender, activar)
-- [ ] CRUD planes
-- [ ] CRUD suscripciones + cron de vencimiento
-- [ ] Dashboard admin con KPIs de plataforma
+### Fase 9.2 — API Admin ✅
+- [x] Módulo Admin protegido con `SuperAdminGuard`
+- [x] CRUD clínicas: listar con filtros + stats, detalle, editar, soft-delete
+- [x] CRUD planes: listar, crear, editar, desactivar
+- [x] CRUD suscripciones: listar, detalle, crear, editar + cron diario vencimiento
+- [x] Dashboard admin: KPIs (clínicas, suscripciones, MRR, clínicas por plan, trials por vencer)
+- [x] DTOs de validación para todos los endpoints
 
 ### Fase 9.3 — Panel Admin Frontend
 - [ ] Rutas `/admin` con layout y sidebar propio
@@ -291,5 +296,5 @@
 | **6** | Integración Mercado Pago (pagos pacientes) | ❌ Pendiente |
 | **7** | Integraciones Google | ❌ Pendiente |
 | **8** | WhatsApp + n8n + IA | ❌ Pendiente |
-| **9** | Panel Administración SaaS (6 subfases) | ❌ Pendiente |
+| **9** | Panel Administración SaaS (6 subfases) | 🔄 En progreso (9.1-9.2 ✅) |
 | **10** | Producción y Escalabilidad | ❌ Pendiente |

@@ -1,5 +1,7 @@
 # Plan de Desarrollo — Panel de Administración de Clínicas (SaaS)
 
+> Última actualización: 2026-03-26
+
 ## Concepto
 
 Crear un **segundo panel** (`/admin`) completamente separado del panel de clínica (`/dashboard`).
@@ -10,83 +12,87 @@ Se necesita un nuevo rol `superadmin` que no pertenece a ninguna clínica, sino 
 
 ---
 
-## Fase 1 — Cimientos (Backend)
+## Fase 1 — Cimientos (Backend) ✅ COMPLETADA
 
 **Objetivo:** Roles, suscripciones y control de acceso a nivel plataforma.
 
-### 1.1 Nuevo rol `superadmin`
-- Agregar `SUPERADMIN = 'superadmin'` al enum `UserRole`
-- Crear `SuperAdminGuard` — valida que `role === superadmin` y que **no necesita** `clinica_id` en el JWT
-- Adaptar `JwtStrategy` para que el `clinicaId` sea opcional (los superadmin no tienen clínica)
+### 1.1 Nuevo rol `superadmin` ✅
+- [x] `SUPERADMIN = 'superadmin'` agregado al enum `UserRole`
+- [x] `SuperAdminGuard` creado — valida `role === superadmin`
+- [x] `JwtStrategy` adaptado — `clinicaId` es opcional (retorna `null` para superadmin)
+- [x] `JwtPayload` interface — `clinicaId` ahora es `string | undefined`
+- [x] `ClinicaTenantGuard` — skip para superadmin
+- [x] `CurrentClinica` decorator — retorna `null` para superadmin
+- [x] `TenantBaseEntity` — `clinica_id` nullable para superadmin
+- [x] `AuthService.generateTokens()` — omite `clinicaId` si no existe
 
-### 1.2 Entidad `Plan`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | UUID (PK) | - |
-| `nombre` | string | Ej: "Starter", "Profesional", "Premium" |
-| `precio_mensual` | decimal | Precio en ARS/USD |
-| `max_usuarios` | int | Límite de usuarios por clínica |
-| `max_pacientes` | int / null | null = ilimitado |
-| `features` | jsonb | Flags de funcionalidades habilitadas |
-| `is_active` | boolean | Si el plan está vigente |
-| `created_at` | timestamp | - |
+### 1.2 Entidad `Plan` ✅
+- [x] Archivo: `backend/src/modules/plans/entities/plan.entity.ts`
+- [x] Campos: nombre, precio_mensual (decimal), max_usuarios, max_pacientes (nullable), features (jsonb), is_active
+- [x] Relación OneToMany con Subscription
 
-### 1.3 Entidad `Subscription`
-| Campo | Tipo | Descripción |
-|---|---|---|
-| `id` | UUID (PK) | - |
-| `clinica_id` | UUID (FK → clinicas) | - |
-| `plan_id` | UUID (FK → plans) | - |
-| `estado` | enum | trial / activa / suspendida / cancelada / vencida |
-| `fecha_inicio` | date | - |
-| `fecha_fin` | date | - |
-| `trial_ends_at` | date / null | Fin del periodo de prueba |
-| `auto_renew` | boolean | Renovación automática |
-| `external_reference` | string / null | ID de Mercado Pago |
-| `created_at` | timestamp | - |
-| `updated_at` | timestamp | - |
+### 1.3 Entidad `Subscription` ✅
+- [x] Archivo: `backend/src/modules/subscriptions/entities/subscription.entity.ts`
+- [x] Campos: clinica_id, plan_id, estado (enum), fecha_inicio, fecha_fin, trial_ends_at, auto_renew, external_reference
+- [x] Enum `EstadoSubscription`: trial, activa, suspendida, cancelada, vencida
+- [x] Relaciones ManyToOne con Clinica y Plan
 
-### 1.4 Ampliar entidad `Clinica`
-- Agregar: `is_active` (boolean), `email`, `telefono`, `direccion`, `logo_url`, `fecha_registro`
+### 1.4 Ampliar entidad `Clinica` ✅
+- [x] Campo `is_active` (boolean, default true) agregado
+- [x] Relación OneToMany con Subscription agregada
 
-### 1.5 Guard de suscripción (`SubscriptionGuard`)
-- Guard global que verifica si la clínica del usuario tiene una suscripción activa/trial
-- Si está suspendida/vencida → responde `403` con mensaje claro
-- Se salta para `@Public()` y para `superadmin`
+### 1.5 Guard de suscripción (`SubscriptionGuard`) ✅
+- [x] Guard global registrado en AppModule
+- [x] Verifica suscripción activa/trial para la clínica del usuario
+- [x] Mensajes descriptivos por estado (suspendida, vencida, cancelada, trial expirado)
+- [x] Skip para `@Public()` y para `superadmin`
+
+### 1.6 Módulos base ✅
+- [x] `PlansModule` (entity + service + CRUD básico)
+- [x] `SubscriptionsModule` (entity + service + CRUD + cron vencimiento)
+- [x] Ambos registrados en AppModule
 
 ---
 
-## Fase 2 — API de Administración (Backend)
+## Fase 2 — API de Administración (Backend) ✅ COMPLETADA
 
 **Objetivo:** CRUD completo para gestionar clínicas, planes y suscripciones.
 
-### 2.1 Módulo `Admin`
-- Protegido con `@Roles(UserRole.SUPERADMIN)`
-- Endpoints:
-  - `GET /admin/clinicas` — listar todas con filtros (activa, plan, fecha)
-  - `GET /admin/clinicas/:id` — detalle con suscripción, usuarios, métricas
-  - `PATCH /admin/clinicas/:id` — activar/suspender/editar
-  - `DELETE /admin/clinicas/:id` — soft-delete
+### 2.1 Módulo `Admin` — Clínicas ✅
+- [x] Protegido con `SuperAdminGuard`
+- [x] `GET /admin/clinicas` — listar todas con filtros (is_active, plan_id, search) + stats (usuarios, pacientes, turnos)
+- [x] `GET /admin/clinicas/:id` — detalle con suscripción activa, usuarios, métricas
+- [x] `PATCH /admin/clinicas/:id` — editar (nombre, email, cel, dirección, is_active)
+- [x] `DELETE /admin/clinicas/:id` — soft-delete (is_active = false)
 
-### 2.2 Módulo `Plans`
-- `GET /admin/plans` — listar planes
-- `POST /admin/plans` — crear plan
-- `PATCH /admin/plans/:id` — editar plan
-- `DELETE /admin/plans/:id` — desactivar
+### 2.2 Módulo `Plans` ✅
+- [x] `GET /admin/plans` — listar todos (incluye inactivos para admin)
+- [x] `POST /admin/plans` — crear plan (con validación DTO)
+- [x] `PATCH /admin/plans/:id` — editar plan
+- [x] `DELETE /admin/plans/:id` — desactivar (soft-delete)
 
-### 2.3 Módulo `Subscriptions`
-- `GET /admin/subscriptions` — listar todas
-- `POST /admin/subscriptions` — asignar plan a clínica
-- `PATCH /admin/subscriptions/:id` — cambiar estado, renovar, extender trial
-- Lógica automática: cron job que marca como `vencida` las suscripciones expiradas
+### 2.3 Módulo `Subscriptions` ✅
+- [x] `GET /admin/subscriptions` — listar todas con relaciones clinica + plan
+- [x] `GET /admin/subscriptions/:id` — detalle
+- [x] `POST /admin/subscriptions` — asignar plan a clínica
+- [x] `PATCH /admin/subscriptions/:id` — cambiar estado, renovar, extender trial
+- [x] Cron `@EVERY_DAY_AT_2AM` que marca como `vencida` las suscripciones expiradas
+- [x] Método `createTrialForClinica()` para asignar trial de N días
 
-### 2.4 Métricas de plataforma
-- `GET /admin/dashboard` — KPIs globales:
-  - Total clínicas activas/inactivas
-  - Ingresos mensuales por suscripciones (MRR)
-  - Clínicas por plan
-  - Nuevos registros del mes
-  - Clínicas con trial próximo a vencer
+### 2.4 Métricas de plataforma ✅
+- [x] `GET /admin/dashboard` — KPIs globales:
+  - Total clínicas (activas, inactivas, nuevas del mes)
+  - Suscripciones (activas, trial, trials por vencer en 7 días)
+  - MRR (Monthly Recurring Revenue)
+  - Clínicas por plan (agrupado)
+  - Lista de planes activos
+
+### 2.5 DTOs de validación ✅
+- [x] `CreatePlanDto` (nombre, precio_mensual, max_usuarios, max_pacientes, features, is_active)
+- [x] `UpdatePlanDto` (todos opcionales)
+- [x] `CreateSubscriptionDto` (clinica_id, plan_id, estado, fechas)
+- [x] `UpdateSubscriptionDto` (estado, fecha_fin, trial_ends_at, auto_renew)
+- [x] `UpdateClinicaAdminDto` (nombre, email, cel, direccion, is_active)
 
 ---
 

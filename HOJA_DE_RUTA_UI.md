@@ -183,6 +183,46 @@
 
 ---
 
+## Mejoras Extra Post-Fases ✅ COMPLETADAS
+
+### Sidebar profesional colapsable
+- [x] SidebarProvider context (collapsed, mobileOpen) con localStorage persistido
+- [x] Animación suave 300ms de colapso/expansión
+- [x] Tooltips cuando está colapsado
+- [x] Indicador de sección activa (barra lateral izquierda)
+- [x] Mobile: overlay con backdrop blur, cierra con Escape o cambio de ruta
+- [x] Botón hamburguesa en header para mobile
+- [x] Fix overflow horizontal al colapsar (overflow-hidden condicional)
+
+### Welcome Banner
+- [x] Saludo por hora del día (Buenos días/tardes/noches) con emoji
+- [x] Muestra nombre del usuario y nombre de la clínica
+- [x] Fecha actual en español
+- [x] Frase motivacional rotativa diaria (6 frases)
+- [x] Dismissable con X, animación slide-in-from-top
+
+### Health Loader animado
+- [x] Pantalla de carga temática de salud
+- [x] Corazón central con pulse + 4 iconos orbitando (diente, píldora, escudo, estetoscopio)
+- [x] Ring exterior con ping animation
+- [x] Dot bounce progress indicator
+- [x] Reemplaza "Cargando..." plano en dashboard layout
+
+### Rediseño pagos profesional
+- [x] Gráfico donut por método de pago (Recharts PieChart)
+- [x] Cards breakdown por método con progress bars
+- [x] Búsqueda de pacientes en la tabla
+- [x] Acciones rápidas (aprobar/rechazar) para pagos pendientes
+- [x] Export CSV con BOM UTF-8
+- [x] KPI "Ticket Promedio"
+- [x] Iconos por método de pago en tabla y formulario
+- [x] Fix: pagos no aparecían (DTO forbidNonWhitelisted rechazaba query params)
+- [x] Fix: turno select mostraba UUID (reemplazado con span lookup)
+- [x] Fix: header buttons desalineados (overflow-hidden → min-w-0 + z-10)
+- [x] Fix: breadcrumbs null rompía justify-between en dashboard
+
+---
+
 ## Estado General
 
 | Fase | Descripción | Estado |
