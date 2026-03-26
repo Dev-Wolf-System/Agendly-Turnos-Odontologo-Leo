@@ -21,6 +21,10 @@ import { CategoriasModule } from './modules/categorias/categorias.module';
 import { DashboardModule } from './modules/dashboard/dashboard.module';
 import { TratamientosModule } from './modules/tratamientos/tratamientos.module';
 import { NotificacionesModule } from './modules/notificaciones/notificaciones.module';
+import { PlansModule } from './modules/plans/plans.module';
+import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
+import { SubscriptionGuard } from './common/guards/subscription.guard';
+import { AdminModule } from './modules/admin/admin.module';
 
 @Module({
   imports: [
@@ -40,6 +44,9 @@ import { NotificacionesModule } from './modules/notificaciones/notificaciones.mo
     DashboardModule,
     TratamientosModule,
     NotificacionesModule,
+    PlansModule,
+    SubscriptionsModule,
+    AdminModule,
   ],
   providers: [
     {
@@ -57,6 +64,10 @@ import { NotificacionesModule } from './modules/notificaciones/notificaciones.mo
     {
       provide: APP_GUARD,
       useClass: ClinicaTenantGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: SubscriptionGuard,
     },
   ],
 })

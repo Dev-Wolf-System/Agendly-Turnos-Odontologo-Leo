@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { IS_PUBLIC_KEY } from '../decorators';
+import { UserRole } from '../enums';
 
 @Injectable()
 export class ClinicaTenantGuard implements CanActivate {
@@ -23,6 +24,12 @@ export class ClinicaTenantGuard implements CanActivate {
 
     const request = context.switchToHttp().getRequest();
     const user = request.user;
+
+    // Superadmin opera a nivel plataforma, no necesita clinica_id
+    if (user.role === UserRole.SUPERADMIN) {
+      return true;
+    }
+
     const clinicaIdParam = request.params.clinicaId;
 
     if (clinicaIdParam && clinicaIdParam !== user.clinicaId) {

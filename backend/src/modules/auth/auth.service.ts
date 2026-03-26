@@ -112,7 +112,7 @@ export class AuthService {
   private async generateTokens(user: User) {
     const payload: JwtPayload = {
       sub: user.id,
-      clinicaId: user.clinica_id,
+      ...(user.clinica_id ? { clinicaId: user.clinica_id } : {}),
       role: user.role,
       email: user.email,
     };

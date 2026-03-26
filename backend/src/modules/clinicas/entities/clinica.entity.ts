@@ -5,6 +5,7 @@ import { Paciente } from '../../pacientes/entities/paciente.entity';
 import { Turno } from '../../turnos/entities/turno.entity';
 import { Inventario } from '../../inventario/entities/inventario.entity';
 import { Proveedor } from '../../proveedores/entities/proveedor.entity';
+import { Subscription } from '../../subscriptions/entities/subscription.entity';
 
 @Entity('clinicas')
 export class Clinica extends BaseEntity {
@@ -49,6 +50,12 @@ export class Clinica extends BaseEntity {
 
   @Column({ type: 'integer', nullable: true })
   recordatorio_horas_antes: number;
+
+  @Column({ type: 'boolean', default: true })
+  is_active: boolean;
+
+  @OneToMany(() => Subscription, (sub) => sub.clinica)
+  subscriptions: Subscription[];
 
   @OneToMany(() => User, (user) => user.clinica)
   users: User[];
