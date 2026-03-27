@@ -15,13 +15,16 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
     if (!isLoading && !user) {
       router.replace("/login");
     }
+    if (!isLoading && user?.role === "superadmin") {
+      router.replace("/admin");
+    }
   }, [user, isLoading, router]);
 
   if (isLoading) {
     return <HealthLoader />;
   }
 
-  if (!user) return null;
+  if (!user || user.role === "superadmin") return null;
 
   return (
     <SidebarProvider>
