@@ -5,6 +5,8 @@ import {
   IsString,
   IsUUID,
 } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { normalizePhone } from '../../../common/utils/normalize-phone';
 
 export class CreateProveedorDto {
   @IsString()
@@ -21,6 +23,7 @@ export class CreateProveedorDto {
 
   @IsString()
   @IsOptional()
+  @Transform(({ value }) => normalizePhone(value))
   cel?: string;
 
   @IsArray()

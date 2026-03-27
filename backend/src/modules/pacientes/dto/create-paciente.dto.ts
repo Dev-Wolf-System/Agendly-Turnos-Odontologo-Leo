@@ -1,4 +1,6 @@
 import { IsEmail, IsNotEmpty, IsOptional, IsString } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { normalizePhone } from '../../../common/utils/normalize-phone';
 
 export class CreatePacienteDto {
   @IsString()
@@ -15,6 +17,7 @@ export class CreatePacienteDto {
 
   @IsString()
   @IsOptional()
+  @Transform(({ value }) => normalizePhone(value))
   cel?: string;
 
   @IsEmail()

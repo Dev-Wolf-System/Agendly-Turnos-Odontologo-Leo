@@ -1,4 +1,6 @@
 import { IsOptional, IsString, IsNumber, IsObject, Min } from 'class-validator';
+import { Transform } from 'class-transformer';
+import { normalizePhone } from '../../../common/utils/normalize-phone';
 
 export class UpdateClinicaDto {
   @IsOptional()
@@ -11,6 +13,7 @@ export class UpdateClinicaDto {
 
   @IsOptional()
   @IsString()
+  @Transform(({ value }) => normalizePhone(value))
   cel?: string;
 
   @IsOptional()
