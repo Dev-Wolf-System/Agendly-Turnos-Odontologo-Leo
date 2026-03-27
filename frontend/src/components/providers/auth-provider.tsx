@@ -14,8 +14,8 @@ import api from "@/services/api";
 interface AuthContextType {
   user: User | null;
   isLoading: boolean;
-  login: (data: LoginRequest) => Promise<void>;
-  register: (data: RegisterRequest) => Promise<void>;
+  login: (data: LoginRequest) => Promise<User>;
+  register: (data: RegisterRequest) => Promise<User>;
   logout: () => void;
 }
 
@@ -45,14 +45,16 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     loadUser();
   }, [loadUser]);
 
-  const login = async (data: LoginRequest) => {
+  const login = async (data: LoginRequest): Promise<User> => {
     const response = await authService.login(data);
     setUser(response.user);
+    return response.user;
   };
 
-  const register = async (data: RegisterRequest) => {
+  const register = async (data: RegisterRequest): Promise<User> => {
     const response = await authService.register(data);
     setUser(response.user);
+    return response.user;
   };
 
   const logout = () => {

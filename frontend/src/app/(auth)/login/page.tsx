@@ -30,8 +30,8 @@ export default function LoginPage() {
     setIsLoading(true);
 
     try {
-      await login({ email, password });
-      router.push("/dashboard");
+      const loggedUser = await login({ email, password });
+      router.push(loggedUser.role === "superadmin" ? "/admin" : "/dashboard");
     } catch (err: any) {
       const message =
         err?.response?.data?.message || err?.message || "Email o contraseña incorrectos";
