@@ -50,10 +50,10 @@ export class SubscriptionGuard implements CanActivate {
       order: { created_at: 'DESC' },
     });
 
+    // Si no tiene suscripción, permitir acceso (modo gracia)
+    // Esto se endurecerá cuando el sistema de billing esté activo
     if (!subscription) {
-      throw new ForbiddenException(
-        'Tu clínica no tiene una suscripción activa. Contactá al equipo de Agendly.',
-      );
+      return true;
     }
 
     const estadosPermitidos = [
