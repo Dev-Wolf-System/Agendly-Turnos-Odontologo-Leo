@@ -416,89 +416,85 @@ function PagosContent() {
 
       {/* KPIs Row */}
       {resumen && (
-        <div className={`grid gap-4 md:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
+        <div className={`grid gap-4 grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
           {/* Aprobados */}
-          <Card className="border-l-4 border-l-emerald-500">
-            <CardHeader className="pb-2">
+          <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <CardDescription>{isAdmin ? "Ingresos Aprobados" : "Pagos Aprobados"}</CardDescription>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
-                  <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <div>
+                  <p className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wider">{isAdmin ? "Ingresos Aprobados" : "Pagos Aprobados"}</p>
+                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">
+                    {isAdmin ? formatCurrency(totalAprobados) : resumen.cantidad}
+                  </p>
+                  <p className="text-xs text-emerald-600/50 dark:text-emerald-400/50 mt-0.5">
+                    {resumen.cantidad} pago{resumen.cantidad !== 1 ? "s" : ""} aprobado{resumen.cantidad !== 1 ? "s" : ""}
+                  </p>
+                </div>
+                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10 flex items-center justify-center">
+                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
                 </div>
               </div>
-              <CardTitle className="text-2xl text-emerald-600 dark:text-emerald-400">
-                {isAdmin ? formatCurrency(totalAprobados) : resumen.cantidad}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                {resumen.cantidad} pago
-                {resumen.cantidad !== 1 ? "s" : ""} aprobado
-                {resumen.cantidad !== 1 ? "s" : ""}
-              </p>
             </CardContent>
           </Card>
 
           {/* Pendientes */}
-          <Card className="border-l-4 border-l-amber-500">
-            <CardHeader className="pb-2">
+          <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <CardDescription>Pendientes</CardDescription>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
-                  <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
+                <div>
+                  <p className="text-xs font-medium text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Pendientes</p>
+                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-1">
+                    {isAdmin ? formatCurrency(totalPendientes) : cantPendientes}
+                  </p>
+                  <p className="text-xs text-amber-600/50 dark:text-amber-400/50 mt-0.5">
+                    {cantPendientes} pago{cantPendientes !== 1 ? "s" : ""} por aprobar
+                  </p>
+                </div>
+                <div className="w-11 h-11 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 flex items-center justify-center">
+                  <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
                 </div>
               </div>
-              <CardTitle className="text-2xl text-amber-600 dark:text-amber-400">
-                {isAdmin ? formatCurrency(totalPendientes) : cantPendientes}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                {cantPendientes} pago{cantPendientes !== 1 ? "s" : ""} por
-                aprobar
-              </p>
             </CardContent>
           </Card>
 
           {/* Rechazados */}
-          <Card className="border-l-4 border-l-red-500">
-            <CardHeader className="pb-2">
+          <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20">
+            <CardContent className="p-5">
               <div className="flex items-center justify-between">
-                <CardDescription>Rechazados</CardDescription>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/40">
-                  <XCircle className="h-4 w-4 text-red-600 dark:text-red-400" />
+                <div>
+                  <p className="text-xs font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-wider">Rechazados</p>
+                  <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">
+                    {isAdmin ? formatCurrency(totalRechazados) : cantRechazados}
+                  </p>
+                  <p className="text-xs text-red-600/50 dark:text-red-400/50 mt-0.5">
+                    {cantRechazados} pago{cantRechazados !== 1 ? "s" : ""} rechazado{cantRechazados !== 1 ? "s" : ""}
+                  </p>
+                </div>
+                <div className="w-11 h-11 rounded-xl bg-red-500/10 dark:bg-red-400/10 flex items-center justify-center">
+                  <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
                 </div>
               </div>
-              <CardTitle className="text-2xl text-red-600 dark:text-red-400">
-                {isAdmin ? formatCurrency(totalRechazados) : cantRechazados}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                {cantRechazados} pago{cantRechazados !== 1 ? "s" : ""}{" "}
-                rechazado{cantRechazados !== 1 ? "s" : ""}
-              </p>
             </CardContent>
           </Card>
 
           {/* Ticket Promedio — solo admin */}
           {isAdmin && (
-            <Card className="border-l-4 border-l-blue-500">
-              <CardHeader className="pb-2">
+            <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
+              <CardContent className="p-5">
                 <div className="flex items-center justify-between">
-                  <CardDescription>Ticket Promedio</CardDescription>
-                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                    <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  <div>
+                    <p className="text-xs font-medium text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider">Ticket Promedio</p>
+                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">
+                      {formatCurrency(ticketPromedio)}
+                    </p>
+                    <p className="text-xs text-blue-600/50 dark:text-blue-400/50 mt-0.5">
+                      Promedio por pago aprobado
+                    </p>
+                  </div>
+                  <div className="w-11 h-11 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center">
+                    <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
                   </div>
                 </div>
-                <CardTitle className="text-2xl text-blue-600 dark:text-blue-400">
-                  {formatCurrency(ticketPromedio)}
-                </CardTitle>
-              </CardHeader>
-              <CardContent>
-                <p className="text-xs text-muted-foreground">
-                  Promedio por pago aprobado
-                </p>
               </CardContent>
             </Card>
           )}

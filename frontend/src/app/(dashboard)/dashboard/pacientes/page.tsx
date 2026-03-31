@@ -320,7 +320,7 @@ export default function PacientesPage() {
           {pacientes.map((paciente) => (
             <div
               key={paciente.id}
-              className="group relative rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+              className="group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
             >
               {/* Glow */}
               <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${getGradient(paciente.id)} opacity-[0.06] rounded-full group-hover:opacity-[0.12] transition-opacity`} />

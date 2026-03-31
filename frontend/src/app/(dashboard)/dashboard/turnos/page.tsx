@@ -207,7 +207,7 @@ export default function TurnosPage() {
         tratamientosService.getActive(),
       ]);
       setPacientes(pacsResult.data);
-      setOdontologos(users.filter((u) => u.role !== "assistant"));
+      setOdontologos(users.filter((u) => u.role === "odontologist"));
       setTratamientos(tratamientosData);
     } catch {
       // silently fail
@@ -527,58 +527,68 @@ export default function TurnosPage() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-        <Card>
-          <CardContent className="flex items-center gap-3 py-3 px-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
-              <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{kpiStats.pendientes}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Pendientes</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 py-3 px-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-              <CalendarDays className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{kpiStats.confirmados}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Confirmados</p>
+        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Pendientes</p>
+                <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-1">{kpiStats.pendientes}</p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 py-3 px-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
-              <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{kpiStats.completados}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Completados</p>
-            </div>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 py-3 px-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/40">
-              <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{kpiStats.cancelados}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Cancelados</p>
+        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider">Confirmados</p>
+                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">{kpiStats.confirmados}</p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center">
+                <CalendarDays className="h-5 w-5 text-blue-600 dark:text-blue-400" />
+              </div>
             </div>
           </CardContent>
         </Card>
-        <Card>
-          <CardContent className="flex items-center gap-3 py-3 px-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-orange-100 dark:bg-orange-900/40">
-              <UserX className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wider">Completados</p>
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">{kpiStats.completados}</p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10 flex items-center justify-center">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
+              </div>
             </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{kpiStats.perdidos}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">Perdidos</p>
+          </CardContent>
+        </Card>
+        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-wider">Cancelados</p>
+                <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">{kpiStats.cancelados}</p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-red-500/10 dark:bg-red-400/10 flex items-center justify-center">
+                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/20">
+          <CardContent className="p-5">
+            <div className="flex items-center justify-between">
+              <div>
+                <p className="text-xs font-medium text-orange-600/70 dark:text-orange-400/70 uppercase tracking-wider">Perdidos</p>
+                <p className="text-2xl font-bold text-orange-700 dark:text-orange-300 mt-1">{kpiStats.perdidos}</p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-orange-500/10 dark:bg-orange-400/10 flex items-center justify-center">
+                <UserX className="h-5 w-5 text-orange-600 dark:text-orange-400" />
+              </div>
             </div>
           </CardContent>
         </Card>

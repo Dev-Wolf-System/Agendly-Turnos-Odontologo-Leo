@@ -282,55 +282,51 @@ function InventarioContent() {
       </div>
 
       {/* KPIs */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader className="pb-2">
+      <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
+        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <CardDescription>Total Materiales</CardDescription>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                <Boxes className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+              <div>
+                <p className="text-xs font-medium text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider">Total Materiales</p>
+                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">{stats.total}</p>
+                <p className="text-xs text-blue-600/50 dark:text-blue-400/50 mt-0.5">ítems en inventario</p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center">
+                <Boxes className="h-5 w-5 text-blue-600 dark:text-blue-400" />
               </div>
             </div>
-            <CardTitle className="text-2xl">{stats.total}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              ítems registrados en inventario
-            </p>
           </CardContent>
         </Card>
 
-        <Card>
-          <CardHeader className="pb-2">
+        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <CardDescription>Stock Normal</CardDescription>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
-                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+              <div>
+                <p className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wider">Stock Normal</p>
+                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">{stats.ok}</p>
+                <p className="text-xs text-emerald-600/50 dark:text-emerald-400/50 mt-0.5">ítems con stock suficiente</p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10 flex items-center justify-center">
+                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
               </div>
             </div>
-            <CardTitle className="text-2xl text-emerald-600 dark:text-emerald-400">{stats.ok}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              ítems con stock suficiente
-            </p>
           </CardContent>
         </Card>
 
-        <Card className={stats.low > 0 ? "ring-2 ring-red-200 dark:ring-red-900" : ""}>
-          <CardHeader className="pb-2">
+        <Card className={`relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20 ${stats.low > 0 ? "ring-2 ring-red-200 dark:ring-red-800" : ""}`}>
+          <CardContent className="p-5">
             <div className="flex items-center justify-between">
-              <CardDescription>Stock Bajo</CardDescription>
-              <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-red-100 dark:bg-red-900/40">
-                <AlertTriangle className="h-4 w-4 text-red-600 dark:text-red-400" />
+              <div>
+                <p className="text-xs font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-wider">Stock Bajo</p>
+                <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">{stats.low}</p>
+                <p className="text-xs text-red-600/50 dark:text-red-400/50 mt-0.5">
+                  {stats.low > 0 ? "necesitan reposición" : "todo en orden"}
+                </p>
+              </div>
+              <div className="w-11 h-11 rounded-xl bg-red-500/10 dark:bg-red-400/10 flex items-center justify-center">
+                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
               </div>
             </div>
-            <CardTitle className="text-2xl text-red-600 dark:text-red-400">{stats.low}</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-xs text-muted-foreground">
-              {stats.low > 0 ? "ítems que necesitan reposición" : "todo el stock está en orden"}
-            </p>
           </CardContent>
         </Card>
       </div>

@@ -342,7 +342,7 @@ export default function FichaPacientePage() {
           <CardContent>
             <div className="relative">
               {/* Timeline line */}
-              <div className="absolute left-[18px] top-2 bottom-2 w-px bg-border" />
+              <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border" />
 
               <div className="space-y-4">
                 {historialMedico.slice(0, 5).map((h, idx) => (
