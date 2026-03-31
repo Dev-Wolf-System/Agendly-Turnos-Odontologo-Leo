@@ -14,3 +14,58 @@ rm -rf .next && npm run dev
 Ultima sesion de claude: 
 
 claude --resume 52d9803c-53c0-4887-961f-3b35d817c74a
+
+revisar luego:
+
+* ● Primero necesito ver cómo está configurado Redis en el proyecto y el módulo common.
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Redis no está configurado aún como módulo de cache.
+Usaré un cache en memoria simple (Map con TTL) por ahora — es más práctico sin añadir dependencias.
+Cuando Redis se integre, se podrá migrar fácilmente.
+
+
+Revisar y mejorar: 
+
+En la seccion pacientes me gusto mucho como quedo, lo unico que mejoraria es el selector del orden ya que
+está mostrando apellido:ASC cuando deberia mostrar Apellido A-Z. 
+Tambien bi que tiene una especie de circulo completo en la esquina superior derecha de la tarjeta entendo que este solo deberia verse una parte y no todo el circulo.
+Tambien note que en el panel de secretaria y el panel medico a la hora de agendar un turno no esta trayendo datos por ejemplo
+pacientes, ni asignar el profecional, por favor revisa y corrobora que todo esto y todas las dunciones funcionen bien en todos los paneles! 
+tambien note que en el chat no esta mostrando o resaltando el chat que tiene nuevo mensaje ni la cantidad tambien me gustaria que agregues
+un indicador de lectura y si esta online o no.
+Tambien agregar un boton para vaciar el chat que solo se pueda usar por el admin de la clinica/consultorio.
+Tambien me gustaria mejorar el diseño por uno mas profecional y ultra moderno de la ficha medica de los pacientes, me gusta la que esta pero creo
+que puedes hacerlo mucho mejor de alto nivel.
+Revisar que el nombre de la clinica/consultorio se ajuste al tamaño del Sidebar para que este no salga cortado.
+Tambien agregar la funcion de que cuando se asigne un turno con tratamiento y este ya tenga un precio se le genere un pago en estado pendiente,
+pero si no tiene precio el tratamiento no se le genere nada. 
+Tambien en el panel medico y de secretaria poner arriba el "estado de turnos de hoy" de manera que eso sea lo primero que se obserba,
+y si se puede agregar en los paneles dashboard la posibilidad de modificar la ubicacion de los graficos y kpi tipo kanban seria
+mejor (boton que habilite y desabilite esta opcion) no modificar las tarjetas ni kpi.
+tambien agregar en el admin de clinica/consultorio la posibilidad de poder seleccionar que kpi puede ver cada integrante de la clinica/consultorio.
+Tambien por favor seguir una linea de diseño de manera que los botones sean iguales y la paleta de colores!
+Cambiar el logo de la app de la app por el que se encuentra en la carpeta media con el nombre Avax Health.png
+Cambiar el nombre de la base de datos por Avax_Health_BDs y el nombre del usuario Agendly por Avax_Health
+Revisar que todos los kpi tengan un diseña igual para no romper la estetica de la app.
+
+todos estos cambios y mejoras sugeridas fueron revisados antes de la ultima conpilacion, si ves algo que ya  esta resuelto tachalo o ignoralo
+
+
+Revisar - Mejorar: 
+
+Cuando la cuenta de una clinica o consultorio se suspende, al loguearse deberia mostrar un mensaje de error indicando que la cuenta esta suspendida
+por falta de pago de manera profecional y de alto nivel, y no permitir el acceso a la app.
+El mensaje de la que muestra en la cuando esta vencida es perfecto no cambiar eso! 
+
+Tambien mostro esto: src/services/admin.service.ts (12:20) @ async getAdminDashboard
+
+
+  10 |
+  11 | export async function getAdminDashboard(): Promise<AdminDashboardKPIs> {
+> 12 |   const { data } = await api.get("/admin/dashboard");
+     |                    ^
+  13 |   return data;
+  14 | }
+  15 |
