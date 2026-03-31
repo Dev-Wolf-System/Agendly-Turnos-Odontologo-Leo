@@ -1,6 +1,6 @@
 # Plan de Desarrollo — Avax Health CRM SaaS
 
-> Última actualización: 2026-03-30 (Fase 9.1-9.3 + 9.5 + 9.7 completadas)
+> Última actualización: 2026-03-31 (Fase 9.1-9.3 + 9.5 + 9.7 completadas, Fase L UI completada)
 
 ---
 
@@ -170,6 +170,20 @@
 - [x] Crons: stock bajo (@30min), turnos próximos (@30min), cambio estado turno (evento)
 - [x] Frontend: campana NotificationBell en header con badge, dropdown, marcar como leída
 - [x] Tipos: turno_proximo, stock_bajo, pago_pendiente, turno_cancelado, turno_confirmado, turno_perdido, info
+
+---
+
+### Chat interno ✅
+- [x] Backend: módulo Chat (entity, DTOs, service, controller) con mensajes generales/DM, lectura, heartbeat, online, clear
+- [x] Frontend: widget flotante con conversaciones, badges no leídos, estado online, indicadores lectura
+
+### Rediseño UI avanzado ✅
+- [x] Pacientes: vista cards/lista dual, filtros, sort con labels, avatares gradiente
+- [x] Ficha médica: hero header, KPIs con gradientes, timeline procedimientos, tabs modernos
+- [x] Dashboard: secciones reordenables drag-drop, orden persistido por rol
+- [x] Config visibilidad KPIs por rol (admin configura qué ve cada rol)
+- [x] Auto-generación de pago pendiente al crear turno con tratamiento con precio
+- [x] Fixes: hooks order, UsersController roles, datos financieros por rol, sidebar, BD renaming
 
 ---
 

@@ -1,6 +1,6 @@
 # Hoja de Ruta — Reestilizado y Mejoras UI/UX
 
-> Última actualización: 2026-03-27
+> Última actualización: 2026-03-31
 
 ## Fixes aplicados
 - [x] Select de Paciente y Odontólogo en Nuevo Turno mostraba UUID en vez del nombre — corregido con display manual
@@ -295,6 +295,56 @@
 
 ---
 
+## Fase L: Chat Interno, Rediseño Pacientes/Ficha, Dashboard Configurable ✅ COMPLETADA
+
+### Chat Interno
+- [x] Backend: módulo Chat completo (entity, DTOs, service, controller)
+- [x] Mensajes generales (canal) y directos (DM)
+- [x] Indicadores de lectura (check/double-check)
+- [x] Heartbeat + tracking de usuarios online (in-memory, 30s threshold)
+- [x] Conteo de no leídos por usuario/canal
+- [x] Vaciar chat (solo admin)
+- [x] Frontend: widget flotante con lista de conversaciones, badges, estado online
+
+### Rediseño Pacientes
+- [x] Vista dual: cards con gradientes + lista compacta (toggle)
+- [x] Filtros y búsqueda mejorados
+- [x] Select de ordenamiento con labels correctos (fix "apellido:ASC" → "Apellido A-Z")
+- [x] Avatares con gradientes por hash de ID
+
+### Rediseño Ficha Médica
+- [x] Hero header con avatar gradiente, iconos de contacto, decoración de fondo
+- [x] KPI cards con gradientes temáticos e iconos Lucide
+- [x] Timeline visual para últimos procedimientos
+- [x] Tabs modernos con iconos y empty states ilustrados
+- [x] Badges de estado con colores semánticos
+
+### Dashboard Configurable
+- [x] Secciones reordenables con drag-and-drop (HTML5 API)
+- [x] Orden persistido por rol en localStorage
+- [x] Estado de turnos al inicio para médico/secretaria
+- [x] Toggle editar/bloquear disposición
+
+### Visibilidad de KPIs por Rol
+- [x] Campo `kpi_visibility` (jsonb) en entidad Clinica
+- [x] Tab "Dashboard" en configuración (admin)
+- [x] Switches por rol (Profesional/Secretaria) para cada KPI y sección
+- [x] Dashboard filtra KPIs y secciones según config guardada
+- [x] Admin siempre ve todo
+
+### Auto-generación de Pagos
+- [x] Al crear turno con tratamiento con precio, se genera pago pendiente automáticamente
+- [x] Lookup por nombre de tratamiento activo de la clínica
+
+### Fixes Críticos
+- [x] Fix hooks error: `useFeatureFlagProvider` movido antes de returns condicionales
+- [x] Fix turnos no cargaba datos: `@Roles(ADMIN)` removido a nivel clase en UsersController
+- [x] Panel médico sin datos financieros, secretaria muestra conteo no montos
+- [x] Sidebar: nombre clínica con font dinámico, logo actualizado a Avax Health
+- [x] Rebranding BD: username `avax_health`, database `Avax_Health_BDs`
+
+---
+
 ## Estado General
 
 | Fase | Descripción | Estado |
@@ -310,3 +360,4 @@
 | **I** | Panel Admin SaaS — Diseño Premium | ✅ Completada |
 | **J** | Rebranding y Mejoras UX | ✅ Completada |
 | **K** | Feature Flags + Panel Profesional | ✅ Completada |
+| **L** | Chat Interno + Rediseño Pacientes/Ficha + Dashboard Configurable | ✅ Completada |
