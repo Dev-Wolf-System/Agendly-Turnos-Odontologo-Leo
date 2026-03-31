@@ -10,6 +10,14 @@ node_modules/
 backend/dist/
 frontend/.next/
 frontend/out/
+.next/
+backend/.next/
+
+# Media assets
+Media/
+
+# Production env
+.env.production
 
 # IDE
 .vscode/
