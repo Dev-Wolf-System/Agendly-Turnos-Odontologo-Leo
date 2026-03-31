@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { RoleGuard } from "@/components/guards/role-guard";
 import api from "@/services/api";
 import type { PaginationMeta } from "@/services/pacientes.service";
 import { Pagination } from "@/components/ui/pagination";
@@ -56,6 +57,14 @@ interface Proveedor {
 }
 
 export default function ProveedoresPage() {
+  return (
+    <RoleGuard allowedRoles={["admin"]}>
+      <ProveedoresContent />
+    </RoleGuard>
+  );
+}
+
+function ProveedoresContent() {
   const [proveedores, setProveedores] = useState<Proveedor[]>([]);
   const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [page, setPage] = useState(1);

@@ -25,12 +25,18 @@ import { PlansModule } from './modules/plans/plans.module';
 import { SubscriptionsModule } from './modules/subscriptions/subscriptions.module';
 import { SubscriptionGuard } from './common/guards/subscription.guard';
 import { AdminModule } from './modules/admin/admin.module';
+import { AgentModule } from './modules/agent/agent.module';
+import { ChatModule } from './modules/chat/chat.module';
+import { ApiKeyGuard } from './common/guards/api-key.guard';
+import { FeatureFlagGuard } from './common/guards/feature-flag.guard';
+import { CommonModule } from './common/common.module';
 
 @Module({
   imports: [
     ConfigModule.forRoot({ isGlobal: true }),
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync(databaseConfig),
+    CommonModule,
     AuthModule,
     ClinicasModule,
     UsersModule,
@@ -47,6 +53,8 @@ import { AdminModule } from './modules/admin/admin.module';
     PlansModule,
     SubscriptionsModule,
     AdminModule,
+    AgentModule,
+    ChatModule,
   ],
   providers: [
     {
@@ -68,6 +76,14 @@ import { AdminModule } from './modules/admin/admin.module';
     {
       provide: APP_GUARD,
       useClass: SubscriptionGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: ApiKeyGuard,
+    },
+    {
+      provide: APP_GUARD,
+      useClass: FeatureFlagGuard,
     },
   ],
 })

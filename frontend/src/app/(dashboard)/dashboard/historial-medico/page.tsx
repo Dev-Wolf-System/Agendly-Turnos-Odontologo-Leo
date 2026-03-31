@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback } from "react";
 import { useSearchParams } from "next/navigation";
+import { RoleGuard } from "@/components/guards/role-guard";
 import Link from "next/link";
 import historialMedicoService, {
   HistorialMedico,
@@ -75,6 +76,14 @@ function timeAgo(dateStr: string): string {
 }
 
 export default function HistorialMedicoPage() {
+  return (
+    <RoleGuard allowedRoles={["admin", "odontologist"]}>
+      <HistorialMedicoContent />
+    </RoleGuard>
+  );
+}
+
+function HistorialMedicoContent() {
   const searchParams = useSearchParams();
   const preloadPacienteId = searchParams.get("paciente_id");
   const [pacientes, setPacientes] = useState<Paciente[]>([]);

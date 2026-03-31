@@ -36,6 +36,9 @@ export class Subscription extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   external_reference: string;
 
+  @Column({ type: 'date', nullable: true })
+  grace_period_ends_at: Date;
+
   @UpdateDateColumn({ name: 'updated_at' })
   updated_at: Date;
 

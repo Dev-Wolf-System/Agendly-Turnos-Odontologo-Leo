@@ -11,9 +11,11 @@ import {
 import { HistorialMedicoService } from './historial-medico.service';
 import { CreateHistorialMedicoDto } from './dto/create-historial-medico.dto';
 import { UpdateHistorialMedicoDto } from './dto/update-historial-medico.dto';
-import { CurrentClinica } from '../../common/decorators';
+import { CurrentClinica, Roles } from '../../common/decorators';
+import { UserRole } from '../../common/enums';
 
 @Controller('historial-medico')
+@Roles(UserRole.ADMIN, UserRole.ODONTOLOGIST)
 export class HistorialMedicoController {
   constructor(private readonly historialService: HistorialMedicoService) {}
 

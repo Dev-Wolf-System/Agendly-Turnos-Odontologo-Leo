@@ -1,6 +1,6 @@
-# Plan de Desarrollo — Agendly CRM SaaS
+# Plan de Desarrollo — Avax Health CRM SaaS
 
-> Última actualización: 2026-03-26 (Fase 9.1-9.2 completadas)
+> Última actualización: 2026-03-30 (Fase 9.1-9.3 + 9.5 + 9.7 completadas)
 
 ---
 
@@ -114,7 +114,7 @@
 - [x] Fix Select controlled/uncontrolled (sentinel `__none__`)
 
 ### Diseño profesional
-- [x] Logo Agendly en sidebar (36x36), login (64x64) y register (64x64)
+- [x] Logo Avax Health en sidebar (36x36), login (64x64) y register (64x64)
 - [x] KPIs con iconos y colores en todas las secciones
 - [x] Empty states con iconos y mensajes descriptivos
 - [x] Loading skeletons en tablas y cards
@@ -238,20 +238,44 @@
 - [x] Dashboard admin: KPIs (clínicas, suscripciones, MRR, clínicas por plan, trials por vencer)
 - [x] DTOs de validación para todos los endpoints
 
-### Fase 9.3 — Panel Admin Frontend
-- [ ] Rutas `/admin` con layout y sidebar propio
-- [ ] Dashboard, Clínicas, Planes, Suscripciones
-- [ ] Login compartido con redirección por rol
+### Fase 9.3 — Panel Admin Frontend ✅
+- [x] Rutas `/admin` con layout y sidebar propio (diseño premium SaaS)
+- [x] Dashboard con KPIs (clínicas, MRR, trials), gradientes indigo/violet
+- [x] Clínicas: tabla con búsqueda, summary pills, avatares, badges de plan con corona
+- [x] Detalle clínica: stats cards con gradientes + glow, secciones info/suscripción
+- [x] Planes: cards con barra gradiente, precios con texto gradiente, feature pills, CTA con glow
+- [x] Suscripciones: filter pills interactivos, avatares, badges, formulario 3 columnas
+- [x] Login compartido con redirección por rol (superadmin → /admin)
+
+### Fase 9.7 — Agent API (Zoe IA) ✅
+- [x] `ApiKeyGuard` + `@ApiKeyAuth()` decorator (bypass JWT, validación x-api-key)
+- [x] `AgentModule` con service (11 métodos) y controller (11 endpoints bajo /agent)
+- [x] Cálculo de turnos disponibles desde horarios de clínica (mañana/tarde por día)
+- [x] Campos nuevos en Clinica: evolution_instance, evolution_api_key, agent_nombre, agent_instrucciones
+- [x] Documentación: PLAN_AGENTE_ZOE_SAAS.md + PLAN_FEATURES_SAAS.md
 
 ### Fase 9.4 — Billing SaaS
 - [ ] Integración Mercado Pago Suscripciones
 - [ ] Webhooks de pago recurrente
 - [ ] Notificaciones de vencimiento
 
-### Fase 9.5 — Límites y Features
-- [ ] Middleware de validación de límites por plan
-- [ ] Feature flags
-- [ ] Banner de upgrade en panel clínica
+### Fase 9.5 — Límites y Features ✅
+- [x] FeatureFlagService con cache en memoria (5min TTL)
+- [x] FeatureFlagGuard global + @RequireFeature() decorator
+- [x] Endpoint GET /clinicas/me/features
+- [x] CommonModule global para inyección del servicio
+- [x] Feature keys estándar (12 features definidas)
+- [x] PLAN_TEMPLATES con 4 planes Avax (Consultorio Std/Plus, Clinica Std/Plus)
+- [x] Endpoint POST /admin/plans/seed-defaults para crear planes predeterminados
+- [x] Endpoint GET /admin/plans/feature-keys para listar features disponibles
+- [x] Frontend: hook useFeatureFlag + useFeatureFlags con Context
+- [x] Frontend: componentes UpgradePrompt y FeatureGate
+- [x] FeatureFlagContext integrado en dashboard layout
+- [x] FEATURE_OPTIONS actualizadas en admin planes page (12 features)
+- [x] PlanLimitGuard: validación de max_usuarios y max_pacientes en POST de users y pacientes
+- [x] Panel Profesional: sidebar filtrado por rol, RoleGuard en rutas restringidas
+- [x] Backend: @Roles(ADMIN, ASSISTANT) en controllers de pagos, inventario, proveedores
+- [x] Dashboard adaptativo: profesional ve solo sus turnos y KPIs relevantes
 
 ### Fase 9.6 — Onboarding
 - [ ] Landing page con planes
@@ -296,5 +320,5 @@
 | **6** | Integración Mercado Pago (pagos pacientes) | ❌ Pendiente |
 | **7** | Integraciones Google | ❌ Pendiente |
 | **8** | WhatsApp + n8n + IA | ❌ Pendiente |
-| **9** | Panel Administración SaaS (6 subfases) | 🔄 En progreso (9.1-9.2 ✅) |
+| **9** | Panel Administración SaaS (7 subfases) | 🔄 En progreso (9.1-9.3 + 9.5 + 9.7 ✅) |
 | **10** | Producción y Escalabilidad | ❌ Pendiente |

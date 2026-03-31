@@ -1,6 +1,8 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { RoleGuard } from "@/components/guards/role-guard";
+import { useAuth } from "@/components/providers/auth-provider";
 import Link from "next/link";
 import pagosService, {
   Pago,
@@ -171,6 +173,16 @@ function exportCSV(pagos: Pago[]) {
 /* ─── Componente ─── */
 
 export default function PagosPage() {
+  return (
+    <RoleGuard allowedRoles={["admin", "assistant"]}>
+      <PagosContent />
+    </RoleGuard>
+  );
+}
+
+function PagosContent() {
+  const { user } = useAuth();
+  const isAdmin = user?.role === "admin";
   const [pagos, setPagos] = useState<Pago[]>([]);
   const [meta, setMeta] = useState<PaginationMeta>({
     page: 1,
@@ -404,18 +416,18 @@ export default function PagosPage() {
 
       {/* KPIs Row */}
       {resumen && (
-        <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <div className={`grid gap-4 md:grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
           {/* Aprobados */}
           <Card className="border-l-4 border-l-emerald-500">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardDescription>Ingresos Aprobados</CardDescription>
+                <CardDescription>{isAdmin ? "Ingresos Aprobados" : "Pagos Aprobados"}</CardDescription>
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
                   <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
                 </div>
               </div>
               <CardTitle className="text-2xl text-emerald-600 dark:text-emerald-400">
-                {formatCurrency(totalAprobados)}
+                {isAdmin ? formatCurrency(totalAprobados) : resumen.cantidad}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -431,13 +443,13 @@ export default function PagosPage() {
           <Card className="border-l-4 border-l-amber-500">
             <CardHeader className="pb-2">
               <div className="flex items-center justify-between">
-                <CardDescription>Pendientes de Cobro</CardDescription>
+                <CardDescription>Pendientes</CardDescription>
                 <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-amber-100 dark:bg-amber-900/40">
                   <Clock className="h-4 w-4 text-amber-600 dark:text-amber-400" />
                 </div>
               </div>
               <CardTitle className="text-2xl text-amber-600 dark:text-amber-400">
-                {formatCurrency(totalPendientes)}
+                {isAdmin ? formatCurrency(totalPendientes) : cantPendientes}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -458,7 +470,7 @@ export default function PagosPage() {
                 </div>
               </div>
               <CardTitle className="text-2xl text-red-600 dark:text-red-400">
-                {formatCurrency(totalRechazados)}
+                {isAdmin ? formatCurrency(totalRechazados) : cantRechazados}
               </CardTitle>
             </CardHeader>
             <CardContent>
@@ -469,30 +481,32 @@ export default function PagosPage() {
             </CardContent>
           </Card>
 
-          {/* Ticket Promedio */}
-          <Card className="border-l-4 border-l-blue-500">
-            <CardHeader className="pb-2">
-              <div className="flex items-center justify-between">
-                <CardDescription>Ticket Promedio</CardDescription>
-                <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
-                  <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+          {/* Ticket Promedio — solo admin */}
+          {isAdmin && (
+            <Card className="border-l-4 border-l-blue-500">
+              <CardHeader className="pb-2">
+                <div className="flex items-center justify-between">
+                  <CardDescription>Ticket Promedio</CardDescription>
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-blue-100 dark:bg-blue-900/40">
+                    <TrendingUp className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+                  </div>
                 </div>
-              </div>
-              <CardTitle className="text-2xl text-blue-600 dark:text-blue-400">
-                {formatCurrency(ticketPromedio)}
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <p className="text-xs text-muted-foreground">
-                Promedio por pago aprobado
-              </p>
-            </CardContent>
-          </Card>
+                <CardTitle className="text-2xl text-blue-600 dark:text-blue-400">
+                  {formatCurrency(ticketPromedio)}
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <p className="text-xs text-muted-foreground">
+                  Promedio por pago aprobado
+                </p>
+              </CardContent>
+            </Card>
+          )}
         </div>
       )}
 
-      {/* Desglose por método + Gráfico */}
-      {resumen && resumen.por_metodo.length > 0 && (
+      {/* Desglose por método + Gráfico — solo admin */}
+      {isAdmin && resumen && resumen.por_metodo.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-3">
           {/* Distribución por método — Cards */}
           <Card className="lg:col-span-2">
@@ -785,13 +799,13 @@ export default function PagosPage() {
                   <TableHead>Profesional</TableHead>
                   <TableHead>Turno</TableHead>
                   <TableHead>Tratamiento</TableHead>
-                  <SortableHeader
+                  {isAdmin && <SortableHeader
                     label="Total"
                     field="total"
                     currentSort={sortBy}
                     currentOrder={sortOrder}
                     onSort={handleSort}
-                  />
+                  />}
                   <SortableHeader
                     label="Método"
                     field="method"
@@ -851,9 +865,9 @@ export default function PagosPage() {
                             ] || pago.turno.tipo_tratamiento
                           : "—"}
                       </TableCell>
-                      <TableCell className="font-semibold">
+                      {isAdmin && <TableCell className="font-semibold">
                         {formatCurrency(pago.total)}
-                      </TableCell>
+                      </TableCell>}
                       <TableCell>
                         {pago.method ? (
                           <div className="flex items-center gap-1.5">

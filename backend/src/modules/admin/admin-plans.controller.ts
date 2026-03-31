@@ -12,6 +12,7 @@ import { SuperAdminGuard } from '../../common/guards/super-admin.guard';
 import { PlansService } from '../plans/plans.service';
 import { CreatePlanDto } from './dto/create-plan.dto';
 import { UpdatePlanDto } from './dto/update-plan.dto';
+import { FEATURES, PLAN_TEMPLATES } from '../../common/constants/feature-keys';
 
 @Controller('admin/plans')
 @UseGuards(SuperAdminGuard)
@@ -36,5 +37,32 @@ export class AdminPlansController {
   @Delete(':id')
   deactivate(@Param('id') id: string) {
     return this.plansService.deactivate(id);
+  }
+
+  @Get('feature-keys')
+  getFeatureKeys() {
+    return Object.entries(FEATURES).map(([, value]) => value);
+  }
+
+  @Post('seed-defaults')
+  async seedDefaults() {
+    const results = [];
+    for (const template of Object.values(PLAN_TEMPLATES)) {
+      const existing = await this.plansService.findByNombre(template.nombre);
+      if (!existing) {
+        const plan = await this.plansService.create({
+          nombre: template.nombre,
+          precio_mensual: template.precio_mensual,
+          max_usuarios: template.max_usuarios,
+          max_pacientes: template.max_pacientes ?? undefined,
+          features: template.features,
+          is_active: true,
+        });
+        results.push({ nombre: plan.nombre, action: 'created' });
+      } else {
+        results.push({ nombre: existing.nombre, action: 'already_exists' });
+      }
+    }
+    return results;
   }
 }

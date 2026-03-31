@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback, useMemo } from "react";
+import { RoleGuard } from "@/components/guards/role-guard";
 import api from "@/services/api";
 import type { PaginationMeta } from "@/services/pacientes.service";
 import { Pagination } from "@/components/ui/pagination";
@@ -73,6 +74,14 @@ interface InventarioItem {
 }
 
 export default function InventarioPage() {
+  return (
+    <RoleGuard allowedRoles={["admin"]}>
+      <InventarioContent />
+    </RoleGuard>
+  );
+}
+
+function InventarioContent() {
   const [items, setItems] = useState<InventarioItem[]>([]);
   const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [page, setPage] = useState(1);

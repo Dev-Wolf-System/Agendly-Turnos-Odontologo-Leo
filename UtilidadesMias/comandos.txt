@@ -9,3 +9,8 @@ rm -rf dist && npx nest build && node dist/main.js
 Frondend:
 
 rm -rf .next && npm run dev  
+
+
+Ultima sesion de claude: 
+
+claude --resume 52d9803c-53c0-4887-961f-3b35d817c74a

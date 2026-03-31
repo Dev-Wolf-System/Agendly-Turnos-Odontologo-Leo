@@ -3,13 +3,17 @@
 import { useAuth } from "@/components/providers/auth-provider";
 import { Sidebar, SidebarProvider } from "@/components/layout/sidebar";
 import { Header } from "@/components/layout/header";
+import { SubscriptionBanner } from "@/components/layout/subscription-banner";
 import { HealthLoader } from "@/components/ui/health-loader";
+import { ChatWidget } from "@/components/layout/chat-widget";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
+import { FeatureFlagContext, useFeatureFlagProvider } from "@/hooks/useFeatureFlags";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
   const router = useRouter();
+  const featureFlagValue = useFeatureFlagProvider();
 
   useEffect(() => {
     if (!isLoading && !user) {
@@ -27,17 +31,21 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
   if (!user || user.role === "superadmin") return null;
 
   return (
-    <SidebarProvider>
-      <div className="flex h-screen overflow-hidden">
-        <Sidebar />
-        <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-          <div className="relative z-10 shrink-0">
-            <Header />
+    <FeatureFlagContext.Provider value={featureFlagValue}>
+      <SidebarProvider>
+        <div className="flex h-screen overflow-hidden">
+          <Sidebar />
+          <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+            <div className="relative z-10 shrink-0">
+              <Header />
+              <SubscriptionBanner />
+            </div>
+            <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
           </div>
-          <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
         </div>
-      </div>
-    </SidebarProvider>
+        <ChatWidget />
+      </SidebarProvider>
+    </FeatureFlagContext.Provider>
   );
 }
 

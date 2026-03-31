@@ -30,7 +30,7 @@ export interface Plan {
   created_at: string;
 }
 
-export type EstadoSubscription = "trial" | "activa" | "suspendida" | "cancelada" | "vencida";
+export type EstadoSubscription = "trial" | "activa" | "past_due" | "gracia" | "suspendida" | "cancelada" | "vencida";
 
 export interface Subscription {
   id: string;

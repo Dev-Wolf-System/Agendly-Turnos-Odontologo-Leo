@@ -8,11 +8,13 @@ import {
   Param,
   Query,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { PacientesService } from './pacientes.service';
 import { CreatePacienteDto } from './dto/create-paciente.dto';
 import { UpdatePacienteDto } from './dto/update-paciente.dto';
 import { CurrentClinica } from '../../common/decorators';
+import { PlanLimitGuard, CheckPlanLimit } from '../../common/guards/plan-limit.guard';
 
 @Controller('pacientes')
 export class PacientesController {
@@ -57,6 +59,8 @@ export class PacientesController {
   }
 
   @Post()
+  @UseGuards(PlanLimitGuard)
+  @CheckPlanLimit('max_pacientes')
   create(
     @CurrentClinica() clinicaId: string,
     @Body() createPacienteDto: CreatePacienteDto,

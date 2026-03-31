@@ -78,7 +78,7 @@ export default function RegisterPage() {
       <CardHeader className="text-center">
         <Image
           src="/logo.png"
-          alt="Agendly"
+          alt="Avax Health"
           width={64}
           height={64}
           className="mx-auto mb-4 rounded-xl"

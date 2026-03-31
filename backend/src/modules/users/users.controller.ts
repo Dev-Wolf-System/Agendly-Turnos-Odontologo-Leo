@@ -7,15 +7,16 @@ import {
   Body,
   Param,
   ParseUUIDPipe,
+  UseGuards,
 } from '@nestjs/common';
 import { UsersService } from './users.service';
 import { CreateUserDto } from './dto/create-user.dto';
 import { UpdateUserDto } from './dto/update-user.dto';
 import { CurrentClinica, Roles } from '../../common/decorators';
 import { UserRole } from '../../common/enums';
+import { PlanLimitGuard, CheckPlanLimit } from '../../common/guards/plan-limit.guard';
 
 @Controller('users')
-@Roles(UserRole.ADMIN)
 export class UsersController {
   constructor(private readonly usersService: UsersService) {}
 
@@ -33,6 +34,9 @@ export class UsersController {
   }
 
   @Post()
+  @Roles(UserRole.ADMIN)
+  @UseGuards(PlanLimitGuard)
+  @CheckPlanLimit('max_usuarios')
   create(
     @CurrentClinica() clinicaId: string,
     @Body() createUserDto: CreateUserDto,
@@ -41,6 +45,7 @@ export class UsersController {
   }
 
   @Patch(':id')
+  @Roles(UserRole.ADMIN)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentClinica() clinicaId: string,
@@ -50,6 +55,7 @@ export class UsersController {
   }
 
   @Delete(':id')
+  @Roles(UserRole.ADMIN)
   remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentClinica() clinicaId: string,

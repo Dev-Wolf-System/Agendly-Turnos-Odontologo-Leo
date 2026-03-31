@@ -12,9 +12,11 @@ import {
 import { ProveedoresService } from './proveedores.service';
 import { CreateProveedorDto } from './dto/create-proveedor.dto';
 import { UpdateProveedorDto } from './dto/update-proveedor.dto';
-import { CurrentClinica } from '../../common/decorators';
+import { CurrentClinica, Roles } from '../../common/decorators';
+import { UserRole } from '../../common/enums';
 
 @Controller('proveedores')
+@Roles(UserRole.ADMIN)
 export class ProveedoresController {
   constructor(private readonly proveedoresService: ProveedoresService) {}
 

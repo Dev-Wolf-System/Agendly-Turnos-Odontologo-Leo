@@ -51,6 +51,21 @@ export class Clinica extends BaseEntity {
   @Column({ type: 'integer', nullable: true })
   recordatorio_horas_antes: number;
 
+  @Column({ type: 'text', nullable: true })
+  evolution_instance: string;
+
+  @Column({ type: 'text', nullable: true })
+  evolution_api_key: string;
+
+  @Column({ type: 'text', nullable: true, default: 'Zoe' })
+  agent_nombre: string;
+
+  @Column({ type: 'text', nullable: true })
+  agent_instrucciones: string;
+
+  @Column({ type: 'jsonb', nullable: true })
+  kpi_visibility: Record<string, Record<string, boolean>>;
+
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 

@@ -11,6 +11,8 @@ import { Cron, CronExpression } from '@nestjs/schedule';
 import { Turno } from './entities/turno.entity';
 import { Pago } from '../pagos/entities/pago.entity';
 import { HistorialMedico } from '../historial-medico/entities/historial-medico.entity';
+import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
+import { EstadoPago } from '../../common/enums';
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
 import { EstadoTurno } from '../../common/enums';
@@ -28,6 +30,8 @@ export class TurnosService {
     private readonly pagoRepository: Repository<Pago>,
     @InjectRepository(HistorialMedico)
     private readonly historialRepository: Repository<HistorialMedico>,
+    @InjectRepository(Tratamiento)
+    private readonly tratamientoRepository: Repository<Tratamiento>,
     private readonly webhookService: WebhookService,
     private readonly notificacionesService: NotificacionesService,
   ) {}
@@ -127,6 +131,35 @@ export class TurnosService {
     });
 
     const saved = await this.turnoRepository.save(turno);
+
+    // Auto-generar pago pendiente si el tratamiento tiene precio
+    if (createTurnoDto.tipo_tratamiento) {
+      try {
+        const tratamiento = await this.tratamientoRepository.findOne({
+          where: {
+            nombre: createTurnoDto.tipo_tratamiento,
+            clinica_id: clinicaId,
+            activo: true,
+          },
+        });
+        if (tratamiento?.precio_base && Number(tratamiento.precio_base) > 0) {
+          const pagoExistente = await this.pagoRepository.findOne({
+            where: { turno_id: saved.id },
+          });
+          if (!pagoExistente) {
+            const pago = this.pagoRepository.create({
+              turno_id: saved.id,
+              total: tratamiento.precio_base,
+              estado: EstadoPago.PENDIENTE,
+            });
+            await this.pagoRepository.save(pago);
+          }
+        }
+      } catch (err) {
+        this.logger.warn(`No se pudo auto-generar pago para turno ${saved.id}: ${err.message}`);
+      }
+    }
+
     const full = await this.findOne(saved.id, clinicaId);
     this.fireWebhook(clinicaId, 'pendiente', full);
     return full;

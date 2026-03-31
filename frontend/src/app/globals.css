@@ -46,13 +46,13 @@
   --radius-2xl: calc(var(--radius) * 1.8);
   --radius-3xl: calc(var(--radius) * 2.2);
   --radius-4xl: calc(var(--radius) * 2.6);
-  --color-agendly-navy: #143360;
-  --color-agendly-green: #00C198;
-  --color-agendly-blue: #19D1F4;
-  --color-agendly-lavender: #9FA9FB;
+  --color-avax-navy: #143360;
+  --color-avax-green: #00C198;
+  --color-avax-blue: #19D1F4;
+  --color-avax-lavender: #9FA9FB;
 }
 
-/* Light mode — Agendly palette */
+/* Light mode — Avax Health palette */
 :root {
   --background: oklch(0.985 0 0);
   --foreground: oklch(0.178 0.042 264);

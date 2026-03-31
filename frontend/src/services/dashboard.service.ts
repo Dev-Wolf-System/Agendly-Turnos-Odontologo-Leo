@@ -5,6 +5,7 @@ export interface DashboardStats {
   totalPacientes: number;
   lowStockCount: number;
   ingresosMes: number;
+  pagosAprobadosMes: number;
 }
 
 export interface TurnoHoy {

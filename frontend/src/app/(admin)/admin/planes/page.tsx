@@ -10,12 +10,18 @@ import {
 import type { Plan } from "@/types";
 
 const FEATURE_OPTIONS = [
-  { key: "whatsapp", label: "WhatsApp Bot" },
-  { key: "reportes_avanzados", label: "Reportes Avanzados" },
-  { key: "inventario", label: "Inventario" },
-  { key: "pagos", label: "Gestión de Pagos" },
-  { key: "recordatorios", label: "Recordatorios Automáticos" },
-  { key: "multi_usuario", label: "Multi-usuario" },
+  { key: "whatsapp_agent", label: "Agente WhatsApp IA", icon: "🤖" },
+  { key: "whatsapp_reminders", label: "Recordatorios WhatsApp", icon: "💬" },
+  { key: "multi_consultorio", label: "Multi-Consultorio", icon: "🏥" },
+  { key: "advanced_reports", label: "Reportes Avanzados", icon: "📊" },
+  { key: "csv_export", label: "Exportacion CSV", icon: "📄" },
+  { key: "custom_branding", label: "Branding Personalizado", icon: "🎨" },
+  { key: "api_access", label: "Acceso API", icon: "🔌" },
+  { key: "audit_logs", label: "Registro de Auditoria", icon: "📋" },
+  { key: "priority_support", label: "Soporte Prioritario", icon: "⭐" },
+  { key: "inventario", label: "Inventario", icon: "📦" },
+  { key: "pagos", label: "Gestion de Pagos", icon: "💳" },
+  { key: "proveedores", label: "Proveedores", icon: "🚚" },
 ];
 
 const emptyForm = {
@@ -99,11 +105,17 @@ export default function AdminPlanesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
-          <h1 className="text-2xl font-bold">Planes</h1>
-          <p className="text-sm text-muted-foreground mt-1">
-            Administrá los planes disponibles para las clínicas
+          <div className="flex items-center gap-2.5 mb-1">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-amber-500 to-orange-500 shadow-md shadow-amber-500/20">
+              <CrownIcon className="h-4 w-4 text-white" />
+            </div>
+            <h1 className="text-2xl font-bold tracking-tight">Planes</h1>
+          </div>
+          <p className="text-sm text-muted-foreground">
+            Administra los planes disponibles para las clinicas
           </p>
         </div>
         <button
@@ -111,31 +123,40 @@ export default function AdminPlanesPage() {
             resetForm();
             setShowForm(true);
           }}
-          className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 transition-colors"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:from-indigo-600 hover:to-violet-700 transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30"
         >
-          + Nuevo Plan
+          <PlusIcon className="h-4 w-4" />
+          Nuevo Plan
         </button>
       </div>
 
-      {/* Form modal */}
+      {/* Form */}
       {showForm && (
-        <div className="rounded-xl border bg-card p-5 shadow-sm">
-          <h2 className="text-base font-semibold mb-4">
-            {editingId ? "Editar Plan" : "Nuevo Plan"}
-          </h2>
-          <form onSubmit={handleSubmit} className="space-y-4">
+        <div className="rounded-2xl border bg-card shadow-sm overflow-hidden animate-in slide-in-from-top-2 duration-200">
+          <div className="border-b px-5 py-3.5 bg-muted/20">
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              <CrownIcon className="h-4 w-4 text-indigo-500" />
+              {editingId ? "Editar Plan" : "Nuevo Plan"}
+            </h2>
+          </div>
+          <form onSubmit={handleSubmit} className="p-5 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Nombre</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Nombre
+                </label>
                 <input
                   value={form.nombre}
                   onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  placeholder="Ej: Professional"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   required
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Precio Mensual ($)</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Precio Mensual ($)
+                </label>
                 <input
                   type="number"
                   min="0"
@@ -144,12 +165,14 @@ export default function AdminPlanesPage() {
                   onChange={(e) =>
                     setForm({ ...form, precio_mensual: parseFloat(e.target.value) || 0 })
                   }
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   required
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">Máx. Usuarios</label>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Max. Usuarios
+                </label>
                 <input
                   type="number"
                   min="1"
@@ -157,14 +180,16 @@ export default function AdminPlanesPage() {
                   onChange={(e) =>
                     setForm({ ...form, max_usuarios: parseInt(e.target.value) || 1 })
                   }
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                   required
                 />
               </div>
               <div className="space-y-1.5">
-                <label className="text-sm font-medium">
-                  Máx. Pacientes{" "}
-                  <span className="text-xs text-muted-foreground">(vacío = ilimitado)</span>
+                <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                  Max. Pacientes
+                  <span className="normal-case tracking-normal font-normal text-muted-foreground/60 ml-1">
+                    (vacio = ilimitado)
+                  </span>
                 </label>
                 <input
                   type="number"
@@ -176,45 +201,51 @@ export default function AdminPlanesPage() {
                       max_pacientes: e.target.value ? parseInt(e.target.value) : null,
                     })
                   }
-                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
                 />
               </div>
             </div>
 
             {/* Features */}
-            <div className="space-y-2">
-              <label className="text-sm font-medium">Features</label>
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2">
+            <div className="space-y-2.5">
+              <label className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+                Features incluidas
+              </label>
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2.5">
                 {FEATURE_OPTIONS.map((feat) => (
                   <label
                     key={feat.key}
-                    className="flex items-center gap-2 rounded-lg border p-2.5 cursor-pointer hover:bg-muted/50 transition-colors"
+                    className={`flex items-center gap-2.5 rounded-xl border p-3 cursor-pointer transition-all duration-200 ${
+                      form.features[feat.key]
+                        ? "border-indigo-500/30 bg-indigo-500/5 ring-1 ring-indigo-500/20"
+                        : "hover:bg-muted/50 hover:border-muted-foreground/20"
+                    }`}
                   >
                     <input
                       type="checkbox"
                       checked={!!form.features[feat.key]}
                       onChange={() => toggleFeature(feat.key)}
-                      className="rounded accent-indigo-500"
+                      className="rounded accent-indigo-500 h-4 w-4"
                     />
-                    <span className="text-sm">{feat.label}</span>
+                    <span className="text-sm font-medium">{feat.label}</span>
                   </label>
                 ))}
               </div>
             </div>
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2.5 pt-2">
               <button
                 type="button"
                 onClick={resetForm}
-                className="rounded-lg border px-4 py-2 text-sm font-medium hover:bg-muted transition-colors"
+                className="rounded-xl border px-5 py-2.5 text-sm font-medium hover:bg-muted transition-colors"
               >
                 Cancelar
               </button>
               <button
                 type="submit"
-                className="rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 transition-colors"
+                className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:from-indigo-600 hover:to-violet-700 transition-all shadow-md shadow-indigo-500/20"
               >
-                {editingId ? "Guardar" : "Crear"}
+                {editingId ? "Guardar Cambios" : "Crear Plan"}
               </button>
             </div>
           </form>
@@ -223,85 +254,149 @@ export default function AdminPlanesPage() {
 
       {/* Plan cards */}
       {loading ? (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
           {[...Array(3)].map((_, i) => (
-            <div key={i} className="h-64 rounded-xl border bg-card animate-pulse" />
+            <div key={i} className="h-72 rounded-2xl border bg-card animate-pulse" />
           ))}
         </div>
       ) : planes.length === 0 ? (
-        <div className="rounded-xl border bg-card p-12 text-center">
-          <p className="text-muted-foreground">No hay planes creados aún</p>
+        <div className="flex flex-col items-center py-20 gap-4 rounded-2xl border bg-card">
+          <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted">
+            <CrownIcon className="h-6 w-6 text-muted-foreground" />
+          </div>
+          <p className="text-sm font-medium text-muted-foreground">No hay planes creados aun</p>
+          <button
+            onClick={() => {
+              resetForm();
+              setShowForm(true);
+            }}
+            className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-4 py-2 text-sm font-medium text-indigo-500 hover:bg-indigo-500/20 transition-colors"
+          >
+            <PlusIcon className="h-3.5 w-3.5" />
+            Crear el primero
+          </button>
         </div>
       ) : (
-        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
-          {planes.map((plan) => (
-            <div
-              key={plan.id}
-              className={`rounded-xl border bg-card p-5 shadow-sm relative ${
-                !plan.is_active ? "opacity-60" : ""
-              }`}
-            >
-              {!plan.is_active && (
-                <span className="absolute top-3 right-3 rounded-full bg-red-500/10 px-2 py-0.5 text-[10px] font-medium text-red-500">
-                  Inactivo
-                </span>
-              )}
-              <h3 className="text-lg font-bold">{plan.nombre}</h3>
-              <p className="mt-1 text-3xl font-bold text-indigo-500">
-                ${Number(plan.precio_mensual).toLocaleString("es-AR")}
-                <span className="text-sm font-normal text-muted-foreground">/mes</span>
-              </p>
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
+          {planes.map((plan) => {
+            const activeFeatures = Object.entries(plan.features ?? {}).filter(([, v]) => v);
+            return (
+              <div
+                key={plan.id}
+                className={`group relative rounded-2xl border bg-card shadow-sm hover:shadow-md transition-all duration-300 overflow-hidden ${
+                  !plan.is_active ? "opacity-50" : ""
+                }`}
+              >
+                {/* Top gradient bar */}
+                <div className="h-1 bg-gradient-to-r from-indigo-500 to-violet-500" />
 
-              <div className="mt-4 space-y-2 text-sm">
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Usuarios</span>
-                  <span className="font-medium">{plan.max_usuarios}</span>
-                </div>
-                <div className="flex justify-between">
-                  <span className="text-muted-foreground">Pacientes</span>
-                  <span className="font-medium">{plan.max_pacientes ?? "Ilimitado"}</span>
-                </div>
-              </div>
-
-              {/* Features */}
-              {plan.features && Object.keys(plan.features).length > 0 && (
-                <div className="mt-4 flex flex-wrap gap-1.5">
-                  {Object.entries(plan.features)
-                    .filter(([, v]) => v)
-                    .map(([key]) => {
-                      const feat = FEATURE_OPTIONS.find((f) => f.key === key);
-                      return (
-                        <span
-                          key={key}
-                          className="inline-flex rounded-full bg-indigo-500/10 px-2 py-0.5 text-[10px] font-medium text-indigo-500"
-                        >
-                          {feat?.label ?? key}
-                        </span>
-                      );
-                    })}
-                </div>
-              )}
-
-              <div className="mt-4 flex gap-2 border-t pt-3">
-                <button
-                  onClick={() => startEdit(plan)}
-                  className="flex-1 rounded-lg border px-3 py-1.5 text-xs font-medium hover:bg-muted transition-colors"
-                >
-                  Editar
-                </button>
-                {plan.is_active && (
-                  <button
-                    onClick={() => handleDeactivate(plan.id)}
-                    className="rounded-lg px-3 py-1.5 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors"
-                  >
-                    Desactivar
-                  </button>
+                {!plan.is_active && (
+                  <span className="absolute top-4 right-4 rounded-lg bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-500 uppercase tracking-wider">
+                    Inactivo
+                  </span>
                 )}
+
+                <div className="p-5 pt-4">
+                  <h3 className="text-lg font-bold tracking-tight">{plan.nombre}</h3>
+                  <div className="mt-2 flex items-baseline gap-1">
+                    <span className="text-3xl font-bold bg-gradient-to-r from-indigo-500 to-violet-500 bg-clip-text text-transparent">
+                      ${Number(plan.precio_mensual).toLocaleString("es-AR")}
+                    </span>
+                    <span className="text-sm text-muted-foreground">/mes</span>
+                  </div>
+
+                  {/* Limits */}
+                  <div className="mt-4 space-y-2.5">
+                    <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
+                      <span className="text-xs text-muted-foreground">Usuarios</span>
+                      <span className="text-sm font-semibold">{plan.max_usuarios}</span>
+                    </div>
+                    <div className="flex items-center justify-between rounded-lg bg-muted/40 px-3 py-2">
+                      <span className="text-xs text-muted-foreground">Pacientes</span>
+                      <span className="text-sm font-semibold">
+                        {plan.max_pacientes ?? (
+                          <span className="text-indigo-500">Ilimitado</span>
+                        )}
+                      </span>
+                    </div>
+                  </div>
+
+                  {/* Features */}
+                  {activeFeatures.length > 0 && (
+                    <div className="mt-4 flex flex-wrap gap-1.5">
+                      {activeFeatures.map(([key]) => {
+                        const feat = FEATURE_OPTIONS.find((f) => f.key === key);
+                        return (
+                          <span
+                            key={key}
+                            className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/[0.07] px-2 py-0.5 text-[10px] font-semibold text-indigo-600 dark:text-indigo-400"
+                          >
+                            <CheckIcon className="h-2.5 w-2.5" />
+                            {feat?.label ?? key}
+                          </span>
+                        );
+                      })}
+                    </div>
+                  )}
+                </div>
+
+                {/* Actions */}
+                <div className="border-t px-5 py-3 flex gap-2 bg-muted/10">
+                  <button
+                    onClick={() => startEdit(plan)}
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-xl border px-3 py-2 text-xs font-medium hover:bg-muted transition-colors"
+                  >
+                    <EditIcon className="h-3 w-3" />
+                    Editar
+                  </button>
+                  {plan.is_active && (
+                    <button
+                      onClick={() => handleDeactivate(plan.id)}
+                      className="inline-flex items-center justify-center rounded-xl px-3 py-2 text-xs font-medium text-red-500 hover:bg-red-500/10 transition-colors"
+                    >
+                      Desactivar
+                    </button>
+                  )}
+                </div>
               </div>
-            </div>
-          ))}
+            );
+          })}
         </div>
       )}
     </div>
+  );
+}
+
+/* ─── Icons ─── */
+
+function CrownIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5.5 21h13" />
+    </svg>
+  );
+}
+
+function PlusIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M5 12h14" /><path d="M12 5v14" />
+    </svg>
+  );
+}
+
+function CheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M20 6 9 17l-5-5" />
+    </svg>
+  );
+}
+
+function EditIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M17 3a2.85 2.83 0 1 1 4 4L7.5 20.5 2 22l1.5-5.5Z" /><path d="m15 5 4 4" />
+    </svg>
   );
 }

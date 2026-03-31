@@ -60,4 +60,24 @@ export class UpdateClinicaDto {
   @IsNumber()
   @Min(1)
   recordatorio_horas_antes?: number;
+
+  @IsOptional()
+  @IsString()
+  evolution_instance?: string;
+
+  @IsOptional()
+  @IsString()
+  evolution_api_key?: string;
+
+  @IsOptional()
+  @IsString()
+  agent_nombre?: string;
+
+  @IsOptional()
+  @IsString()
+  agent_instrucciones?: string;
+
+  @IsOptional()
+  @IsObject()
+  kpi_visibility?: Record<string, Record<string, boolean>>;
 }

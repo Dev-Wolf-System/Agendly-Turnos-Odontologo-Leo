@@ -46,12 +46,12 @@ export default function LoginPage() {
       <CardHeader className="text-center">
         <Image
           src="/logo.png"
-          alt="Agendly"
+          alt="Avax Health"
           width={64}
           height={64}
           className="mx-auto mb-4 rounded-xl"
         />
-        <CardTitle className="text-2xl">Agendly</CardTitle>
+        <CardTitle className="text-2xl">Avax Health</CardTitle>
         <CardDescription>
           Ingresá a tu cuenta para gestionar tu clínica
         </CardDescription>

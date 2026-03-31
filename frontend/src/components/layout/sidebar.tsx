@@ -51,15 +51,22 @@ export function SidebarProvider({ children }: { children: React.ReactNode }) {
 
 /* ─── Navigation ─── */
 
-const navigation = [
+type NavItem = {
+  name: string;
+  href: string;
+  icon: React.ComponentType<{ className?: string }>;
+  roles?: string[]; // si no se define, visible para todos
+};
+
+const navigation: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
   { name: "Pacientes", href: "/dashboard/pacientes", icon: UsersIcon },
   { name: "Turnos", href: "/dashboard/turnos", icon: CalendarIcon },
-  { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardIcon },
-  { name: "Pagos", href: "/dashboard/pagos", icon: CreditCardIcon },
-  { name: "Inventario", href: "/dashboard/inventario", icon: PackageIcon },
-  { name: "Proveedores", href: "/dashboard/proveedores", icon: TruckIcon },
-  { name: "Configuración", href: "/dashboard/configuracion", icon: SettingsIcon },
+  { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardIcon, roles: ["admin", "odontologist"] },
+  { name: "Pagos", href: "/dashboard/pagos", icon: CreditCardIcon, roles: ["admin", "assistant"] },
+  { name: "Inventario", href: "/dashboard/inventario", icon: PackageIcon, roles: ["admin"] },
+  { name: "Proveedores", href: "/dashboard/proveedores", icon: TruckIcon, roles: ["admin"] },
+  { name: "Configuración", href: "/dashboard/configuracion", icon: SettingsIcon, roles: ["admin"] },
 ];
 
 /* ─── Sidebar Component ─── */
@@ -107,8 +114,8 @@ export function Sidebar() {
         </div>
         {!collapsed && (
           <div className="min-w-0 flex-1 overflow-hidden">
-            <p className="text-base font-bold leading-tight truncate" title={clinica?.nombre || "Agendly"}>
-              {clinica?.nombre || "Agendly"}
+            <p className={`font-bold leading-tight truncate ${(clinica?.nombre || "").length > 18 ? "text-sm" : "text-base"}`} title={clinica?.nombre || "Avax Health"}>
+              {clinica?.nombre || "Avax Health"}
             </p>
             {clinica?.especialidad && (
               <p className="text-[11px] text-sidebar-foreground/50 truncate capitalize">
@@ -132,7 +139,7 @@ export function Sidebar() {
 
       {/* Navigation */}
       <nav className={cn("flex-1 space-y-1 px-2 py-3", collapsed ? "overflow-hidden" : "overflow-y-auto")}>
-        {navigation.map((item) => {
+        {navigation.filter((item) => !item.roles || item.roles.includes(user?.role ?? "")).map((item) => {
           const isActive =
             item.href === "/dashboard"
               ? pathname === "/dashboard"

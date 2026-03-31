@@ -17,8 +17,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Agendly - Gestión de Turnos Odontológicos",
-  description: "Sistema de gestión de turnos y pacientes para clínicas odontológicas",
+  title: "Avax Health - CRM SaaS para Clínicas Médicas",
+  description: "Sistema integral de gestión para clínicas y consultorios médicos impulsado por IA",
 };
 
 export default function RootLayout({

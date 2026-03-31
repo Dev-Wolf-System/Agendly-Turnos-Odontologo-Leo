@@ -1,6 +1,6 @@
 # Hoja de Ruta — Reestilizado y Mejoras UI/UX
 
-> Última actualización: 2026-03-26
+> Última actualización: 2026-03-27
 
 ## Fixes aplicados
 - [x] Select de Paciente y Odontólogo en Nuevo Turno mostraba UUID en vez del nombre — corregido con display manual
@@ -62,7 +62,7 @@
 - [x] Doble cobro: warning en diálogo de cobro
 
 ### Branding
-- [x] Logo Agendly en sidebar, login y register
+- [x] Logo Avax Health en sidebar, login y register
 
 ---
 
@@ -223,6 +223,78 @@
 
 ---
 
+## Fase I: Panel Admin SaaS — Diseño Premium ✅ COMPLETADA
+
+### Layout y navegación
+- [x] AdminLayout con sidebar propio separado del dashboard de clínica
+- [x] Sidebar colapsable con branding Avax Health
+- [x] Redirección automática superadmin → /admin
+
+### Dashboard Admin
+- [x] KPIs de plataforma (clínicas, MRR, trials)
+- [x] Diseño premium con gradientes indigo/violet
+
+### Clínicas
+- [x] Summary pills (total/activas/inactivas)
+- [x] Tabla con avatares de iniciales, stats en pills
+- [x] Crown icon para badges de plan, dot indicators para estado
+- [x] Group hover opacity transitions en acciones
+
+### Detalle Clínica
+- [x] Breadcrumb con arrow+chevron
+- [x] Stats cards con gradient icons (blue/pink/indigo/emerald) + glow shadows
+- [x] Secciones info/suscripción con header icons
+- [x] Estado badges con colored dots, precio con gradient text
+
+### Planes
+- [x] Cards con barra gradiente superior (indigo→violet)
+- [x] Precios con gradient text
+- [x] Límites en bg-muted rows, feature pills con check icons
+- [x] Feature toggle checkboxes con active ring styling
+- [x] Botón CTA gradiente con shadow glow
+
+### Suscripciones
+- [x] Filter pills interactivos por estado (click to filter/defilter)
+- [x] Tabla con avatares, plan badges con crown icon
+- [x] Estado badges con colored dots
+- [x] Auto-renovación como green/gray pill
+- [x] Formulario en grid de 3 columnas
+
+---
+
+## Fase J: Rebranding y Mejoras UX ✅ COMPLETADA
+
+### Rebranding Global
+- [x] Renombrado Agendly → Avax Health en todo el codebase
+- [x] Variables CSS, metadata, textos UI, documentación
+
+### Panel Clínica — Configuración
+- [x] Tab Integraciones: solo toggles por evento (URLs manejadas por admin)
+- [x] Tab WhatsApp/IA: removidos campos Evolution API y prompt del agente
+- [x] Tab WhatsApp/IA: toggle activar/desactivar agente + nombre editable
+
+### Panel Admin — Clínicas
+- [x] Listado de clínicas en cards con grid responsive (1/2/3 columnas)
+- [x] Cards con gradientes, avatares, stats, badges de plan y estado
+- [x] Detalle clínica: configuración de webhooks (URL + toggle por evento)
+- [x] Detalle clínica: configuración Evolution API (instance + API key)
+- [x] Detalle clínica: zona peligrosa — eliminar con confirmación doble (nombre + contraseña)
+
+### Backend Admin
+- [x] UpdateClinicaAdminDto ampliado: webhooks, evolution_instance, evolution_api_key, agent_nombre, agent_instrucciones
+- [x] SubscriptionGuard con degradación graduada (full → read_only → blocked)
+- [x] Nuevos estados: past_due, gracia con grace_period_ends_at
+- [x] Endpoint subscription-status para banner frontend
+
+### Dashboard Clínica — Rediseño Premium
+- [x] KPI cards con gradientes, glow effects, hover animations
+- [x] Loading skeleton consistente con panel admin
+- [x] Gráficos con estilo premium (rounded bars, gradient areas, tooltips estilizados)
+- [x] Tratamientos del mes en progress bars en lugar de bar chart horizontal
+- [x] Turnos de hoy con avatares gradiente y layout mejorado
+
+---
+
 ## Estado General
 
 | Fase | Descripción | Estado |
@@ -235,3 +307,6 @@
 | **F** | Webhooks y Recordatorios Nativos | ✅ Completada |
 | **G** | Notificaciones | ✅ Completada |
 | **H** | Navegación Cruzada | ✅ Completada |
+| **I** | Panel Admin SaaS — Diseño Premium | ✅ Completada |
+| **J** | Rebranding y Mejoras UX | ✅ Completada |
+| **K** | Feature Flags + Panel Profesional | ✅ Completada |

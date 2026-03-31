@@ -1,12 +1,12 @@
 # Plan de Desarrollo — Panel de Administración de Clínicas (SaaS)
 
-> Última actualización: 2026-03-26
+> Última actualización: 2026-03-27 (Fases 1-3 completadas + Agent API)
 
 ## Concepto
 
 Crear un **segundo panel** (`/admin`) completamente separado del panel de clínica (`/dashboard`).
 El panel actual no se toca — sigue siendo el panel interno de cada clínica.
-El nuevo panel es para el **equipo de Agendly** que gestiona las clínicas suscriptas.
+El nuevo panel es para el **equipo de Avax Health** que gestiona las clínicas suscriptas.
 
 Se necesita un nuevo rol `superadmin` que no pertenece a ninguna clínica, sino que opera a nivel plataforma.
 
@@ -96,11 +96,11 @@ Se necesita un nuevo rol `superadmin` que no pertenece a ninguna clínica, sino 
 
 ---
 
-## Fase 3 — Panel Admin (Frontend)
+## Fase 3 — Panel Admin (Frontend) ✅ COMPLETADA
 
-**Objetivo:** Interfaz web para el equipo Agendly.
+**Objetivo:** Interfaz web para el equipo Avax Health.
 
-### 3.1 Estructura de rutas
+### 3.1 Estructura de rutas ✅
 ```
 src/app/
 ├── (admin)/
@@ -114,18 +114,25 @@ src/app/
 │       └── suscripciones/page.tsx — Gestión de suscripciones
 ```
 
-### 3.2 Sidebar del admin (separado del actual)
-- Dashboard, Clínicas, Planes, Suscripciones, Configuración
+### 3.2 Sidebar del admin (separado del actual) ✅
+- [x] Dashboard, Clínicas, Planes, Suscripciones
+- [x] Sidebar colapsable con branding Avax Health
+- [x] Indicador de sección activa
 
-### 3.3 Pantallas principales
-- **Dashboard admin:** KPIs (clínicas activas, MRR, trials venciendo, gráficos de crecimiento)
-- **Clínicas:** tabla con búsqueda, filtros por estado/plan, acciones rápidas (suspender, activar)
-- **Detalle clínica:** info general, suscripción actual, usuarios, métricas de uso (turnos, pacientes)
-- **Planes:** cards con features, precio, cantidad de clínicas usando cada plan
-- **Suscripciones:** historial, cambios de plan, pagos
+### 3.3 Pantallas principales ✅
+- [x] **Dashboard admin:** KPIs (clínicas activas, MRR, trials venciendo), diseño premium con gradientes indigo/violet
+- [x] **Clínicas:** tabla con búsqueda, summary pills (total/activas/inactivas), avatares con iniciales, badges de plan con corona, acciones hover
+- [x] **Detalle clínica:** breadcrumb, stats cards con gradientes (blue/pink/indigo/emerald) + glow shadows, secciones info/suscripción con iconos
+- [x] **Planes:** cards con barra gradiente superior (indigo→violet), precios con texto gradiente, feature pills con checks, botón CTA con shadow glow
+- [x] **Suscripciones:** filter pills interactivos por estado, avatares, badges de plan, indicadores de auto-renovación, formulario 3 columnas
 
-### 3.4 Login
-- Mismo `/login` pero al detectar `superadmin` → redirigir a `/admin` en lugar de `/dashboard`
+### 3.4 Login ✅
+- [x] Mismo `/login` pero al detectar `superadmin` → redirigir a `/admin` en lugar de `/dashboard`
+
+### 3.5 Diseño Premium SaaS ✅
+- [x] rounded-2xl cards, gradient accents (indigo/violet), shadow-glow
+- [x] uppercase tracking labels, hover transitions, loading skeletons
+- [x] Dot indicators para estados, crown icons para planes, group hover opacity
 
 ---
 
@@ -164,6 +171,35 @@ src/app/
 
 ---
 
+## Fase 7 — Agent API (Backend) ✅ COMPLETADA
+
+**Objetivo:** API para que el agente IA (Zoe) vía n8n consuma datos de las clínicas.
+
+### 7.1 Autenticación por API Key ✅
+- [x] `ApiKeyGuard` — valida header `x-api-key` contra `AGENT_API_KEY` del .env
+- [x] `@ApiKeyAuth()` decorator — combina `@Public()` + `IS_API_KEY_AUTH` metadata
+- [x] Bypass de JWT, ClinicaTenantGuard y SubscriptionGuard para rutas con API key
+- [x] Guard registrado globalmente en AppModule
+
+### 7.2 AgentModule ✅
+- [x] `AgentService` con 11 métodos: findClinicaByInstance, getClinicaInfo, findPacienteByPhone, findPacienteByDni, getTurnosDisponibles, verificarTurnoExistente, crearTurno, registrarPaciente, actualizarEstadoTurno, getTurnosProximos, emitWebhookEvent
+- [x] `AgentController` con endpoints bajo `/agent` protegidos por `@ApiKeyAuth()`
+- [x] Cálculo inteligente de slots disponibles desde horarios de clínica (mañana/tarde por día)
+- [x] Validación de solapamiento, detección de duplicados por DNI/teléfono
+- [x] Source `WHATSAPP` en turnos creados por el agente
+
+### 7.3 Campos nuevos en Clinica entity ✅
+- [x] `evolution_instance` — nombre de instancia Evolution API
+- [x] `evolution_api_key` — API key de Evolution API
+- [x] `agent_nombre` — nombre del agente (default: "Zoe")
+- [x] `agent_instrucciones` — instrucciones personalizadas del agente
+
+### 7.4 Documentación ✅
+- [x] `PLAN_AGENTE_ZOE_SAAS.md` — plan completo del agente multi-tenant
+- [x] `PLAN_FEATURES_SAAS.md` — features enterprise SaaS pendientes (dunning, enforcement, etc.)
+
+---
+
 ## Lo que NO se toca
 
 | Componente actual | Se mantiene igual |
@@ -181,7 +217,8 @@ src/app/
 |---|---|---|
 | **Fase 1** — Cimientos | Crítica | Ninguna |
 | **Fase 2** — API Admin | Crítica | Fase 1 |
-| **Fase 3** — Panel Admin | Alta | Fase 2 |
+| **Fase 3** — Panel Admin | ✅ Completada | Fase 2 |
 | **Fase 4** — Billing | Alta | Fase 2 |
 | **Fase 5** — Límites | Media | Fase 1 + 4 |
 | **Fase 6** — Onboarding | Media | Fase 4 + 5 |
+| **Fase 7** — Agent API | ✅ Completada | Fase 1 |

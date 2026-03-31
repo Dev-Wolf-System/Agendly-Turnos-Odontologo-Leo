@@ -9,25 +9,10 @@ import pacientesService, {
   PaginationMeta,
 } from "@/services/pacientes.service";
 import { Pagination } from "@/components/ui/pagination";
-import { SortableHeader } from "@/components/ui/sortable-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
+import { Badge } from "@/components/ui/badge";
 import {
   Dialog,
   DialogContent,
@@ -36,10 +21,29 @@ import {
   DialogHeader,
   DialogTitle,
 } from "@/components/ui/dialog";
-import { Badge } from "@/components/ui/badge";
-import { TableSkeleton } from "@/components/ui/skeleton";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { Eye, Pencil, Trash2 } from "lucide-react";
+import {
+  Eye,
+  Pencil,
+  Trash2,
+  Search,
+  UserPlus,
+  Users,
+  Phone,
+  Mail,
+  Calendar,
+  ArrowUpDown,
+  LayoutGrid,
+  LayoutList,
+} from "lucide-react";
 
 function calcularEdad(fechaNacimiento: string | null): string {
   if (!fechaNacimiento) return "—";
@@ -51,6 +55,24 @@ function calcularEdad(fechaNacimiento: string | null): string {
     edad--;
   }
   return `${edad} años`;
+}
+
+function getInitials(nombre: string, apellido: string): string {
+  return `${nombre?.charAt(0) || ""}${apellido?.charAt(0) || ""}`.toUpperCase();
+}
+
+const GRADIENT_COLORS = [
+  "from-indigo-500 to-violet-600",
+  "from-emerald-500 to-teal-600",
+  "from-blue-500 to-cyan-600",
+  "from-rose-500 to-pink-600",
+  "from-amber-500 to-orange-600",
+  "from-purple-500 to-fuchsia-600",
+];
+
+function getGradient(id: string): string {
+  const hash = id.split("").reduce((acc, c) => acc + c.charCodeAt(0), 0);
+  return GRADIENT_COLORS[hash % GRADIENT_COLORS.length];
 }
 
 export default function PacientesPage() {
@@ -68,6 +90,7 @@ export default function PacientesPage() {
   const [editing, setEditing] = useState<Paciente | null>(null);
   const [deleting, setDeleting] = useState<Paciente | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [viewMode, setViewMode] = useState<"grid" | "list">("grid");
   const [form, setForm] = useState({
     dni: "",
     nombre: "",
@@ -101,12 +124,6 @@ export default function PacientesPage() {
     }, 300);
     return () => clearTimeout(timer);
   }, [loadPacientes]);
-
-  const handleSort = (field: string, order: "ASC" | "DESC") => {
-    setSortBy(field);
-    setSortOrder(order);
-    setPage(1);
-  };
 
   const openCreate = () => {
     setEditing(null);
@@ -182,118 +199,285 @@ export default function PacientesPage() {
     }
   };
 
+  const handleSort = (field: string) => {
+    if (sortBy === field) {
+      setSortOrder(sortOrder === "ASC" ? "DESC" : "ASC");
+    } else {
+      setSortBy(field);
+      setSortOrder("ASC");
+    }
+    setPage(1);
+  };
+
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      {/* Header */}
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pacientes</h1>
-          <p className="text-muted-foreground">
-            Gestiona los pacientes de tu clínica
+          <p className="text-sm text-muted-foreground mt-1">
+            {meta.total} paciente{meta.total !== 1 ? "s" : ""} registrado{meta.total !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button onClick={openCreate}>+ Nuevo Paciente</Button>
+        <Button onClick={openCreate} className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg transition-all">
+          <UserPlus className="h-4 w-4 mr-2" />
+          Nuevo Paciente
+        </Button>
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Pacientes</CardTitle>
-          <CardDescription>
-            Busca por nombre, apellido o DNI
-          </CardDescription>
-          <div className="pt-2">
-            <Input
-              placeholder="Buscar pacientes..."
-              value={search}
-              onChange={(e) => { setSearch(e.target.value); setPage(1); }}
-              className="max-w-sm"
-            />
+      {/* Barra de búsqueda y filtros */}
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border bg-card p-4 shadow-sm">
+        <div className="relative flex-1 max-w-md">
+          <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
+          <Input
+            placeholder="Buscar por nombre, apellido o DNI..."
+            value={search}
+            onChange={(e) => { setSearch(e.target.value); setPage(1); }}
+            className="pl-9 rounded-xl border-muted bg-muted/30 focus:bg-background transition-colors"
+          />
+        </div>
+        <div className="flex items-center gap-2">
+          {/* Ordenar */}
+          <Select
+            value={`${sortBy}:${sortOrder}`}
+            onValueChange={(v: string | null) => {
+              if (!v) return;
+              const [field, order] = v.split(":");
+              setSortBy(field);
+              setSortOrder(order as "ASC" | "DESC");
+              setPage(1);
+            }}
+          >
+            <SelectTrigger className="w-[180px] rounded-xl">
+              <ArrowUpDown className="h-3.5 w-3.5 mr-2 text-muted-foreground" />
+              <span>{({ "apellido:ASC": "Apellido A-Z", "apellido:DESC": "Apellido Z-A", "nombre:ASC": "Nombre A-Z", "nombre:DESC": "Nombre Z-A", "created_at:DESC": "Más recientes", "created_at:ASC": "Más antiguos" } as Record<string, string>)[`${sortBy}:${sortOrder}`] || "Ordenar por"}</span>
+            </SelectTrigger>
+            <SelectContent>
+              <SelectItem value="apellido:ASC">Apellido A-Z</SelectItem>
+              <SelectItem value="apellido:DESC">Apellido Z-A</SelectItem>
+              <SelectItem value="nombre:ASC">Nombre A-Z</SelectItem>
+              <SelectItem value="nombre:DESC">Nombre Z-A</SelectItem>
+              <SelectItem value="created_at:DESC">Más recientes</SelectItem>
+              <SelectItem value="created_at:ASC">Más antiguos</SelectItem>
+            </SelectContent>
+          </Select>
+
+          {/* Toggle vista */}
+          <div className="flex items-center rounded-xl border bg-muted/30 p-0.5">
+            <button
+              onClick={() => setViewMode("grid")}
+              className={`rounded-lg p-2 transition-all ${viewMode === "grid" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <LayoutGrid className="h-4 w-4" />
+            </button>
+            <button
+              onClick={() => setViewMode("list")}
+              className={`rounded-lg p-2 transition-all ${viewMode === "list" ? "bg-background shadow-sm text-foreground" : "text-muted-foreground hover:text-foreground"}`}
+            >
+              <LayoutList className="h-4 w-4" />
+            </button>
           </div>
-        </CardHeader>
-        <CardContent>
-          {isLoading ? (
-            <TableSkeleton rows={5} cols={7} />
-          ) : pacientes.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-              <p>No se encontraron pacientes</p>
-              {search && (
-                <p className="text-sm">
-                  Intenta con otro término de búsqueda
-                </p>
-              )}
+        </div>
+      </div>
+
+      {/* Content */}
+      {isLoading ? (
+        <div className={viewMode === "grid"
+          ? "grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4"
+          : "space-y-3"
+        }>
+          {[...Array(8)].map((_, i) => (
+            <div key={i} className={`rounded-2xl border bg-card ${viewMode === "grid" ? "p-5 h-52" : "p-4 h-20"} animate-pulse`}>
+              <div className="flex items-center gap-3">
+                <Skeleton className="h-12 w-12 rounded-xl" />
+                <div className="space-y-2">
+                  <Skeleton className="h-4 w-32" />
+                  <Skeleton className="h-3 w-24" />
+                </div>
+              </div>
             </div>
-          ) : (
-            <Table>
-              <TableHeader>
-                <TableRow>
-                  <SortableHeader label="DNI" field="dni" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <SortableHeader label="Nombre" field="nombre" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <SortableHeader label="Apellido" field="apellido" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <TableHead>Edad</TableHead>
-                  <SortableHeader label="Celular" field="cel" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <SortableHeader label="Email" field="email" currentSort={sortBy} currentOrder={sortOrder} onSort={handleSort} />
-                  <TableHead className="w-[120px] text-center">Acciones</TableHead>
-                </TableRow>
-              </TableHeader>
-              <TableBody>
-                {pacientes.map((paciente) => (
-                  <TableRow key={paciente.id}>
-                    <TableCell>
-                      <Badge variant="outline">{paciente.dni}</Badge>
-                    </TableCell>
-                    <TableCell className="font-medium">
-                      {paciente.nombre}
-                    </TableCell>
-                    <TableCell>{paciente.apellido}</TableCell>
-                    <TableCell>{calcularEdad(paciente.fecha_nacimiento)}</TableCell>
-                    <TableCell>{paciente.cel || "—"}</TableCell>
-                    <TableCell>{paciente.email || "—"}</TableCell>
-                    <TableCell>
-                      <div className="flex items-center justify-center gap-1">
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-all duration-200 hover:scale-110"
-                          onClick={() =>
-                            router.push(`/dashboard/pacientes/${paciente.id}`)
-                          }
-                          title="Ver ficha"
-                        >
-                          <Eye className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all duration-200 hover:scale-110"
-                          onClick={() => openEdit(paciente)}
-                          title="Editar"
-                        >
-                          <Pencil className="h-4 w-4" />
-                        </Button>
-                        <Button
-                          variant="ghost"
-                          size="icon"
-                          className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all duration-200 hover:scale-110"
-                          onClick={() => openDelete(paciente)}
-                          title="Eliminar"
-                        >
-                          <Trash2 className="h-4 w-4" />
-                        </Button>
-                      </div>
-                    </TableCell>
-                  </TableRow>
-                ))}
-              </TableBody>
-            </Table>
+          ))}
+        </div>
+      ) : pacientes.length === 0 ? (
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground rounded-2xl border bg-card">
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 mb-4">
+            <Users className="h-8 w-8 text-indigo-500" />
+          </div>
+          <p className="text-lg font-medium text-foreground">No se encontraron pacientes</p>
+          <p className="text-sm mt-1">
+            {search ? "Intenta con otro término de búsqueda" : "Registra tu primer paciente para comenzar"}
+          </p>
+          {!search && (
+            <Button onClick={openCreate} className="mt-4" variant="outline">
+              <UserPlus className="h-4 w-4 mr-2" />
+              Crear primer paciente
+            </Button>
           )}
-          {!isLoading && meta.total > 0 && (
-            <Pagination
-              meta={meta}
-              onPageChange={setPage}
-              onLimitChange={(l) => { setLimit(l); setPage(1); }}
-            />
-          )}
-        </CardContent>
-      </Card>
+        </div>
+      ) : viewMode === "grid" ? (
+        /* Vista de tarjetas */
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 xl:grid-cols-4 gap-4">
+          {pacientes.map((paciente) => (
+            <div
+              key={paciente.id}
+              className="group relative rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+            >
+              {/* Glow */}
+              <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${getGradient(paciente.id)} opacity-[0.06] rounded-full group-hover:opacity-[0.12] transition-opacity`} />
+
+              <div className="relative">
+                {/* Avatar + Nombre */}
+                <div className="flex items-start gap-3 mb-4">
+                  <div className={`flex h-12 w-12 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${getGradient(paciente.id)} text-white text-sm font-bold shadow-md`}>
+                    {getInitials(paciente.nombre, paciente.apellido)}
+                  </div>
+                  <div className="min-w-0 flex-1">
+                    <h3 className="text-sm font-semibold truncate">
+                      {paciente.nombre} {paciente.apellido}
+                    </h3>
+                    <div className="flex items-center gap-2 mt-0.5">
+                      <Badge variant="outline" className="text-[10px] font-medium px-1.5 py-0">
+                        DNI {paciente.dni}
+                      </Badge>
+                      {paciente.fecha_nacimiento && (
+                        <span className="text-[10px] text-muted-foreground">
+                          {calcularEdad(paciente.fecha_nacimiento)}
+                        </span>
+                      )}
+                    </div>
+                  </div>
+                </div>
+
+                {/* Info */}
+                <div className="space-y-2 mb-4">
+                  {paciente.cel && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Phone className="h-3 w-3" />
+                      <span className="truncate">{paciente.cel}</span>
+                    </div>
+                  )}
+                  {paciente.email && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Mail className="h-3 w-3" />
+                      <span className="truncate">{paciente.email}</span>
+                    </div>
+                  )}
+                  {paciente.fecha_nacimiento && (
+                    <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(paciente.fecha_nacimiento).toLocaleDateString("es-AR")}</span>
+                    </div>
+                  )}
+                </div>
+
+                {/* Acciones */}
+                <div className="flex items-center gap-1 pt-3 border-t">
+                  <Button
+                    variant="ghost"
+                    size="sm"
+                    className="flex-1 h-8 text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40"
+                    onClick={() => router.push(`/dashboard/pacientes/${paciente.id}`)}
+                  >
+                    <Eye className="h-3.5 w-3.5 mr-1" />
+                    Ver ficha
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40"
+                    onClick={() => openEdit(paciente)}
+                  >
+                    <Pencil className="h-3.5 w-3.5" />
+                  </Button>
+                  <Button
+                    variant="ghost"
+                    size="icon"
+                    className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40"
+                    onClick={() => openDelete(paciente)}
+                  >
+                    <Trash2 className="h-3.5 w-3.5" />
+                  </Button>
+                </div>
+              </div>
+            </div>
+          ))}
+        </div>
+      ) : (
+        /* Vista de lista */
+        <div className="space-y-2">
+          {pacientes.map((paciente) => (
+            <div
+              key={paciente.id}
+              className="group flex items-center gap-4 rounded-2xl border bg-card px-5 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-muted/30"
+            >
+              <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${getGradient(paciente.id)} text-white text-xs font-bold shadow-sm`}>
+                {getInitials(paciente.nombre, paciente.apellido)}
+              </div>
+
+              <div className="flex-1 min-w-0 grid grid-cols-1 sm:grid-cols-5 gap-1 sm:gap-4 items-center">
+                <div className="sm:col-span-2">
+                  <p className="text-sm font-semibold truncate">
+                    {paciente.nombre} {paciente.apellido}
+                  </p>
+                  <Badge variant="outline" className="text-[10px] mt-0.5">
+                    DNI {paciente.dni}
+                  </Badge>
+                </div>
+                <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Phone className="h-3 w-3" />
+                  <span className="truncate">{paciente.cel || "—"}</span>
+                </div>
+                <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
+                  <Mail className="h-3 w-3" />
+                  <span className="truncate">{paciente.email || "—"}</span>
+                </div>
+                <div className="hidden sm:block text-xs text-muted-foreground text-right">
+                  {calcularEdad(paciente.fecha_nacimiento)}
+                </div>
+              </div>
+
+              <div className="flex items-center gap-0.5 shrink-0">
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-all hover:scale-110"
+                  onClick={() => router.push(`/dashboard/pacientes/${paciente.id}`)}
+                  title="Ver ficha"
+                >
+                  <Eye className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-blue-600 hover:text-blue-700 hover:bg-blue-50 dark:hover:bg-blue-950/40 transition-all hover:scale-110"
+                  onClick={() => openEdit(paciente)}
+                  title="Editar"
+                >
+                  <Pencil className="h-4 w-4" />
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="icon"
+                  className="h-8 w-8 text-red-500 hover:text-red-600 hover:bg-red-50 dark:hover:bg-red-950/40 transition-all hover:scale-110"
+                  onClick={() => openDelete(paciente)}
+                  title="Eliminar"
+                >
+                  <Trash2 className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ))}
+        </div>
+      )}
+
+      {/* Paginación */}
+      {!isLoading && meta.total > 0 && (
+        <Pagination
+          meta={meta}
+          onPageChange={setPage}
+          onLimitChange={(l) => { setLimit(l); setPage(1); }}
+        />
+      )}
 
       {/* Dialog Crear/Editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

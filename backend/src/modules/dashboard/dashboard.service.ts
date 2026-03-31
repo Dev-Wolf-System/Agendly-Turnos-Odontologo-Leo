@@ -29,7 +29,7 @@ export class DashboardService {
     const monthStart = new Date(today.getFullYear(), today.getMonth(), 1);
     const monthEnd = new Date(today.getFullYear(), today.getMonth() + 1, 0, 23, 59, 59, 999);
 
-    const [turnosHoy, totalPacientes, lowStockCount, ingresosMes] =
+    const [turnosHoy, totalPacientes, lowStockCount, ingresosMesResult, pagosAprobadosMes] =
       await Promise.all([
         this.turnoRepository.count({
           where: {
@@ -56,13 +56,24 @@ export class DashboardService {
           })
           .select('COALESCE(SUM(p.total), 0)', 'total')
           .getRawOne(),
+        this.pagoRepository
+          .createQueryBuilder('p')
+          .leftJoin('p.turno', 'turno')
+          .where('turno.clinica_id = :clinicaId', { clinicaId })
+          .andWhere('p.estado = :estado', { estado: EstadoPago.APROBADO })
+          .andWhere('p.created_at BETWEEN :start AND :end', {
+            start: monthStart,
+            end: monthEnd,
+          })
+          .getCount(),
       ]);
 
     return {
       turnosHoy,
       totalPacientes,
       lowStockCount,
-      ingresosMes: Number(ingresosMes?.total || 0),
+      ingresosMes: Number(ingresosMesResult?.total || 0),
+      pagosAprobadosMes,
     };
   }
 

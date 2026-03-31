@@ -13,9 +13,11 @@ import { PagosService } from './pagos.service';
 import { CreatePagoDto } from './dto/create-pago.dto';
 import { UpdatePagoDto } from './dto/update-pago.dto';
 import { FilterPagosDto } from './dto/filter-pagos.dto';
-import { CurrentClinica } from '../../common/decorators';
+import { CurrentClinica, Roles } from '../../common/decorators';
+import { UserRole } from '../../common/enums';
 
 @Controller('pagos')
+@Roles(UserRole.ADMIN, UserRole.ASSISTANT)
 export class PagosController {
   constructor(private readonly pagosService: PagosService) {}
 

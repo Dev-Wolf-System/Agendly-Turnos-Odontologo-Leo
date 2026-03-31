@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import { RoleGuard } from "@/components/guards/role-guard";
 import clinicaService, {
   Clinica,
   HorarioDia,
@@ -58,6 +59,12 @@ import {
   Bell,
   Send,
   Info,
+  Bot,
+  MessageSquare,
+  Key,
+  Eye,
+  EyeOff,
+  LayoutDashboard,
 } from "lucide-react";
 
 // ─── Tipos ───
@@ -118,7 +125,7 @@ const LOGOS_ESPECIALIDAD: Record<string, { label: string; svg: (size: number) =>
     bg: "bg-cyan-100 dark:bg-cyan-900/50",
     svg: (s) => (
       <svg width={s} height={s} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M32 6C24 6 20 10 18 14c-2 4-1 10 1 16 2 6 4 14 5 20 .5 3 2 4 4 4s3-1 4-5l2-10c.5-2 1.5-3 3-3s2.5 1 3 3l2 10c1 4 2 5 4 5s3.5-1 4-4c1-6 3-14 5-20 2-6 3-12 1-16C53 10 40 6 32 6z" fill="#06B6D4" stroke="#0891B2" strokeWidth="2"/>
+        <path d="M32 6C24 6 20 10 18 14c-2 4-1 10 1 16 2 6 4 14 5 20 .5 3 2 4 4 4s3-1 4-5l2-10c.5-2 1.5-3 3-3s2.5 1 3 3l2 10c1 4 2 5 4 5s3.5-1 4-4c1-6 3-14 5-20 2-6 3-12 1-16C53 10 40 6 32 6z" fill="#06B6D4" stroke="#0891B2" strokeWidth="2" />
       </svg>
     ),
   },
@@ -127,10 +134,10 @@ const LOGOS_ESPECIALIDAD: Record<string, { label: string; svg: (size: number) =>
     bg: "bg-green-100 dark:bg-green-900/50",
     svg: (s) => (
       <svg width={s} height={s} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <circle cx="32" cy="12" r="6" fill="#10B981" stroke="#059669" strokeWidth="2"/>
-        <path d="M24 24c0-4 4-8 8-8s8 4 8 8v4l6 12h-6l-2 16h-12l-2-16h-6l6-12v-4z" fill="#10B981" stroke="#059669" strokeWidth="2"/>
-        <path d="M18 32c-2 0-4-2-3-4l2-4" stroke="#059669" strokeWidth="2" strokeLinecap="round"/>
-        <path d="M46 32c2 0 4-2 3-4l-2-4" stroke="#059669" strokeWidth="2" strokeLinecap="round"/>
+        <circle cx="32" cy="12" r="6" fill="#10B981" stroke="#059669" strokeWidth="2" />
+        <path d="M24 24c0-4 4-8 8-8s8 4 8 8v4l6 12h-6l-2 16h-12l-2-16h-6l6-12v-4z" fill="#10B981" stroke="#059669" strokeWidth="2" />
+        <path d="M18 32c-2 0-4-2-3-4l2-4" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
+        <path d="M46 32c2 0 4-2 3-4l-2-4" stroke="#059669" strokeWidth="2" strokeLinecap="round" />
       </svg>
     ),
   },
@@ -139,12 +146,12 @@ const LOGOS_ESPECIALIDAD: Record<string, { label: string; svg: (size: number) =>
     bg: "bg-orange-100 dark:bg-orange-900/50",
     svg: (s) => (
       <svg width={s} height={s} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M20 16c0-6 4-10 8-10 2 0 4 2 4 6v12h-4C22 24 20 20 20 16z" fill="#F97316" stroke="#EA580C" strokeWidth="2"/>
-        <path d="M36 16c0-6-4-10-8-10-2 0-4 2-4 6" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" opacity="0"/>
-        <path d="M32 24v30" stroke="#EA580C" strokeWidth="3" strokeLinecap="round"/>
-        <ellipse cx="32" cy="56" rx="14" ry="4" fill="#FDBA74" stroke="#EA580C" strokeWidth="2"/>
-        <circle cx="38" cy="14" r="4" fill="#FB923C" stroke="#EA580C" strokeWidth="1.5"/>
-        <circle cx="44" cy="20" r="3" fill="#FB923C" stroke="#EA580C" strokeWidth="1.5"/>
+        <path d="M20 16c0-6 4-10 8-10 2 0 4 2 4 6v12h-4C22 24 20 20 20 16z" fill="#F97316" stroke="#EA580C" strokeWidth="2" />
+        <path d="M36 16c0-6-4-10-8-10-2 0-4 2-4 6" stroke="#EA580C" strokeWidth="2" strokeLinecap="round" opacity="0" />
+        <path d="M32 24v30" stroke="#EA580C" strokeWidth="3" strokeLinecap="round" />
+        <ellipse cx="32" cy="56" rx="14" ry="4" fill="#FDBA74" stroke="#EA580C" strokeWidth="2" />
+        <circle cx="38" cy="14" r="4" fill="#FB923C" stroke="#EA580C" strokeWidth="1.5" />
+        <circle cx="44" cy="20" r="3" fill="#FB923C" stroke="#EA580C" strokeWidth="1.5" />
       </svg>
     ),
   },
@@ -153,9 +160,9 @@ const LOGOS_ESPECIALIDAD: Record<string, { label: string; svg: (size: number) =>
     bg: "bg-blue-100 dark:bg-blue-900/50",
     svg: (s) => (
       <svg width={s} height={s} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <rect x="18" y="18" width="28" height="28" rx="6" fill="#3B82F6" stroke="#2563EB" strokeWidth="2"/>
-        <rect x="29" y="24" width="6" height="16" rx="2" fill="white"/>
-        <rect x="24" y="29" width="16" height="6" rx="2" fill="white"/>
+        <rect x="18" y="18" width="28" height="28" rx="6" fill="#3B82F6" stroke="#2563EB" strokeWidth="2" />
+        <rect x="29" y="24" width="6" height="16" rx="2" fill="white" />
+        <rect x="24" y="29" width="16" height="6" rx="2" fill="white" />
       </svg>
     ),
   },
@@ -164,9 +171,9 @@ const LOGOS_ESPECIALIDAD: Record<string, { label: string; svg: (size: number) =>
     bg: "bg-purple-100 dark:bg-purple-900/50",
     svg: (s) => (
       <svg width={s} height={s} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M32 8C20 8 12 18 12 28c0 6 3 12 8 16v12h24V44c5-4 8-10 8-16C52 18 44 8 32 8z" fill="#A855F7" stroke="#9333EA" strokeWidth="2"/>
-        <path d="M32 16v20M24 28h16" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.8"/>
-        <path d="M26 44c0-4 2.5-6 6-6s6 2 6 6" stroke="#9333EA" strokeWidth="2" fill="none"/>
+        <path d="M32 8C20 8 12 18 12 28c0 6 3 12 8 16v12h24V44c5-4 8-10 8-16C52 18 44 8 32 8z" fill="#A855F7" stroke="#9333EA" strokeWidth="2" />
+        <path d="M32 16v20M24 28h16" stroke="white" strokeWidth="2.5" strokeLinecap="round" opacity="0.8" />
+        <path d="M26 44c0-4 2.5-6 6-6s6 2 6 6" stroke="#9333EA" strokeWidth="2" fill="none" />
       </svg>
     ),
   },
@@ -175,9 +182,9 @@ const LOGOS_ESPECIALIDAD: Record<string, { label: string; svg: (size: number) =>
     bg: "bg-rose-100 dark:bg-rose-900/50",
     svg: (s) => (
       <svg width={s} height={s} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
-        <path d="M32 56l-20-22C6 26 8 16 16 12c6-3 12 0 16 6 4-6 10-9 16-6 8 4 10 14 4 22L32 56z" fill="#F43F5E" stroke="#E11D48" strokeWidth="2"/>
-        <rect x="29" y="24" width="6" height="14" rx="2" fill="white"/>
-        <rect x="25" y="28" width="14" height="6" rx="2" fill="white"/>
+        <path d="M32 56l-20-22C6 26 8 16 16 12c6-3 12 0 16 6 4-6 10-9 16-6 8 4 10 14 4 22L32 56z" fill="#F43F5E" stroke="#E11D48" strokeWidth="2" />
+        <rect x="29" y="24" width="6" height="14" rx="2" fill="white" />
+        <rect x="25" y="28" width="14" height="6" rx="2" fill="white" />
       </svg>
     ),
   },
@@ -190,9 +197,17 @@ const COLORES_TRATAMIENTO = [
 ];
 
 // ─── Tabs ───
-type TabKey = "clinica" | "horarios" | "tratamientos" | "equipo" | "integraciones";
+type TabKey = "clinica" | "horarios" | "tratamientos" | "equipo" | "integraciones" | "whatsapp" | "dashboard";
 
 export default function ConfiguracionPage() {
+  return (
+    <RoleGuard allowedRoles={["admin"]}>
+      <ConfiguracionContent />
+    </RoleGuard>
+  );
+}
+
+function ConfiguracionContent() {
   const [activeTab, setActiveTab] = useState<TabKey>("clinica");
   const [clinica, setClinica] = useState<Clinica | null>(null);
   const [tratamientos, setTratamientos] = useState<Tratamiento[]>([]);
@@ -229,6 +244,8 @@ export default function ConfiguracionPage() {
     { key: "tratamientos", label: "Tratamientos", icon: Stethoscope },
     { key: "equipo", label: "Equipo", icon: Users },
     { key: "integraciones", label: "Integraciones", icon: Webhook },
+    { key: "whatsapp", label: "WhatsApp / IA", icon: Bot },
+    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
   ];
 
   if (isLoading || !clinica) {
@@ -260,11 +277,10 @@ export default function ConfiguracionPage() {
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${
-              activeTab === tab.key
-                ? "bg-background text-foreground shadow-sm"
-                : "text-muted-foreground hover:text-foreground"
-            }`}
+            className={`flex items-center gap-2 rounded-md px-4 py-2 text-sm font-medium transition-colors ${activeTab === tab.key
+              ? "bg-background text-foreground shadow-sm"
+              : "text-muted-foreground hover:text-foreground"
+              }`}
           >
             <tab.icon className="h-4 w-4" />
             {tab.label}
@@ -291,6 +307,12 @@ export default function ConfiguracionPage() {
       )}
       {activeTab === "integraciones" && (
         <TabIntegraciones clinica={clinica} onUpdate={loadData} />
+      )}
+      {activeTab === "whatsapp" && (
+        <TabWhatsApp clinica={clinica} onUpdate={loadData} />
+      )}
+      {activeTab === "dashboard" && (
+        <TabDashboard clinica={clinica} onUpdate={loadData} />
       )}
     </div>
   );
@@ -404,11 +426,10 @@ function TabClinica({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => v
                       setLogoMode("default");
                       setForm({ ...form, logo_url: "" });
                     }}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                      logoMode === "default"
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-foreground/30"
-                    }`}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${logoMode === "default"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-foreground/30"
+                      }`}
                   >
                     <span className="flex items-center gap-1.5">
                       <Stethoscope className="h-3.5 w-3.5" />
@@ -418,11 +439,10 @@ function TabClinica({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => v
                   <button
                     type="button"
                     onClick={() => fileInputRef.current?.click()}
-                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${
-                      logoMode === "custom"
-                        ? "border-primary bg-primary/10 text-primary"
-                        : "border-border text-muted-foreground hover:border-foreground/30"
-                    }`}
+                    className={`rounded-lg border px-3 py-1.5 text-xs font-medium transition-colors ${logoMode === "custom"
+                      ? "border-primary bg-primary/10 text-primary"
+                      : "border-border text-muted-foreground hover:border-foreground/30"
+                      }`}
                   >
                     <span className="flex items-center gap-1.5">
                       <Upload className="h-3.5 w-3.5" />
@@ -457,11 +477,10 @@ function TabClinica({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => v
                     key={key}
                     type="button"
                     onClick={() => setForm({ ...form, especialidad: key })}
-                    className={`flex flex-col items-center gap-1 rounded-lg border p-2 transition-all ${
-                      form.especialidad === key
-                        ? "border-primary bg-primary/5 ring-1 ring-primary/30"
-                        : "border-border hover:border-foreground/20"
-                    }`}
+                    className={`flex flex-col items-center gap-1 rounded-lg border p-2 transition-all ${form.especialidad === key
+                      ? "border-primary bg-primary/5 ring-1 ring-primary/30"
+                      : "border-border hover:border-foreground/20"
+                      }`}
                     title={logo.label}
                   >
                     {logo.svg(28)}
@@ -669,9 +688,8 @@ function TabHorarios({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
             return (
               <div
                 key={key}
-                className={`rounded-lg border p-4 transition-colors ${
-                  activo ? "bg-background" : "bg-muted/50 opacity-60"
-                }`}
+                className={`rounded-lg border p-4 transition-colors ${activo ? "bg-background" : "bg-muted/50 opacity-60"
+                  }`}
               >
                 <div className="flex items-center gap-3 mb-3">
                   <span className="font-medium text-sm w-28">{label}</span>
@@ -910,9 +928,8 @@ function TabTratamientos({
               {tratamientos.map((t) => (
                 <div
                   key={t.id}
-                  className={`flex items-center gap-3 rounded-lg border p-3 transition-colors group ${
-                    t.activo ? "bg-background" : "bg-muted/50 opacity-60"
-                  }`}
+                  className={`flex items-center gap-3 rounded-lg border p-3 transition-colors group ${t.activo ? "bg-background" : "bg-muted/50 opacity-60"
+                    }`}
                 >
                   <GripVertical className="h-4 w-4 text-muted-foreground/40 shrink-0" />
                   <div
@@ -1032,9 +1049,8 @@ function TabTratamientos({
                     key={c}
                     type="button"
                     onClick={() => setForm({ ...form, color: c })}
-                    className={`h-8 w-8 rounded-full transition-all ${
-                      form.color === c ? "ring-2 ring-offset-2 ring-offset-background scale-110" : "hover:scale-105"
-                    }`}
+                    className={`h-8 w-8 rounded-full transition-all ${form.color === c ? "ring-2 ring-offset-2 ring-offset-background scale-110" : "hover:scale-105"
+                      }`}
                     style={{ backgroundColor: c, ...(form.color === c ? { outlineColor: c } : {}) }}
                   />
                 ))}
@@ -1424,12 +1440,11 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
     clinica.recordatorio_horas_antes?.toString() || "24",
   );
   const [isSaving, setIsSaving] = useState(false);
-  const [showPayload, setShowPayload] = useState(false);
 
-  const updateWebhook = (key: string, field: "url" | "activo", value: string | boolean) => {
+  const toggleWebhook = (key: string, activo: boolean) => {
     setWebhooks((prev) => ({
       ...prev,
-      [key]: { url: prev[key]?.url || "", activo: prev[key]?.activo ?? false, [field]: value },
+      [key]: { url: prev[key]?.url || "", activo },
     }));
   };
 
@@ -1451,6 +1466,21 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
 
   return (
     <div className="space-y-6">
+      {/* Info banner */}
+      <div className="rounded-lg border border-blue-200 dark:border-blue-800 bg-blue-50/50 dark:bg-blue-950/20 p-4">
+        <div className="flex gap-3">
+          <Info className="h-5 w-5 text-blue-500 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium text-blue-800 dark:text-blue-200 mb-1">
+              Automatizaciones de tu clínica
+            </p>
+            <p className="text-xs text-blue-700 dark:text-blue-300">
+              Activá las notificaciones automáticas que necesites. Ponte en contacto con el equipo de Avax Health para que puedan ayudarte con la configuración de estas herramientas.
+            </p>
+          </div>
+        </div>
+      </div>
+
       {/* Webhooks por estado */}
       <Card>
         <CardHeader>
@@ -1458,10 +1488,10 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
             <div>
               <CardTitle className="flex items-center gap-2">
                 <Webhook className="h-5 w-5" />
-                Webhooks por Estado de Turno
+                Notificaciones Automáticas
               </CardTitle>
               <CardDescription>
-                Enviá notificaciones automáticas a servicios externos (n8n, Zapier, Make, etc.) cuando cambie el estado de un turno
+                Elegí qué eventos activan notificaciones automáticas para tus pacientes
               </CardDescription>
             </div>
             <Button onClick={handleSave} disabled={isSaving} className="gap-2">
@@ -1470,59 +1500,31 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
             </Button>
           </div>
         </CardHeader>
-        <CardContent className="space-y-4">
-          {/* Payload info */}
-          <button
-            type="button"
-            onClick={() => setShowPayload(!showPayload)}
-            className="flex items-center gap-2 text-sm text-primary hover:underline"
-          >
-            <Info className="h-4 w-4" />
-            {showPayload ? "Ocultar" : "Ver"} datos que se envían en cada webhook
-          </button>
-          {showPayload && (
-            <div className="rounded-lg bg-muted p-4 text-xs font-mono overflow-x-auto">
-              <p className="text-muted-foreground mb-2 font-sans text-xs font-medium">
-                Payload JSON (POST) enviado a cada URL:
-              </p>
-              <pre>{JSON.stringify(PAYLOAD_EXAMPLE, null, 2)}</pre>
-            </div>
-          )}
-
-          {/* Webhook por cada estado */}
+        <CardContent>
           <div className="space-y-3">
             {WEBHOOK_ESTADOS.map(({ key, label, description, color }) => {
               const wh = webhooks[key] || { url: "", activo: false };
               return (
                 <div
                   key={key}
-                  className={`rounded-lg border p-4 transition-colors ${
-                    wh.activo ? "bg-background" : "bg-muted/30"
-                  }`}
+                  className={`rounded-lg border p-4 transition-all duration-200 ${wh.activo ? "bg-background border-primary/20 shadow-sm" : "bg-muted/30"
+                    }`}
                 >
-                  <div className="flex items-start gap-3">
+                  <div className="flex items-center gap-3">
                     <Switch
                       checked={wh.activo}
-                      onCheckedChange={(v) => updateWebhook(key, "activo", v)}
+                      onCheckedChange={(v) => toggleWebhook(key, v)}
                     />
+                    <span className={`h-2.5 w-2.5 rounded-full shrink-0 ${color}`} />
                     <div className="flex-1 min-w-0">
-                      <div className="flex items-center gap-2 mb-1">
-                        <span className={`h-2.5 w-2.5 rounded-full ${color}`} />
-                        <span className="font-medium text-sm">{label}</span>
-                      </div>
-                      <p className="text-xs text-muted-foreground mb-2">{description}</p>
-                      {wh.activo && (
-                        <div className="flex items-center gap-2">
-                          <Send className="h-3.5 w-3.5 text-muted-foreground shrink-0" />
-                          <Input
-                            value={wh.url}
-                            onChange={(e) => updateWebhook(key, "url", e.target.value)}
-                            placeholder="https://tu-n8n.com/webhook/turno-confirmado"
-                            className="h-8 text-xs font-mono"
-                          />
-                        </div>
-                      )}
+                      <span className="font-medium text-sm">{label}</span>
+                      <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
                     </div>
+                    {wh.activo && (
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                        Activo
+                      </span>
+                    )}
                   </div>
                 </div>
               );
@@ -1539,11 +1541,10 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
             Recordatorio Automático de Turno
           </CardTitle>
           <CardDescription>
-            Agendly envía automáticamente un recordatorio por webhook antes de cada turno confirmado
+            Se envía automáticamente un recordatorio antes de cada turno confirmado
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          {/* Cómo funciona */}
           <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 p-4">
             <div className="flex gap-3">
               <Info className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
@@ -1553,14 +1554,10 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
                 </p>
                 <ol className="list-decimal pl-4 text-emerald-700 dark:text-emerald-300 text-xs space-y-1">
                   <li>Configurás cuántas horas antes querés que se envíe el recordatorio</li>
-                  <li>Activás el webhook <strong>"Recordatorio de Turno"</strong> arriba con la URL de tu flujo (n8n, Make, etc.)</li>
-                  <li>Agendly revisa automáticamente cada 10 minutos si hay turnos que necesitan recordatorio</li>
-                  <li>Cuando llega el momento, dispara el webhook con todos los datos del turno y paciente</li>
-                  <li>Tu flujo recibe el payload y envía el WhatsApp, email, o lo que necesites</li>
+                  <li>Activá la notificación <strong>"Recordatorio de Turno"</strong> en la sección de arriba</li>
+                  <li>El sistema revisa automáticamente cada 10 minutos si hay turnos que necesitan recordatorio</li>
+                  <li>Cuando llega el momento, se envía la notificación al paciente con todos los datos del turno</li>
                 </ol>
-                <p className="text-emerald-600 dark:text-emerald-400 text-xs font-medium pt-1">
-                  No necesitás configurar delays ni timers en n8n — Agendly se encarga del timing.
-                </p>
               </div>
             </div>
           </div>
@@ -1584,17 +1581,13 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
                 <SelectItem value="48">48 horas antes (2 días)</SelectItem>
               </SelectContent>
             </Select>
-            <p className="text-xs text-muted-foreground">
-              Ejemplo: si un turno es a las 10:00 y elegís "24 horas antes", el webhook se dispara alrededor de las 10:00 del día anterior
-            </p>
           </div>
 
           {!(webhooks["recordatorio"]?.activo) && (
             <div className="rounded-lg border border-amber-200 dark:border-amber-800 bg-amber-50/50 dark:bg-amber-950/20 p-3">
               <p className="text-xs text-amber-700 dark:text-amber-300 flex items-center gap-2">
                 <Bell className="h-3.5 w-3.5" />
-                Activá el webhook <strong>"Recordatorio de Turno"</strong> en la sección de arriba para que los recordatorios se envíen.
-                Si no está configurado, se usará el webhook de "Turno Confirmado" como fallback.
+                Activá la notificación <strong>"Recordatorio de Turno"</strong> arriba para que los recordatorios se envíen automáticamente.
               </p>
             </div>
           )}
@@ -1605,6 +1598,312 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
           </Button>
         </CardContent>
       </Card>
+    </div>
+  );
+}
+
+// ═══════════════════════════════════════════════════════════
+// TAB: WHATSAPP / IA
+// ═══════════════════════════════════════════════════════════
+function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => void }) {
+  const [agentActivo, setAgentActivo] = useState(!!clinica.agent_nombre && clinica.agent_nombre !== "");
+  const [agentNombre, setAgentNombre] = useState(clinica.agent_nombre || "Zoe");
+  const [isSaving, setIsSaving] = useState(false);
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await clinicaService.updateMe({
+        agent_nombre: agentActivo ? agentNombre : "",
+      });
+      toast.success("Configuración del agente guardada");
+      onUpdate();
+    } catch {
+      toast.error("Error al guardar configuración");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      {/* Agente IA — Activar/Desactivar + Nombre */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Bot className="h-5 w-5 text-violet-500" />
+                Agente IA — Asistente Virtual
+              </CardTitle>
+              <CardDescription>
+                Un asistente inteligente que atiende a tus pacientes por WhatsApp las 24 horas
+              </CardDescription>
+            </div>
+            <div className="flex items-center gap-3">
+              <span className={`text-xs font-semibold ${agentActivo ? "text-emerald-500" : "text-muted-foreground"}`}>
+                {agentActivo ? "Activo" : "Inactivo"}
+              </span>
+              <Switch checked={agentActivo} onCheckedChange={setAgentActivo} />
+            </div>
+          </div>
+        </CardHeader>
+        <CardContent className="space-y-4">
+          {agentActivo ? (
+            <>
+              <div className="space-y-2">
+                <Label htmlFor="agent_nombre">Nombre del Agente</Label>
+                <Input
+                  id="agent_nombre"
+                  value={agentNombre}
+                  onChange={(e) => setAgentNombre(e.target.value)}
+                  placeholder="Zoe"
+                />
+                <p className="text-xs text-muted-foreground">
+                  El nombre con el que se presentará el asistente a los pacientes (ej: &ldquo;Zoe&rdquo;, &ldquo;Ana&rdquo;, &ldquo;Asistente&rdquo;).
+                </p>
+              </div>
+
+              <div className="rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-3">
+                <p className="text-xs text-violet-700 dark:text-violet-300 flex items-center gap-2">
+                  <Sparkles className="h-3.5 w-3.5 flex-shrink-0" />
+                  <span>
+                    El agente usa inteligencia artificial para entender las consultas de tus pacientes
+                    y responder de forma natural y profesional.
+                  </span>
+                </p>
+              </div>
+            </>
+          ) : (
+            <div className="rounded-lg border bg-muted/30 p-6 text-center">
+              <Bot className="h-10 w-10 text-muted-foreground/40 mx-auto mb-3" />
+              <p className="text-sm text-muted-foreground">
+                El agente IA está desactivado. Activalo para que atienda a tus pacientes automáticamente por WhatsApp.
+              </p>
+            </div>
+          )}
+        </CardContent>
+      </Card>
+
+      {/* Funcionalidades del Agente */}
+      <Card>
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <MessageSquare className="h-5 w-5 text-green-500" />
+            Funcionalidades del Agente
+          </CardTitle>
+          <CardDescription>
+            Lo que el asistente virtual puede hacer por tu clínica
+          </CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {[
+              { icon: "📅", title: "Agendar turnos", desc: "Consulta disponibilidad y agenda turnos directamente desde WhatsApp" },
+              { icon: "🔍", title: "Buscar pacientes", desc: "Busca por teléfono o DNI para identificar pacientes existentes" },
+              { icon: "📋", title: "Registrar pacientes", desc: "Registra nuevos pacientes que contactan por primera vez" },
+              { icon: "🔔", title: "Recordatorios", desc: "Envía recordatorios automáticos antes de cada turno" },
+              { icon: "✅", title: "Confirmar turnos", desc: "Los pacientes pueden confirmar su asistencia por chat" },
+              { icon: "🏥", title: "Info de la clínica", desc: "Responde consultas sobre horarios, dirección y servicios" },
+            ].map((item) => (
+              <div
+                key={item.title}
+                className={`flex gap-3 rounded-lg border p-3 transition-colors ${agentActivo ? "hover:bg-muted/50" : "opacity-50"}`}
+              >
+                <span className="text-2xl">{item.icon}</span>
+                <div>
+                  <p className="text-sm font-medium">{item.title}</p>
+                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                </div>
+              </div>
+            ))}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* WhatsApp info */}
+      <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
+        <div className="flex gap-3">
+          <Info className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+          <div className="text-sm">
+            <p className="font-medium text-green-800 dark:text-green-200 mb-1">
+              Conexión WhatsApp
+            </p>
+            <p className="text-xs text-green-700 dark:text-green-300">
+              La conexión de WhatsApp y la configuración técnica del agente son administradas por el equipo de Avax Health.
+              Si necesitás conectar o cambiar tu número de WhatsApp, contactá al equipo de soporte.
+
+              Disfruta de la experiencia Avax Health!
+            </p>
+          </div>
+        </div>
+      </div>
+
+      {/* Save button */}
+      <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+        <Save className="h-4 w-4" />
+        {isSaving ? "Guardando..." : "Guardar Configuración"}
+      </Button>
+    </div>
+  );
+}
+
+// ─── Tab Dashboard (KPI Visibility) ───
+const KPI_OPTIONS: { id: string; label: string; description: string }[] = [
+  { id: "turnosHoy", label: "Turnos Hoy", description: "Cantidad de turnos programados para hoy" },
+  { id: "pacientes", label: "Pacientes", description: "Total de pacientes registrados" },
+  { id: "ingresosMes", label: "Ingresos del Mes", description: "Monto total de pagos aprobados del mes" },
+  { id: "pagosAprobados", label: "Pagos Aprobados", description: "Cantidad de pagos aprobados del mes" },
+  { id: "stockBajo", label: "Stock Bajo", description: "Items de inventario bajo mínimo" },
+];
+
+const SECTION_OPTIONS: { id: string; label: string; description: string }[] = [
+  { id: "estadoTurnos", label: "Estado de Turnos", description: "Gráfico de torta con distribución de estados" },
+  { id: "turnosHoy", label: "Turnos de Hoy", description: "Lista de turnos programados para hoy" },
+  { id: "turnosSemana", label: "Turnos de la Semana", description: "Gráfico de líneas semanal" },
+  { id: "tratamientos", label: "Tratamientos del Mes", description: "Barras de tratamientos más realizados" },
+  { id: "ingresosMensuales", label: "Ingresos Mensuales", description: "Gráfico de barras con ingresos" },
+  { id: "facturacionDiaria", label: "Facturación Diaria", description: "Gráfico de área con facturación" },
+];
+
+const ROLES = [
+  { id: "odontologist", label: "Profesional" },
+  { id: "assistant", label: "Secretaria" },
+];
+
+function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => void }) {
+  const [visibility, setVisibility] = useState<Record<string, Record<string, boolean>>>({});
+  const [isSaving, setIsSaving] = useState(false);
+
+  useEffect(() => {
+    if (clinica?.kpi_visibility) {
+      setVisibility(clinica.kpi_visibility);
+    } else {
+      // Defaults: professional sees turnos + pacientes; assistant sees turnos + pacientes + pagos count
+      setVisibility({
+        odontologist: {
+          turnosHoy: true, pacientes: true, ingresosMes: false, pagosAprobados: false, stockBajo: false,
+          "section:estadoTurnos": true, "section:turnosHoy": true, "section:turnosSemana": true, "section:tratamientos": true,
+          "section:ingresosMensuales": false, "section:facturacionDiaria": false,
+        },
+        assistant: {
+          turnosHoy: true, pacientes: true, ingresosMes: false, pagosAprobados: true, stockBajo: false,
+          "section:estadoTurnos": true, "section:turnosHoy": true, "section:turnosSemana": true, "section:tratamientos": true,
+          "section:ingresosMensuales": false, "section:facturacionDiaria": false,
+        },
+      });
+    }
+  }, [clinica]);
+
+  const toggleItem = (role: string, itemId: string) => {
+    setVisibility((prev) => ({
+      ...prev,
+      [role]: {
+        ...prev[role],
+        [itemId]: !prev[role]?.[itemId],
+      },
+    }));
+  };
+
+  const handleSave = async () => {
+    try {
+      setIsSaving(true);
+      await clinicaService.updateMe({ kpi_visibility: visibility });
+      toast.success("Visibilidad del dashboard actualizada");
+      onUpdate();
+    } catch {
+      toast.error("Error al guardar la configuración");
+    } finally {
+      setIsSaving(false);
+    }
+  };
+
+  return (
+    <div className="space-y-6">
+      <Card className="rounded-2xl">
+        <CardHeader>
+          <CardTitle className="flex items-center gap-2">
+            <LayoutDashboard className="h-5 w-5" />
+            Visibilidad del Dashboard por Rol
+          </CardTitle>
+          <CardDescription>
+            Configurá qué KPIs y secciones puede ver cada rol en su dashboard. El admin siempre tiene acceso completo.
+          </CardDescription>
+        </CardHeader>
+        <CardContent className="space-y-8">
+          {ROLES.map((role) => (
+            <div key={role.id} className="space-y-4">
+              <div className="flex items-center gap-2">
+                <Badge variant="outline" className="text-sm font-medium px-3 py-1">
+                  {role.label}
+                </Badge>
+              </div>
+
+              {/* KPIs */}
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tarjetas KPI</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  {KPI_OPTIONS.map((kpi) => (
+                    <div
+                      key={kpi.id}
+                      className={`flex items-center justify-between rounded-xl border p-3 transition-colors ${
+                        visibility[role.id]?.[kpi.id]
+                          ? "bg-primary/5 border-primary/20"
+                          : "bg-muted/30"
+                      }`}
+                    >
+                      <div>
+                        <p className="text-sm font-medium">{kpi.label}</p>
+                        <p className="text-xs text-muted-foreground">{kpi.description}</p>
+                      </div>
+                      <Switch
+                        checked={!!visibility[role.id]?.[kpi.id]}
+                        onCheckedChange={() => toggleItem(role.id, kpi.id)}
+                      />
+                    </div>
+                  ))}
+                </div>
+              </div>
+
+              {/* Sections */}
+              <div className="space-y-1">
+                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Secciones del Dashboard</h4>
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
+                  {SECTION_OPTIONS.map((section) => {
+                    const key = `section:${section.id}`;
+                    return (
+                      <div
+                        key={key}
+                        className={`flex items-center justify-between rounded-xl border p-3 transition-colors ${
+                          visibility[role.id]?.[key]
+                            ? "bg-primary/5 border-primary/20"
+                            : "bg-muted/30"
+                        }`}
+                      >
+                        <div>
+                          <p className="text-sm font-medium">{section.label}</p>
+                          <p className="text-xs text-muted-foreground">{section.description}</p>
+                        </div>
+                        <Switch
+                          checked={!!visibility[role.id]?.[key]}
+                          onCheckedChange={() => toggleItem(role.id, key)}
+                        />
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+
+              {role.id !== ROLES[ROLES.length - 1].id && <hr className="border-border" />}
+            </div>
+          ))}
+        </CardContent>
+      </Card>
+
+      <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+        <Save className="h-4 w-4" />
+        {isSaving ? "Guardando..." : "Guardar Configuración"}
+      </Button>
     </div>
   );
 }

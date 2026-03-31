@@ -12,9 +12,11 @@ import {
 import { InventarioService } from './inventario.service';
 import { CreateInventarioDto } from './dto/create-inventario.dto';
 import { UpdateInventarioDto } from './dto/update-inventario.dto';
-import { CurrentClinica } from '../../common/decorators';
+import { CurrentClinica, Roles } from '../../common/decorators';
+import { UserRole } from '../../common/enums';
 
 @Controller('inventario')
+@Roles(UserRole.ADMIN)
 export class InventarioController {
   constructor(private readonly inventarioService: InventarioService) {}
 

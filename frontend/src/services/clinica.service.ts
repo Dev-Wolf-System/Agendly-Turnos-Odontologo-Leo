@@ -31,6 +31,11 @@ export interface Clinica {
   duracion_turno_default: number | null;
   webhooks: Record<string, WebhookConfig> | null;
   recordatorio_horas_antes: number | null;
+  evolution_instance: string | null;
+  evolution_api_key: string | null;
+  agent_nombre: string | null;
+  agent_instrucciones: string | null;
+  kpi_visibility: Record<string, Record<string, boolean>> | null;
   created_at: string;
 }
 
@@ -48,7 +53,26 @@ export interface UpdateClinicaPayload {
   duracion_turno_default?: number;
   webhooks?: Record<string, WebhookConfig>;
   recordatorio_horas_antes?: number;
+  evolution_instance?: string;
+  evolution_api_key?: string;
+  agent_nombre?: string;
+  agent_instrucciones?: string;
+  kpi_visibility?: Record<string, Record<string, boolean>>;
 }
+
+export interface SubscriptionStatus {
+  level: "full" | "read_only" | "blocked";
+  estado: string | null;
+  severity?: "warning" | "error" | "critical";
+  mensaje?: string;
+  plan?: { nombre: string; precio_mensual: number } | null;
+  fecha_fin?: string;
+  trial_ends_at?: string;
+  grace_period_ends_at?: string;
+  auto_renew?: boolean;
+}
+
+export type FeatureFlags = Record<string, boolean>;
 
 const clinicaService = {
   getMe: () =>
@@ -56,6 +80,12 @@ const clinicaService = {
 
   updateMe: (data: UpdateClinicaPayload) =>
     api.patch<Clinica>("/clinicas/me", data).then((r) => r.data),
+
+  getSubscriptionStatus: () =>
+    api.get<SubscriptionStatus>("/clinicas/me/subscription-status").then((r) => r.data),
+
+  getFeatures: () =>
+    api.get<FeatureFlags>("/clinicas/me/features").then((r) => r.data),
 };
 
 export default clinicaService;

@@ -15,6 +15,10 @@ export class PlansService {
     return this.planRepository.find({ where, order: { precio_mensual: 'ASC' } });
   }
 
+  async findByNombre(nombre: string): Promise<Plan | null> {
+    return this.planRepository.findOne({ where: { nombre } });
+  }
+
   async findOne(id: string): Promise<Plan> {
     const plan = await this.planRepository.findOne({ where: { id } });
     if (!plan) {

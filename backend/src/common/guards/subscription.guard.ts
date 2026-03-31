@@ -11,6 +11,26 @@ import { IS_PUBLIC_KEY } from '../decorators';
 import { UserRole, EstadoSubscription } from '../enums';
 import { Subscription } from '../../modules/subscriptions/entities/subscription.entity';
 
+/**
+ * Metadata key para marcar endpoints como solo-lectura.
+ * Los endpoints de escritura (POST, PATCH, DELETE de datos de negocio)
+ * deben usar @SetMetadata('isWriteOperation', true).
+ */
+export const IS_WRITE_OPERATION = 'isWriteOperation';
+
+/**
+ * Niveles de acceso según estado de suscripción:
+ *
+ * | Estado       | Lectura | Escritura | Login |
+ * |-------------|---------|-----------|-------|
+ * | activa      | ✅      | ✅        | ✅    |
+ * | trial       | ✅      | ✅        | ✅    |
+ * | past_due    | ✅      | ✅        | ✅    | (+ banner amarillo)
+ * | gracia      | ✅      | ❌        | ✅    | (+ banner naranja)
+ * | suspendida  | ✅      | ❌        | ✅    | (+ banner rojo, solo read-only)
+ * | vencida     | ✅      | ❌        | ✅    | (igual que suspendida)
+ * | cancelada   | ❌      | ❌        | ❌    | (solo exportar datos 30 días)
+ */
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
   constructor(
@@ -50,30 +70,10 @@ export class SubscriptionGuard implements CanActivate {
       order: { created_at: 'DESC' },
     });
 
-    // Si no tiene suscripción, permitir acceso (modo gracia)
-    // Esto se endurecerá cuando el sistema de billing esté activo
+    // Si no tiene suscripción, permitir acceso (modo gracia inicial)
     if (!subscription) {
+      request.subscriptionStatus = { level: 'full', estado: null };
       return true;
-    }
-
-    const estadosPermitidos = [
-      EstadoSubscription.ACTIVA,
-      EstadoSubscription.TRIAL,
-    ];
-
-    if (!estadosPermitidos.includes(subscription.estado)) {
-      const mensajes: Record<string, string> = {
-        [EstadoSubscription.SUSPENDIDA]:
-          'Tu suscripción está suspendida. Contactá al equipo de Agendly para reactivarla.',
-        [EstadoSubscription.VENCIDA]:
-          'Tu suscripción ha vencido. Renová tu plan para continuar usando Agendly.',
-        [EstadoSubscription.CANCELADA]:
-          'Tu suscripción fue cancelada. Contactá al equipo de Agendly.',
-      };
-
-      throw new ForbiddenException(
-        mensajes[subscription.estado] || 'Suscripción no válida.',
-      );
     }
 
     // Verificar si el trial expiró
@@ -83,21 +83,82 @@ export class SubscriptionGuard implements CanActivate {
       new Date(subscription.trial_ends_at) < new Date()
     ) {
       throw new ForbiddenException(
-        'Tu periodo de prueba ha finalizado. Elegí un plan para continuar usando Agendly.',
+        'Tu periodo de prueba ha finalizado. Elegí un plan para continuar usando Avax Health.',
       );
     }
 
-    // Verificar si la suscripción activa venció
-    if (
-      subscription.estado === EstadoSubscription.ACTIVA &&
-      subscription.fecha_fin &&
-      new Date(subscription.fecha_fin) < new Date()
-    ) {
-      throw new ForbiddenException(
-        'Tu suscripción ha vencido. Renová tu plan para continuar usando Agendly.',
-      );
-    }
+    // Determinar nivel de acceso según estado
+    const estado = subscription.estado;
+    const isWriteOp = this.reflector.getAllAndOverride<boolean>(IS_WRITE_OPERATION, [
+      context.getHandler(),
+      context.getClass(),
+    ]) ?? this.isWriteMethod(request.method);
 
-    return true;
+    switch (estado) {
+      case EstadoSubscription.ACTIVA:
+      case EstadoSubscription.TRIAL:
+        request.subscriptionStatus = { level: 'full', estado };
+        return true;
+
+      case EstadoSubscription.PAST_DUE:
+        // Acceso completo pero con aviso
+        request.subscriptionStatus = {
+          level: 'full',
+          estado,
+          mensaje: 'Tu pago está pendiente. Por favor, actualizá tu método de pago.',
+        };
+        return true;
+
+      case EstadoSubscription.GRACIA:
+        // Solo lectura — bloquear escrituras
+        request.subscriptionStatus = {
+          level: 'read_only',
+          estado,
+          mensaje: 'Tu cuenta está en período de gracia. No se pueden crear nuevos registros hasta que regularices tu pago.',
+          grace_ends_at: subscription.grace_period_ends_at,
+        };
+        if (isWriteOp) {
+          throw new ForbiddenException(
+            'Tu cuenta está en período de gracia. No se pueden crear nuevos registros. Regularizá tu pago para restaurar el acceso completo.',
+          );
+        }
+        return true;
+
+      case EstadoSubscription.SUSPENDIDA:
+      case EstadoSubscription.VENCIDA:
+        // Solo lectura — dashboard read-only
+        request.subscriptionStatus = {
+          level: 'read_only',
+          estado,
+          mensaje: estado === EstadoSubscription.SUSPENDIDA
+            ? 'Tu suscripción está suspendida. Contactá al equipo de Avax Health para reactivarla.'
+            : 'Tu suscripción ha vencido. Renová tu plan para continuar usando Avax Health.',
+        };
+        if (isWriteOp) {
+          throw new ForbiddenException(
+            estado === EstadoSubscription.SUSPENDIDA
+              ? 'Tu suscripción está suspendida. No se permiten modificaciones. Contactá al equipo de Avax Health.'
+              : 'Tu suscripción ha vencido. Renová tu plan para restaurar el acceso.',
+          );
+        }
+        return true;
+
+      case EstadoSubscription.CANCELADA:
+        throw new ForbiddenException(
+          'Tu suscripción fue cancelada. Contactá al equipo de Avax Health para recuperar tu cuenta.',
+        );
+
+      default:
+        request.subscriptionStatus = { level: 'full', estado };
+        return true;
+    }
+  }
+
+  /**
+   * Determina si el método HTTP implica una operación de escritura.
+   * Se usa como fallback cuando no hay metadata explícita.
+   */
+  private isWriteMethod(method: string): boolean {
+    return ['POST', 'PUT', 'PATCH', 'DELETE'].includes(method?.toUpperCase());
   }
 }

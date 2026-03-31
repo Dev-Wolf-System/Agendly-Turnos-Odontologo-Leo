@@ -6,7 +6,7 @@ Este archivo proporciona orientación a Claude Code cuando trabaja con código e
 
 ## 📌 Descripción del Proyecto
 
-**Agendly** es un sistema de gestión de turnos dentales orientado a SaaS que incluye:
+**Avax Health** Sistema Saas que ayude a clinicas y consultorios a gestiona los pacientes, historial medico, gestion de turnos, que lleva la contabilidad, inventario y proveedores todo esto impulsado por IA
 
 - Programación de citas para clínicas dentales  
 - Automatización de WhatsApp mediante n8n + Evolution API  
