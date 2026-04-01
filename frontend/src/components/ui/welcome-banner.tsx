@@ -14,12 +14,14 @@ function getGreeting(): string {
 
 function getMotivationalQuote(): string {
   const quotes = [
-    "Cada paciente que atiendes es una sonrisa que transformas.",
     "La excelencia no es un acto, sino un habito.",
-    "Tu dedicacion marca la diferencia en la vida de tus pacientes.",
     "Hoy es un gran dia para hacer algo extraordinario.",
-    "La salud es el regalo mas valioso, y tu lo haces posible.",
+    "La salud de tus pacientes esta en las mejores manos.",
     "Pequeños pasos, grandes resultados. Sigue adelante.",
+    "Cada dia es una oportunidad para marcar la diferencia.",
+    "Tu compromiso con la salud transforma vidas.",
+    "La constancia es la clave del exito profesional.",
+    "Grandes logros comienzan con una buena organizacion.",
   ];
   // Use day of year as seed for daily rotation
   const dayOfYear = Math.floor(

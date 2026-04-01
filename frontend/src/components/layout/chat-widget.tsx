@@ -118,8 +118,8 @@ export function ChatWidget() {
       setText("");
       inputRef.current?.focus();
       scrollToBottom();
-    } catch {
-      // silently fail
+    } catch (err: any) {
+      console.error("Chat send error:", err?.response?.data || err);
     } finally {
       setSending(false);
     }

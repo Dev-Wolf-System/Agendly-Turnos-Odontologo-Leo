@@ -66,7 +66,7 @@ const navigation: NavItem[] = [
   { name: "Pagos", href: "/dashboard/pagos", icon: CreditCardIcon, roles: ["admin", "assistant"] },
   { name: "Inventario", href: "/dashboard/inventario", icon: PackageIcon, roles: ["admin"] },
   { name: "Proveedores", href: "/dashboard/proveedores", icon: TruckIcon, roles: ["admin"] },
-  { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheckIcon, roles: ["admin"] },
+  { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheckIcon },
   { name: "Configuración", href: "/dashboard/configuracion", icon: SettingsIcon, roles: ["admin"] },
 ];
 

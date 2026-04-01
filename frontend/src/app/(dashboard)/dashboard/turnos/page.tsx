@@ -14,6 +14,7 @@ import tratamientosService, { Tratamiento } from "@/services/tratamientos.servic
 import pagosService from "@/services/pagos.service";
 import pacientesService, { Paciente } from "@/services/pacientes.service";
 import usersService, { User } from "@/services/users.service";
+import { useAuth } from "@/components/providers/auth-provider";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -113,11 +114,13 @@ function toLocalDatetimeFromDate(d: Date) {
 }
 
 export default function TurnosPage() {
+  const { user } = useAuth();
+  const isProfessional = user?.role === "professional";
   const searchParams = useSearchParams();
   const preloadPacienteId = searchParams.get("paciente_id");
 
   // View state
-  const [activeView, setActiveView] = useState<string>("semana");
+  const [activeView, setActiveView] = useState<string>("tabla");
   const [calendarDate, setCalendarDate] = useState<Date>(new Date());
 
   // Table view state
@@ -168,7 +171,12 @@ export default function TurnosPage() {
       const params: Record<string, string> = {};
       if (fecha) params.fecha = fecha;
       if (filtroEstado !== "all") params.estado = filtroEstado;
-      if (filtroProfesional !== "all") params.user_id = filtroProfesional;
+      // Profesional solo ve sus propios turnos
+      if (isProfessional && user?.id) {
+        params.user_id = user.id;
+      } else if (filtroProfesional !== "all") {
+        params.user_id = filtroProfesional;
+      }
       const data = await turnosService.getAll(params as any);
       setTurnos(data);
     } catch {
@@ -176,28 +184,31 @@ export default function TurnosPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [fecha, filtroEstado, filtroProfesional]);
+  }, [fecha, filtroEstado, filtroProfesional, isProfessional, user?.id]);
 
   // Load calendar data (week range or single day)
   const loadCalendarTurnos = useCallback(async () => {
     try {
+      const myFilter = isProfessional && user?.id ? { user_id: user.id } : {};
       if (activeView === "semana") {
         const days = getWeekDays(calendarDate);
         const data = await turnosService.getAll({
           fecha_desde: toDateString(days[0]),
           fecha_hasta: toDateString(days[6]),
+          ...myFilter,
         });
         setCalendarTurnos(data);
       } else if (activeView === "dia") {
         const data = await turnosService.getAll({
           fecha: toDateString(calendarDate),
+          ...myFilter,
         });
         setCalendarTurnos(data);
       }
     } catch {
       toast.error("Error al cargar turnos del calendario");
     }
-  }, [calendarDate, activeView]);
+  }, [calendarDate, activeView, isProfessional, user?.id]);
 
   const loadOptions = useCallback(async () => {
     try {

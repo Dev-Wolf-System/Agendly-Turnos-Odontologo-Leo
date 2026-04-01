@@ -47,9 +47,9 @@ export default function LoginPage() {
         <Image
           src="/logo.png"
           alt="Avax Health"
-          width={64}
-          height={64}
-          className="mx-auto mb-4 rounded-xl"
+          width={96}
+          height={96}
+          className="mx-auto mb-4 rounded-2xl shadow-lg"
         />
         <CardTitle className="text-2xl">Avax Health</CardTitle>
         <CardDescription>
@@ -88,14 +88,8 @@ export default function LoginPage() {
             {isLoading ? "Ingresando..." : "Ingresar"}
           </Button>
 
-          <p className="text-center text-sm text-muted-foreground">
-            ¿No tenés cuenta?{" "}
-            <Link
-              href="/register"
-              className="font-medium text-primary hover:underline"
-            >
-              Registrate
-            </Link>
+          <p className="text-center text-xs text-muted-foreground/60 mt-2">
+            Avax Health &mdash; Gestion integral de salud
           </p>
         </form>
       </CardContent>
