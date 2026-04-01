@@ -15,7 +15,7 @@ import { CurrentClinica, Roles } from '../../common/decorators';
 import { UserRole } from '../../common/enums';
 
 @Controller('historial-medico')
-@Roles(UserRole.ADMIN, UserRole.ODONTOLOGIST)
+@Roles(UserRole.ADMIN, UserRole.PROFESSIONAL)
 export class HistorialMedicoController {
   constructor(private readonly historialService: HistorialMedicoService) {}
 

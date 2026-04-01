@@ -1,6 +1,6 @@
 # Plan de Desarrollo — Avax Health CRM SaaS
 
-> Última actualización: 2026-03-31 (Fase 9.1-9.3 + 9.5 + 9.7 completadas, Fase L UI completada)
+> Última actualización: 2026-04-01 (Fase 9.1-9.3 + 9.5 + 9.7 completadas, Fase L+M UI completadas)
 
 ---
 
@@ -12,7 +12,7 @@
 - [x] Estructura modular NestJS (/modules, /common, /config)
 - [x] App Router Next.js (/app, /components, /services, /hooks)
 - [x] TailwindCSS + Shadcn UI
-- [x] JWT auth con roles (admin, odontologist, assistant)
+- [x] JWT auth con roles (admin, professional, assistant)
 - [x] Multi-tenant (clinica_id en JWT, guards, filtrado en services)
 - [x] Guards: JwtAuthGuard, RolesGuard, ClinicaTenantGuard
 - [x] Decorators: @Public, @Roles, @CurrentUser, @CurrentClinica
@@ -291,11 +291,11 @@
 - [x] Backend: @Roles(ADMIN, ASSISTANT) en controllers de pagos, inventario, proveedores
 - [x] Dashboard adaptativo: profesional ve solo sus turnos y KPIs relevantes
 
-### Fase 9.6 — Onboarding
+### Fase 9.6 — Onboarding 🔄
 - [ ] Landing page con planes
 - [ ] Registro con selección de plan + trial
 - [ ] Wizard de configuración inicial
-- [ ] Panel "Mi Suscripción" en dashboard clínica
+- [x] Panel "Mi Suscripción" en dashboard clínica (KPIs, detalles plan, historial pagos, soporte)
 
 ---
 
@@ -314,7 +314,7 @@
 - [ ] Lazy loading frontend
 
 ### DevOps
-- [ ] Docker (backend + frontend + postgres + redis)
+- [x] Docker (backend + frontend) — Dockerfiles multi-stage + docker-compose.prod.yml para Traefik
 - [ ] CI/CD pipeline
 - [ ] Variables de entorno por ambiente (dev/staging/prod)
 - [ ] Logging estructurado
@@ -334,5 +334,5 @@
 | **6** | Integración Mercado Pago (pagos pacientes) | ❌ Pendiente |
 | **7** | Integraciones Google | ❌ Pendiente |
 | **8** | WhatsApp + n8n + IA | ❌ Pendiente |
-| **9** | Panel Administración SaaS (7 subfases) | 🔄 En progreso (9.1-9.3 + 9.5 + 9.7 ✅) |
-| **10** | Producción y Escalabilidad | ❌ Pendiente |
+| **9** | Panel Administración SaaS (7 subfases) | 🔄 En progreso (9.1-9.3 + 9.5-9.7 ✅) |
+| **10** | Producción y Escalabilidad | 🔄 En progreso (Docker ✅) |

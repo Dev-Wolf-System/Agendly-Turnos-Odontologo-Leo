@@ -62,10 +62,11 @@ const navigation: NavItem[] = [
   { name: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
   { name: "Pacientes", href: "/dashboard/pacientes", icon: UsersIcon },
   { name: "Turnos", href: "/dashboard/turnos", icon: CalendarIcon },
-  { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardIcon, roles: ["admin", "odontologist"] },
+  { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardIcon, roles: ["admin", "professional"] },
   { name: "Pagos", href: "/dashboard/pagos", icon: CreditCardIcon, roles: ["admin", "assistant"] },
   { name: "Inventario", href: "/dashboard/inventario", icon: PackageIcon, roles: ["admin"] },
   { name: "Proveedores", href: "/dashboard/proveedores", icon: TruckIcon, roles: ["admin"] },
+  { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheckIcon, roles: ["admin"] },
   { name: "Configuración", href: "/dashboard/configuracion", icon: SettingsIcon, roles: ["admin"] },
 ];
 
@@ -317,6 +318,14 @@ function SettingsIcon({ className }: { className?: string }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z"/><circle cx="12" cy="12" r="3"/>
+    </svg>
+  );
+}
+
+function BadgeCheckIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="m9 12 2 2 4-4" />
     </svg>
   );
 }

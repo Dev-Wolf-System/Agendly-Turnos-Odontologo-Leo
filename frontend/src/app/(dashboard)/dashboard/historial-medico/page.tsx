@@ -77,7 +77,7 @@ function timeAgo(dateStr: string): string {
 
 export default function HistorialMedicoPage() {
   return (
-    <RoleGuard allowedRoles={["admin", "odontologist"]}>
+    <RoleGuard allowedRoles={["admin", "professional"]}>
       <HistorialMedicoContent />
     </RoleGuard>
   );

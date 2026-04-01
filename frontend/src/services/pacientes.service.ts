@@ -55,7 +55,7 @@ export interface FichaTurno {
   end_time: string;
   estado: string;
   notas: string | null;
-  odontologo: { id: string; nombre: string; apellido: string } | null;
+  profesional: { id: string; nombre: string; apellido: string } | null;
 }
 
 export interface FichaHistorial {

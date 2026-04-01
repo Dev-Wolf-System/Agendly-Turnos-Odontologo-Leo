@@ -66,7 +66,7 @@ export default function DashboardPage() {
   const router = useRouter();
   const { user } = useAuth();
   const { clinica } = useClinica();
-  const isProfessional = user?.role === "odontologist";
+  const isProfessional = user?.role === "professional";
   const isAssistant = user?.role === "assistant";
   const isAdmin = user?.role === "admin";
   const kpiVisibility = clinica?.kpi_visibility?.[user?.role || ""] ?? null;

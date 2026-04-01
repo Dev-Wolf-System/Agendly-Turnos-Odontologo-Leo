@@ -149,11 +149,11 @@ export function ChatWidget() {
     prevMessageCountRef.current = 0;
   };
 
-  const roleLabel = (role: string) => ({ admin: "Admin", odontologist: "Profesional", assistant: "Secretaria" }[role] || role);
+  const roleLabel = (role: string) => ({ admin: "Admin", professional: "Profesional", assistant: "Secretaria" }[role] || role);
 
   const roleColor = (role: string) => ({
     admin: "bg-indigo-100 text-indigo-700 dark:bg-indigo-900/30 dark:text-indigo-300",
-    odontologist: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
+    professional: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
     assistant: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
   }[role] || "bg-gray-100 text-gray-700");
 

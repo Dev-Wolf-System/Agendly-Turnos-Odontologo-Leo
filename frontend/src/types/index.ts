@@ -4,7 +4,7 @@ export interface User {
   nombre: string;
   apellido: string;
   email: string;
-  role: "superadmin" | "admin" | "odontologist" | "assistant";
+  role: "superadmin" | "admin" | "professional" | "assistant";
   created_at: string;
 }
 

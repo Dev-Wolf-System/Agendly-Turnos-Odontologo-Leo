@@ -6,7 +6,7 @@ export interface User {
   nombre: string;
   apellido: string;
   email: string;
-  role: "admin" | "odontologist" | "professional" | "assistant";
+  role: "admin" | "professional" | "assistant";
   created_at: string;
 }
 

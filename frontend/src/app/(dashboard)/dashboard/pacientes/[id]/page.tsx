@@ -439,8 +439,8 @@ export default function FichaPacientePage() {
                           <TableCell>{formatHora(turno.start_time)}</TableCell>
                           <TableCell><EstadoBadge estado={turno.estado} /></TableCell>
                           <TableCell>
-                            {turno.odontologo
-                              ? `${turno.odontologo.nombre} ${turno.odontologo.apellido}`
+                            {turno.profesional
+                              ? `${turno.profesional.nombre} ${turno.profesional.apellido}`
                               : "—"}
                           </TableCell>
                           <TableCell className="max-w-[200px] truncate text-muted-foreground">
@@ -487,8 +487,8 @@ export default function FichaPacientePage() {
                           <TableCell>{formatHora(turno.start_time)}</TableCell>
                           <TableCell><EstadoBadge estado={turno.estado} /></TableCell>
                           <TableCell>
-                            {turno.odontologo
-                              ? `${turno.odontologo.nombre} ${turno.odontologo.apellido}`
+                            {turno.profesional
+                              ? `${turno.profesional.nombre} ${turno.profesional.apellido}`
                               : "—"}
                           </TableCell>
                           <TableCell className="max-w-[200px] truncate text-muted-foreground">

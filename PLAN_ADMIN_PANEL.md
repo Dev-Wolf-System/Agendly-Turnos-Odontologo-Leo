@@ -1,6 +1,6 @@
 # Plan de Desarrollo — Panel de Administración de Clínicas (SaaS)
 
-> Última actualización: 2026-03-27 (Fases 1-3 completadas + Agent API)
+> Última actualización: 2026-04-01 (Fases 1-3 + 5 + 7 completadas, Soporte/Tickets agregado)
 
 ## Concepto
 
@@ -115,7 +115,7 @@ src/app/
 ```
 
 ### 3.2 Sidebar del admin (separado del actual) ✅
-- [x] Dashboard, Clínicas, Planes, Suscripciones
+- [x] Dashboard, Clínicas, Planes, Suscripciones, Soporte
 - [x] Sidebar colapsable con branding Avax Health
 - [x] Indicador de sección activa
 
@@ -136,6 +136,14 @@ src/app/
 
 ---
 
+### 3.6 Módulo Soporte/Tickets ✅
+- [x] Backend: entity Ticket (asunto, descripcion, categoria, prioridad, estado, respuesta_admin)
+- [x] Backend: endpoints clínica (crear/listar tickets) + admin (listar all, responder, cambiar estado, stats)
+- [x] Frontend admin: /admin/soporte con KPIs, filtros, lista + panel detalle con respuesta
+- [x] Frontend clínica: integrado en /dashboard/suscripcion (crear tickets + ver respuestas)
+
+---
+
 ## Fase 4 — Billing y Pagos de Suscripción
 
 **Objetivo:** Cobro automático de licencias.
@@ -148,26 +156,26 @@ src/app/
 
 ---
 
-## Fase 5 — Control de Límites y Features
+## Fase 5 — Control de Límites y Features ✅ COMPLETADA
 
 **Objetivo:** Aplicar restricciones según el plan contratado.
 
-- Middleware que valida límites (max_usuarios, max_pacientes) antes de crear registros
-- Feature flags desde el plan (ej: `whatsapp_enabled`, `reportes_avanzados`)
-- Mostrar en el panel de clínica un banner si está cerca del límite
-- Pantalla de "Upgrade" dentro del panel de clínica
+- [x] FeatureFlagService + FeatureFlagGuard + @RequireFeature() decorator
+- [x] PlanLimitGuard: validación max_usuarios y max_pacientes
+- [x] Frontend: useFeatureFlag, FeatureGate, UpgradePrompt
+- [x] Panel Profesional: sidebar filtrado por rol, RoleGuard en rutas
 
 ---
 
-## Fase 6 — Onboarding y Self-Service
+## Fase 6 — Onboarding y Self-Service 🔄 EN PROGRESO
 
 **Objetivo:** Que las clínicas se autogestionen.
 
-- Landing page con planes y precios
-- Registro con selección de plan + periodo de trial automático (ej: 14 días)
-- Configuración inicial guiada (wizard) al registrar clínica
-- Panel de "Mi Suscripción" dentro del dashboard de clínica
-- Cambio de plan, cancelación, descarga de facturas
+- [ ] Landing page con planes y precios
+- [ ] Registro con selección de plan + periodo de trial automático (ej: 14 días)
+- [ ] Configuración inicial guiada (wizard) al registrar clínica
+- [x] Panel "Mi Suscripción" dentro del dashboard de clínica (KPIs, detalles, pagos, soporte)
+- [ ] Cambio de plan, cancelación, descarga de facturas
 
 ---
 
@@ -219,6 +227,6 @@ src/app/
 | **Fase 2** — API Admin | Crítica | Fase 1 |
 | **Fase 3** — Panel Admin | ✅ Completada | Fase 2 |
 | **Fase 4** — Billing | Alta | Fase 2 |
-| **Fase 5** — Límites | Media | Fase 1 + 4 |
-| **Fase 6** — Onboarding | Media | Fase 4 + 5 |
+| **Fase 5** — Límites | ✅ Completada | Fase 1 |
+| **Fase 6** — Onboarding | 🔄 En progreso | Fase 4 + 5 |
 | **Fase 7** — Agent API | ✅ Completada | Fase 1 |

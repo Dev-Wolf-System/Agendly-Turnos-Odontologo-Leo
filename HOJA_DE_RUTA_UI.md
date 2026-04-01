@@ -1,6 +1,6 @@
 # Hoja de Ruta — Reestilizado y Mejoras UI/UX
 
-> Última actualización: 2026-03-31
+> Última actualización: 2026-04-01
 
 ## Fixes aplicados
 - [x] Select de Paciente y Odontólogo en Nuevo Turno mostraba UUID en vez del nombre — corregido con display manual
@@ -345,6 +345,46 @@
 
 ---
 
+## Fase M: Rename Professional + Mi Suscripción + Soporte Tickets ✅ COMPLETADA
+
+### Rename odontologist → professional
+- [x] Backend: enum UserRole solo tiene SUPERADMIN, ADMIN, PROFESSIONAL, ASSISTANT
+- [x] Backend: historial-medico controller actualizado @Roles
+- [x] Backend: pacientes.service.ts — campo API `odontologo` → `profesional`
+- [x] Frontend: types/index.ts, users.service.ts, pacientes.service.ts — role type actualizado
+- [x] Frontend: sidebar.tsx, chat-widget.tsx — role labels y colores
+- [x] Frontend: turnos/page.tsx — variables, filtros, labels (odontologos→profesionales)
+- [x] Frontend: configuracion/page.tsx — ROLE_LABELS, roleColor, ROLES, KPI defaults
+- [x] Frontend: historial-medico/page.tsx — RoleGuard roles
+- [x] Frontend: pacientes/[id]/page.tsx — campo turno.profesional
+
+### Página "Mi Suscripción" (dashboard clínica)
+- [x] Backend: GET /subscriptions/mi-suscripcion — nuevo controller + module update
+- [x] Frontend: /dashboard/suscripcion/page.tsx
+- [x] 4 KPI cards premium (estado, plan, días restantes, próximo pago)
+- [x] Detalles de suscripción con progress bar y features
+- [x] Historial de pagos con tabla
+- [x] Soporte técnico: lista de tickets expandibles + dialog para crear
+- [x] Servicios: tickets.service.ts, subscriptions.service.ts
+- [x] Sidebar: "Mi Suscripción" con icono BadgeCheck
+
+### Módulo de Tickets/Soporte (backend)
+- [x] Entity Ticket con enums: CategoriaTicket, PrioridadTicket, EstadoTicket
+- [x] DTOs: CreateTicketDto, RespondTicketDto, UpdateEstadoTicketDto
+- [x] Service: CRUD clínica + findAllAdmin con JOINs + stats por estado
+- [x] Controller: endpoints clínica (POST/GET) + admin (SuperAdminGuard)
+- [x] Registrado en app.module.ts
+
+### Panel Admin — Soporte/Incidencias
+- [x] /admin/soporte/page.tsx — gestión de tickets
+- [x] KPIs: total, abiertos, esperando, resueltos
+- [x] Filtros: estado, categoría, prioridad + búsqueda
+- [x] Lista de tickets con badges de estado/prioridad/categoría
+- [x] Panel lateral de detalle con respuesta y cambio de estado
+- [x] Sidebar admin: "Soporte" con icono Ticket
+
+---
+
 ## Estado General
 
 | Fase | Descripción | Estado |
@@ -361,3 +401,4 @@
 | **J** | Rebranding y Mejoras UX | ✅ Completada |
 | **K** | Feature Flags + Panel Profesional | ✅ Completada |
 | **L** | Chat Interno + Rediseño Pacientes/Ficha + Dashboard Configurable | ✅ Completada |
+| **M** | Rename odontologist→professional + Mi Suscripción + Soporte Tickets | ✅ Completada |

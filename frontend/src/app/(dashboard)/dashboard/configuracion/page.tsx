@@ -113,7 +113,6 @@ const DEFAULT_HORARIOS: Record<string, HorarioDia> = {
 
 const ROLE_LABELS: Record<string, string> = {
   admin: "Administrador",
-  odontologist: "Profesional",
   professional: "Profesional",
   assistant: "Asistente",
 };
@@ -1191,7 +1190,6 @@ function TabEquipo({
 
   const roleColor: Record<string, string> = {
     admin: "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300",
-    odontologist: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
     professional: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
     assistant: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
   };
@@ -1767,7 +1765,7 @@ const SECTION_OPTIONS: { id: string; label: string; description: string }[] = [
 ];
 
 const ROLES = [
-  { id: "odontologist", label: "Profesional" },
+  { id: "professional", label: "Profesional" },
   { id: "assistant", label: "Secretaria" },
 ];
 
@@ -1781,7 +1779,7 @@ function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () =>
     } else {
       // Defaults: professional sees turnos + pacientes; assistant sees turnos + pacientes + pagos count
       setVisibility({
-        odontologist: {
+        professional: {
           turnosHoy: true, pacientes: true, ingresosMes: false, pagosAprobados: false, stockBajo: false,
           "section:estadoTurnos": true, "section:turnosHoy": true, "section:turnosSemana": true, "section:tratamientos": true,
           "section:ingresosMensuales": false, "section:facturacionDiaria": false,

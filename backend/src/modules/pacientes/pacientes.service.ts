@@ -199,7 +199,7 @@ export class PacientesService {
         end_time: t.end_time,
         estado: t.estado,
         notas: t.notas,
-        odontologo: t.user ? { id: t.user.id, nombre: t.user.nombre, apellido: t.user.apellido } : null,
+        profesional: t.user ? { id: t.user.id, nombre: t.user.nombre, apellido: t.user.apellido } : null,
       })),
       historialTurnos: historialTurnos.map((t) => ({
         id: t.id,
@@ -207,7 +207,7 @@ export class PacientesService {
         end_time: t.end_time,
         estado: t.estado,
         notas: t.notas,
-        odontologo: t.user ? { id: t.user.id, nombre: t.user.nombre, apellido: t.user.apellido } : null,
+        profesional: t.user ? { id: t.user.id, nombre: t.user.nombre, apellido: t.user.apellido } : null,
       })),
       historialMedico: historialMedico.map((h) => ({
         id: h.id,

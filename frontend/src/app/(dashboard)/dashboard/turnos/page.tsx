@@ -123,13 +123,13 @@ export default function TurnosPage() {
   // Table view state
   const [fecha, setFecha] = useState(() => new Date().toISOString().split("T")[0]);
   const [filtroEstado, setFiltroEstado] = useState<string>("all");
-  const [filtroOdontologo, setFiltroOdontologo] = useState<string>("all");
+  const [filtroProfesional, setFiltroOdontologo] = useState<string>("all");
 
   // Data
   const [turnos, setTurnos] = useState<Turno[]>([]);
   const [calendarTurnos, setCalendarTurnos] = useState<Turno[]>([]);
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
-  const [odontologos, setOdontologos] = useState<User[]>([]);
+  const [profesionales, setOdontologos] = useState<User[]>([]);
   const [tratamientos, setTratamientos] = useState<Tratamiento[]>([]);
   const [isLoading, setIsLoading] = useState(true);
 
@@ -168,7 +168,7 @@ export default function TurnosPage() {
       const params: Record<string, string> = {};
       if (fecha) params.fecha = fecha;
       if (filtroEstado !== "all") params.estado = filtroEstado;
-      if (filtroOdontologo !== "all") params.user_id = filtroOdontologo;
+      if (filtroProfesional !== "all") params.user_id = filtroProfesional;
       const data = await turnosService.getAll(params as any);
       setTurnos(data);
     } catch {
@@ -176,7 +176,7 @@ export default function TurnosPage() {
     } finally {
       setIsLoading(false);
     }
-  }, [fecha, filtroEstado, filtroOdontologo]);
+  }, [fecha, filtroEstado, filtroProfesional]);
 
   // Load calendar data (week range or single day)
   const loadCalendarTurnos = useCallback(async () => {
@@ -207,7 +207,7 @@ export default function TurnosPage() {
         tratamientosService.getActive(),
       ]);
       setPacientes(pacsResult.data);
-      setOdontologos(users.filter((u) => u.role === "odontologist"));
+      setOdontologos(users.filter((u) => u.role === "professional"));
       setTratamientos(tratamientosData);
     } catch {
       // silently fail
@@ -667,24 +667,24 @@ export default function TurnosPage() {
               <div className="flex flex-col gap-1">
                 <span className="text-xs font-medium text-muted-foreground">Profesional</span>
                 <Select
-                  value={filtroOdontologo}
+                  value={filtroProfesional}
                   onValueChange={(v: string | null) => v && setFiltroOdontologo(v)}
                 >
                   <SelectTrigger className="w-52">
                     <span className="flex flex-1 text-left truncate text-sm">
-                      {filtroOdontologo !== "all" ? (
+                      {filtroProfesional !== "all" ? (
                         (() => {
-                          const u = odontologos.find((o) => o.id === filtroOdontologo);
-                          return u ? `${u.nombre} ${u.apellido}` : "Odontólogo";
+                          const u = profesionales.find((o) => o.id === filtroProfesional);
+                          return u ? `${u.nombre} ${u.apellido}` : "Profesional";
                         })()
                       ) : (
-                        "Todos los odontólogos"
+                        "Todos los profesionales"
                       )}
                     </span>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="all">Todos los odontólogos</SelectItem>
-                    {odontologos.map((u) => (
+                    <SelectItem value="all">Todos los profesionales</SelectItem>
+                    {profesionales.map((u) => (
                       <SelectItem key={u.id} value={u.id}>
                         {u.nombre} {u.apellido}
                       </SelectItem>
@@ -707,7 +707,7 @@ export default function TurnosPage() {
                   <TableRow>
                     <TableHead className="w-[120px]">Horario</TableHead>
                     <TableHead>Paciente</TableHead>
-                    <TableHead>Odontólogo</TableHead>
+                    <TableHead>Profesional</TableHead>
                     <TableHead>Tratamiento</TableHead>
                     <TableHead>Estado</TableHead>
                     <TableHead>Origen</TableHead>
@@ -890,22 +890,22 @@ export default function TurnosPage() {
                   <span className="flex flex-1 text-left truncate text-sm">
                     {form.user_id ? (
                       (() => {
-                        const u = odontologos.find(
+                        const u = profesionales.find(
                           (o) => o.id === form.user_id,
                         );
                         return u
                           ? `${u.nombre} ${u.apellido}`
-                          : "Seleccionar odontologo";
+                          : "Seleccionar profesional";
                       })()
                     ) : (
                       <span className="text-muted-foreground">
-                        Seleccionar odontologo
+                        Seleccionar profesional
                       </span>
                     )}
                   </span>
                 </SelectTrigger>
                 <SelectContent>
-                  {odontologos.map((u) => (
+                  {profesionales.map((u) => (
                     <SelectItem key={u.id} value={u.id}>
                       {u.nombre} {u.apellido}
                     </SelectItem>
