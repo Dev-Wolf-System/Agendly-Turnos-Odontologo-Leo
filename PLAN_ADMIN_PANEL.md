@@ -1,6 +1,6 @@
 # Plan de Desarrollo — Panel de Administración de Clínicas (SaaS)
 
-> Última actualización: 2026-04-01 (Fases 1-3 + 5 + 7 completadas, Soporte/Tickets agregado)
+> Última actualización: 2026-04-01 (Fases 1-3 + 5 + 7 completadas, Soporte + Fixes producción)
 
 ## Concepto
 

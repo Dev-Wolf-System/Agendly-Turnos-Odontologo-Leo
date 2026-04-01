@@ -385,6 +385,51 @@
 
 ---
 
+## Fase N: Fixes de Producción ✅ COMPLETADA
+
+### Turnos — Móvil y Profesional
+- [x] CalendarHeader: toggle vista visible en móvil con iconos (Lista/Día/Semana), ya no se oculta
+- [x] Vista por defecto cambiada de "semana" a "tabla" (lista) — más usable en móvil
+- [x] Profesionales solo ven sus propios turnos (tabla + calendario filtrado por user_id)
+
+### UI General
+- [x] Welcome banner: 8 mensajes genéricos de salud sin enfoque a especialidad
+- [x] Login: logo agrandado a 96px con shadow, removido link de registro público
+- [x] "Mi Suscripción" visible para todos los roles (no solo admin)
+
+### Debug
+- [x] Chat: console.error en handleSend para debugging (en vez de silent fail)
+
+---
+
+## Pendientes Planificados
+
+### Landing Page + Onboarding (Fase 9.6)
+- [ ] Landing page (/) con hero, features, screenshots, CTA
+- [ ] Página Planes (/planes) con cards comparativas + toggle mensual/anual
+- [ ] Registro wizard 3 pasos: datos clínica → admin → especialidad + horarios
+- [ ] Trial automático del plan elegido + redirect a dashboard
+
+### Horarios por Profesional
+- [ ] Entidad HorarioProfesional (user_id, clinica_id, horarios jsonb)
+- [ ] Config → tab Equipo: horario individual por profesional
+- [ ] Agente Zoe usa horarios por profesional
+
+### Reportes Avanzados
+- [ ] Productividad, pacientes, financiero, ocupación, tratamientos
+- [ ] Export PDF + Excel con branding clínica
+
+### Archivos Médicos
+- [ ] Entidad ArchivoMedico + storage S3/disco
+- [ ] Tab Documentos en ficha paciente (upload drag-and-drop, preview imágenes)
+
+### Agente Zoe IA (Multi-tenant)
+- [ ] 1 flujo n8n para todas las clínicas, router por clinica_id
+- [ ] Paciente vía WhatsApp: ver turnos, registrarse, agendar, info clínica
+- [ ] Admin vía WhatsApp: resumen turnos, finanzas, alertas
+
+---
+
 ## Estado General
 
 | Fase | Descripción | Estado |
@@ -401,4 +446,5 @@
 | **J** | Rebranding y Mejoras UX | ✅ Completada |
 | **K** | Feature Flags + Panel Profesional | ✅ Completada |
 | **L** | Chat Interno + Rediseño Pacientes/Ficha + Dashboard Configurable | ✅ Completada |
-| **M** | Rename odontologist→professional + Mi Suscripción + Soporte Tickets | ✅ Completada |
+| **M** | Rename professional + Mi Suscripción + Soporte Tickets | ✅ Completada |
+| **N** | Fixes de Producción (móvil, logo, filtro profesional, soporte global) | ✅ Completada |

@@ -1,6 +1,6 @@
 # Plan de Desarrollo — Avax Health CRM SaaS
 
-> Última actualización: 2026-04-01 (Fase 9.1-9.3 + 9.5 + 9.7 completadas, Fase L+M UI completadas)
+> Última actualización: 2026-04-01 (Fase 9.1-9.3 + 9.5 + 9.7 completadas, Fases L-N UI completadas)
 
 ---
 
@@ -225,10 +225,12 @@
 - [ ] Workflow: seguimiento post-consulta
 - [ ] Workflow: alerta stock bajo → notificación admin
 
-### Chatbot IA (OpenAI)
-- [ ] Atención al cliente vía WhatsApp
-- [ ] Consulta de turnos disponibles
-- [ ] Agendamiento automático por chat
+### Agente Zoe IA (Multi-tenant, 1 flujo para todas las clínicas)
+- [ ] Flujo: WhatsApp → Evolution API → Webhook n8n → Zoe → API Avax → Respuesta → WhatsApp
+- [ ] Router por clinica_id (extraído de instancia Evolution)
+- [ ] Contexto de conversación en Redis
+- [ ] **Paciente vía WhatsApp:** ver turnos disponibles, registrarse, agendar/cancelar turno, info clínica, tratamientos y precios
+- [ ] **Admin vía WhatsApp:** turnos del día, resumen financiero, % ocupación, alertas stock, notificaciones
 
 ---
 
@@ -292,9 +294,10 @@
 - [x] Dashboard adaptativo: profesional ve solo sus turnos y KPIs relevantes
 
 ### Fase 9.6 — Onboarding 🔄
-- [ ] Landing page con planes
-- [ ] Registro con selección de plan + trial
-- [ ] Wizard de configuración inicial
+- [ ] Landing page con hero, features, testimonios, CTA
+- [ ] Página de Planes (/planes) con cards comparativas + toggle mensual/anual
+- [ ] Registro con selección de plan + trial (wizard 3 pasos: clínica, admin, especialidad+horarios)
+- [ ] Wizard de configuración inicial post-registro
 - [x] Panel "Mi Suscripción" en dashboard clínica (KPIs, detalles plan, historial pagos, soporte)
 
 ---
@@ -319,6 +322,40 @@
 - [ ] Variables de entorno por ambiente (dev/staging/prod)
 - [ ] Logging estructurado
 - [ ] Health checks
+
+---
+
+## Fase 11: Mejoras Planificadas (pendientes)
+
+### Fixes de Producción ✅
+- [x] CalendarHeader: toggle vista visible en móvil con iconos (Lista/Día/Semana)
+- [x] Turnos: vista por defecto cambiada a "tabla" (lista)
+- [x] Profesionales solo ven sus propios turnos en tabla y calendario
+- [x] Welcome banner: mensajes genéricos de salud (8 frases, sin enfoque a especialidad)
+- [x] Login: logo agrandado a 96px, removido link de registro público
+- [x] Mi Suscripción visible para todos los roles (profesional, secretaria, admin)
+- [x] Chat: logging de errores para debugging
+
+### Horarios por Profesional
+- [ ] Entidad `HorarioProfesional` (user_id, clinica_id, horarios jsonb)
+- [ ] Tab Equipo en configuración: horario individual por profesional
+- [ ] Cálculo de turnos disponibles usa horario del profesional si existe
+- [ ] Agente Zoe usa horarios por profesional
+
+### Reportes Avanzados
+- [ ] Productividad por profesional (completados, cancelaciones, ingresos)
+- [ ] Análisis de pacientes (nuevos vs recurrentes, retención, frecuencia)
+- [ ] Financiero (ingresos por período/tratamiento/método, proyecciones)
+- [ ] Ocupación (% slots ocupados por día/semana, horarios más demandados)
+- [ ] Tratamientos (más realizados, ingresos por tipo, duración real vs estimada)
+- [ ] Export PDF con branding + Excel
+
+### Archivos Médicos por Paciente
+- [ ] Entidad `ArchivoMedico` (paciente_id, nombre, tipo, url, size, uploaded_by)
+- [ ] Almacenamiento S3/MinIO (o disco local inicial)
+- [ ] Tab "Documentos" en ficha paciente con upload drag-and-drop
+- [ ] Soporte: imágenes (radiografías, fotos), PDFs (estudios, recetas)
+- [ ] Preview inline para imágenes, descarga para PDFs
 
 ---
 
