@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useState, useCallback } from "react";
+import { RoleGuard } from "@/components/guards/role-guard";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useClinica } from "@/components/providers/clinica-provider";
 import subscriptionsService, {
@@ -130,7 +131,7 @@ const prioridadColors: Record<string, string> = {
 
 const categoriaColors: Record<string, string> = {
   tecnico:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-[#7cd1c4]",
   facturacion:
     "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
   consulta:
@@ -144,7 +145,7 @@ const estadoTicketColors: Record<string, string> = {
   en_progreso:
     "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   esperando_respuesta:
-    "bg-purple-100 text-purple-700 dark:bg-purple-900/30 dark:text-purple-400",
+    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-[#7cd1c4]",
   resuelto:
     "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
   cerrado:
@@ -248,6 +249,14 @@ function CardSkeleton({ height = "h-[300px]" }: { height?: string }) {
 // MAIN PAGE
 // ════════════════════════════════════════════════════════════════════
 export default function SuscripcionPage() {
+  return (
+    <RoleGuard allowedRoles={["admin"]}>
+      <SuscripcionContent />
+    </RoleGuard>
+  );
+}
+
+function SuscripcionContent() {
   const { user } = useAuth();
   const { clinica } = useClinica();
 
@@ -403,7 +412,7 @@ export default function SuscripcionPage() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Estado */}
-          <Card className="rounded-2xl border-0 shadow-sm bg-gradient-to-br from-violet-500/10 to-violet-500/5 dark:from-violet-500/20 dark:to-violet-500/5">
+          <Card className="rounded-2xl border-0 shadow-sm bg-gradient-to-br from-[#7cd1c4]/10 to-[#7cd1c4]/5 dark:from-[#7cd1c4]/20 dark:to-[#7cd1c4]/5">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -425,8 +434,8 @@ export default function SuscripcionPage() {
                     </p>
                   )}
                 </div>
-                <div className="w-11 h-11 rounded-xl bg-violet-500/15 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-violet-600 dark:text-violet-400" />
+                <div className="w-11 h-11 rounded-xl bg-[#7cd1c4]/15 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-[#5bbcad] dark:text-[#9dddd3]" />
                 </div>
               </div>
             </CardContent>
@@ -513,7 +522,7 @@ export default function SuscripcionPage() {
           <Card className="rounded-2xl border shadow-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-violet-500 to-purple-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7cd1c4] to-[#4aa89b] flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -615,7 +624,7 @@ export default function SuscripcionPage() {
                     </div>
                     <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-violet-500 to-purple-500 transition-all duration-500"
+                        className="h-full rounded-full bg-gradient-to-r from-[#7cd1c4] to-[#5bbcad] transition-all duration-500"
                         style={{ width: `${progressPct}%` }}
                       />
                     </div>

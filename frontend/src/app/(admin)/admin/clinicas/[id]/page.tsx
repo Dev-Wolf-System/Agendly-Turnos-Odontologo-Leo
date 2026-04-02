@@ -27,7 +27,7 @@ const WEBHOOK_ESTADOS = [
   { key: "cancelado", label: "Turno Cancelado", color: "bg-red-500" },
   { key: "perdido", label: "Turno Perdido", color: "bg-orange-500" },
   { key: "pendiente", label: "Turno Creado", color: "bg-amber-500" },
-  { key: "recordatorio", label: "Recordatorio", color: "bg-violet-500" },
+  { key: "recordatorio", label: "Recordatorio", color: "bg-[#7cd1c4]" },
 ];
 
 export default function AdminClinicaDetailPage() {
@@ -163,7 +163,7 @@ export default function AdminClinicaDetailPage() {
         <p className="text-sm font-medium text-muted-foreground">Clinica no encontrada</p>
         <Link
           href="/admin/clinicas"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500/10 px-4 py-2 text-sm font-medium text-indigo-500 hover:bg-indigo-500/20 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1b3553]/10 px-4 py-2 text-sm font-medium text-[#1b3553] hover:bg-[#1b3553]/20 transition-colors"
         >
           <ArrowLeftIcon className="h-3.5 w-3.5" />
           Volver a clinicas
@@ -179,7 +179,7 @@ export default function AdminClinicaDetailPage() {
   const statsData = [
     { label: "Usuarios", value: stats?.usuarios ?? 0, icon: UsersIcon, gradient: "from-blue-500 to-cyan-500", glow: "shadow-blue-500/20" },
     { label: "Pacientes", value: stats?.pacientes ?? 0, icon: HeartIcon, gradient: "from-pink-500 to-rose-500", glow: "shadow-pink-500/20" },
-    { label: "Turnos", value: stats?.turnos ?? 0, icon: CalendarIcon, gradient: "from-indigo-500 to-violet-500", glow: "shadow-indigo-500/20" },
+    { label: "Turnos", value: stats?.turnos ?? 0, icon: CalendarIcon, gradient: "from-[#1b3553] to-[#7cd1c4]", glow: "shadow-[#1b3553]/20" },
     { label: "Registrada", value: new Date(clinica.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }), icon: ClockIcon, gradient: "from-emerald-500 to-teal-500", glow: "shadow-emerald-500/20" },
   ];
 
@@ -197,7 +197,7 @@ export default function AdminClinicaDetailPage() {
             <span className="font-medium">{clinica.nombre}</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold ring-1 ring-indigo-500/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1b3553]/10 to-[#7cd1c4]/10 text-[#1b3553] dark:text-[#2a4f73] text-sm font-bold ring-1 ring-[#1b3553]/10">
               {clinica.nombre?.charAt(0)?.toUpperCase()}
             </div>
             <h1 className="text-2xl font-bold tracking-tight">{clinica.nombre}</h1>
@@ -235,7 +235,7 @@ export default function AdminClinicaDetailPage() {
         <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
           <div className="border-b px-5 py-3.5 bg-muted/20">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <InfoIcon className="h-4 w-4 text-indigo-500" />
+              <InfoIcon className="h-4 w-4 text-[#1b3553]" />
               Informacion General
             </h2>
           </div>
@@ -263,7 +263,7 @@ export default function AdminClinicaDetailPage() {
         <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
           <div className="border-b px-5 py-3.5 bg-muted/20">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <CrownIcon className="h-4 w-4 text-indigo-500" />
+              <CrownIcon className="h-4 w-4 text-[#1b3553]" />
               Suscripcion
             </h2>
           </div>
@@ -273,7 +273,7 @@ export default function AdminClinicaDetailPage() {
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-muted-foreground">Plan</dt>
                   <dd>
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 px-2.5 py-1 text-xs font-semibold text-indigo-600 dark:text-indigo-400">
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-[#1b3553]/10 px-2.5 py-1 text-xs font-semibold text-[#1b3553] dark:text-[#2a4f73]">
                       <CrownIcon className="h-3 w-3" />
                       {sub.plan?.nombre ?? "—"}
                     </span>
@@ -301,7 +301,7 @@ export default function AdminClinicaDetailPage() {
                 {sub.plan && (
                   <div className="flex items-center justify-between pt-3 border-t">
                     <dt className="text-sm font-medium">Precio mensual</dt>
-                    <dd className="text-lg font-bold text-indigo-600 dark:text-indigo-400">
+                    <dd className="text-lg font-bold text-[#1b3553] dark:text-[#2a4f73]">
                       ${Number(sub.plan.precio_mensual).toLocaleString("es-AR")}
                       <span className="text-xs font-normal text-muted-foreground">/mes</span>
                     </dd>
@@ -314,7 +314,7 @@ export default function AdminClinicaDetailPage() {
                   <CrownIcon className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <p className="text-sm text-muted-foreground">Sin suscripcion asignada</p>
-                <Link href="/admin/suscripciones" className="inline-flex items-center gap-1.5 rounded-lg bg-indigo-500 px-4 py-2 text-sm font-medium text-white hover:bg-indigo-600 transition-colors shadow-md shadow-indigo-500/20">
+                <Link href="/admin/suscripciones" className="inline-flex items-center gap-1.5 rounded-lg bg-[#1b3553] px-4 py-2 text-sm font-medium text-white hover:bg-[#1b3553] transition-colors shadow-md shadow-[#1b3553]/20">
                   Asignar plan
                 </Link>
               </div>
@@ -327,13 +327,13 @@ export default function AdminClinicaDetailPage() {
       <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
         <div className="border-b px-5 py-3.5 bg-muted/20 flex items-center justify-between">
           <h2 className="text-sm font-semibold flex items-center gap-2">
-            <WebhookIcon className="h-4 w-4 text-violet-500" />
+            <WebhookIcon className="h-4 w-4 text-[#7cd1c4]" />
             Webhooks de la Clinica
           </h2>
           <button
             onClick={handleSaveWebhooks}
             disabled={isSavingWebhooks}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
           >
             {isSavingWebhooks ? "Guardando..." : "Guardar Webhooks"}
           </button>
@@ -351,7 +351,7 @@ export default function AdminClinicaDetailPage() {
                     <button
                       type="button"
                       onClick={() => updateWebhookField(key, "activo", !wh.activo)}
-                      className={`flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors ${wh.activo ? "bg-indigo-500" : "bg-muted-foreground/20"}`}
+                      className={`flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors ${wh.activo ? "bg-[#1b3553]" : "bg-muted-foreground/20"}`}
                     >
                       <span className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${wh.activo ? "translate-x-4" : "translate-x-0"}`} />
                     </button>
@@ -362,7 +362,7 @@ export default function AdminClinicaDetailPage() {
                       value={wh.url}
                       onChange={(e) => updateWebhookField(key, "url", e.target.value)}
                       placeholder="https://n8n.example.com/webhook/..."
-                      className="flex-1 rounded-md border bg-background px-3 py-1.5 text-xs font-mono outline-none focus:ring-2 focus:ring-indigo-500/20 transition-all"
+                      className="flex-1 rounded-md border bg-background px-3 py-1.5 text-xs font-mono outline-none focus:ring-2 focus:ring-[#1b3553]/20 transition-all"
                       disabled={!wh.activo}
                     />
                   </div>

@@ -57,13 +57,13 @@ function AdminContent({ children }: { children: React.ReactNode }) {
     <aside className="flex h-full w-[272px] flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100 border-r border-white/[0.06]">
       {/* Brand */}
       <div className="flex h-[72px] items-center gap-3.5 px-6 shrink-0">
-        <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white font-bold text-base shadow-lg shadow-indigo-500/25">
+        <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1b3553] to-[#5bbcad] text-white font-bold text-base shadow-lg shadow-[#1b3553]/25">
           A
           <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-slate-950" />
         </div>
         <div>
           <p className="text-[15px] font-bold tracking-tight">Avax Health</p>
-          <p className="text-[11px] font-medium text-indigo-300/60 uppercase tracking-widest">
+          <p className="text-[11px] font-medium text-[#3a6a93]/60 uppercase tracking-widest">
             Admin Panel
           </p>
         </div>
@@ -94,23 +94,23 @@ function AdminContent({ children }: { children: React.ReactNode }) {
               className={cn(
                 "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-all duration-200",
                 isActive
-                  ? "bg-gradient-to-r from-indigo-500/15 to-violet-500/10 text-white shadow-sm"
+                  ? "bg-gradient-to-r from-[#1b3553]/15 to-[#7cd1c4]/10 text-white shadow-sm"
                   : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
               )}
             >
               {/* Active indicator */}
               {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full bg-gradient-to-b from-indigo-400 to-violet-500" />
+                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full bg-gradient-to-b from-[#2a4f73] to-[#7cd1c4]" />
               )}
               <item.icon
                 className={cn(
                   "h-[18px] w-[18px] shrink-0 transition-colors",
-                  isActive ? "text-indigo-400" : "text-slate-500 group-hover:text-slate-300"
+                  isActive ? "text-[#2a4f73]" : "text-slate-500 group-hover:text-slate-300"
                 )}
               />
               <span className="flex-1">{item.name}</span>
               {item.badge && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-indigo-500/20 px-1.5 text-[10px] font-bold text-indigo-300">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1b3553]/20 px-1.5 text-[10px] font-bold text-[#3a6a93]">
                   {item.badge}
                 </span>
               )}
@@ -140,7 +140,7 @@ function AdminContent({ children }: { children: React.ReactNode }) {
         {/* User */}
         <div className="px-3 pb-4">
           <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] px-3.5 py-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500/30 to-violet-500/30 text-indigo-200 text-xs font-bold ring-1 ring-white/10">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1b3553]/30 to-[#7cd1c4]/30 text-[#b0c4d8] text-xs font-bold ring-1 ring-white/10">
               {user.nombre?.charAt(0)}{user.apellido?.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
@@ -209,7 +209,7 @@ function AdminContent({ children }: { children: React.ReactNode }) {
           </div>
           <div className="flex items-center gap-2">
             <div className="hidden sm:flex items-center gap-1.5 rounded-lg border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-indigo-500" />
+              <span className="h-1.5 w-1.5 rounded-full bg-[#1b3553]" />
               Superadmin
             </div>
             <ThemeToggle />

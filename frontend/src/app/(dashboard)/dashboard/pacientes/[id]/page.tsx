@@ -102,12 +102,12 @@ function EstadoBadge({ estado }: { estado: string }) {
 }
 
 const gradients = [
-  "from-violet-500 to-purple-600",
+  "from-[#7cd1c4] to-[#4aa89b]",
   "from-blue-500 to-cyan-500",
   "from-emerald-500 to-teal-500",
   "from-orange-500 to-amber-500",
   "from-rose-500 to-pink-500",
-  "from-indigo-500 to-blue-600",
+  "from-[#1b3553] to-blue-600",
 ];
 
 function getGradient(id: string): string {
@@ -279,17 +279,17 @@ export default function FichaPacientePage() {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-purple-50 to-purple-100/50 dark:from-purple-950/40 dark:to-purple-900/20">
+        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-purple-50 to-teal-100/50 dark:from-teal-950/40 dark:to-teal-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-purple-600/70 dark:text-purple-400/70 uppercase tracking-wider">Último Turno</p>
-                <p className="text-xl font-bold text-purple-700 dark:text-purple-300 mt-1">
+                <p className="text-xs font-medium text-[#4aa89b]/70 dark:text-[#7cd1c4]/70 uppercase tracking-wider">Último Turno</p>
+                <p className="text-xl font-bold text-teal-700 dark:text-purple-300 mt-1">
                   {kpis.ultimoTurno ? formatFecha(kpis.ultimoTurno) : "—"}
                 </p>
               </div>
-              <div className="w-11 h-11 rounded-xl bg-purple-500/10 dark:bg-purple-400/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-purple-600 dark:text-purple-400" />
+              <div className="w-11 h-11 rounded-xl bg-[#5bbcad]/10 dark:bg-[#7cd1c4]/10 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-[#4aa89b] dark:text-[#7cd1c4]" />
               </div>
             </div>
           </CardContent>

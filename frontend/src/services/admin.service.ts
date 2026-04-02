@@ -71,6 +71,11 @@ export async function deleteAdminPlan(id: string): Promise<void> {
   await api.delete(`/admin/plans/${id}`);
 }
 
+export async function seedAdminPlans(): Promise<Plan[]> {
+  const { data } = await api.post("/admin/plans/seed-defaults");
+  return data;
+}
+
 /* ─── Suscripciones ─── */
 
 export async function getAdminSubscriptions(): Promise<Subscription[]> {

@@ -48,7 +48,7 @@ export default function AdminClinicasPage() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-indigo-500 to-violet-600 shadow-md shadow-indigo-500/20">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#1b3553] to-[#5bbcad] shadow-md shadow-[#1b3553]/20">
               <BuildingIcon className="h-4 w-4 text-white" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">Clinicas</h1>
@@ -62,7 +62,7 @@ export default function AdminClinicasPage() {
       {/* Summary pills */}
       <div className="flex flex-wrap gap-3">
         <div className="flex items-center gap-2 rounded-xl border bg-card px-4 py-2.5 shadow-sm">
-          <span className="flex h-2 w-2 rounded-full bg-indigo-500" />
+          <span className="flex h-2 w-2 rounded-full bg-[#1b3553]" />
           <span className="text-sm font-medium">{clinicas.length}</span>
           <span className="text-xs text-muted-foreground">Total</span>
         </div>
@@ -87,13 +87,13 @@ export default function AdminClinicasPage() {
             placeholder="Buscar por nombre o email..."
             value={search}
             onChange={(e) => setSearch(e.target.value)}
-            className="w-full rounded-xl border bg-card pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all shadow-sm"
+            className="w-full rounded-xl border bg-card pl-10 pr-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all shadow-sm"
           />
         </div>
         <select
           value={filterActive}
           onChange={(e) => setFilterActive(e.target.value)}
-          className="rounded-xl border bg-card px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 shadow-sm cursor-pointer"
+          className="rounded-xl border bg-card px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 shadow-sm cursor-pointer"
         >
           <option value="">Todas</option>
           <option value="true">Activas</option>
@@ -142,13 +142,13 @@ export default function AdminClinicasPage() {
                 }`}
               >
                 {/* Top gradient bar */}
-                <div className={`h-1 w-full ${clinica.is_active ? "bg-gradient-to-r from-indigo-500 to-violet-500" : "bg-red-400"}`} />
+                <div className={`h-1 w-full ${clinica.is_active ? "bg-gradient-to-r from-[#1b3553] to-[#7cd1c4]" : "bg-red-400"}`} />
 
                 <div className="p-5">
                   {/* Header: Avatar + Name + Status */}
                   <div className="flex items-start justify-between mb-4">
                     <div className="flex items-center gap-3">
-                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 text-indigo-600 dark:text-indigo-400 text-sm font-bold ring-1 ring-indigo-500/10">
+                      <div className="flex h-11 w-11 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br from-[#1b3553]/10 to-[#7cd1c4]/10 text-[#1b3553] dark:text-[#2a4f73] text-sm font-bold ring-1 ring-[#1b3553]/10">
                         {clinica.nombre?.charAt(0)?.toUpperCase()}
                       </div>
                       <div>
@@ -211,7 +211,7 @@ export default function AdminClinicasPage() {
                   {/* Plan badge */}
                   <div className="flex items-center justify-between mb-4">
                     {planNombre ? (
-                      <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 px-2.5 py-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
+                      <span className="inline-flex items-center gap-1 rounded-lg bg-[#1b3553]/10 px-2.5 py-1 text-[11px] font-semibold text-[#1b3553] dark:text-[#2a4f73]">
                         <CrownIcon className="h-3 w-3" />
                         {planNombre}
                       </span>
@@ -229,7 +229,7 @@ export default function AdminClinicasPage() {
                   <div className="flex items-center gap-2 pt-3 border-t">
                     <Link
                       href={`/admin/clinicas/${clinica.id}`}
-                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-indigo-500 to-violet-600 px-3 py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm shadow-indigo-500/20"
+                      className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-3 py-2 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm shadow-[#1b3553]/20"
                     >
                       <EyeIcon className="h-3.5 w-3.5" />
                       Ver detalle

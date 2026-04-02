@@ -66,7 +66,8 @@ const navigation: NavItem[] = [
   { name: "Pagos", href: "/dashboard/pagos", icon: CreditCardIcon, roles: ["admin", "assistant"] },
   { name: "Inventario", href: "/dashboard/inventario", icon: PackageIcon, roles: ["admin"] },
   { name: "Proveedores", href: "/dashboard/proveedores", icon: TruckIcon, roles: ["admin"] },
-  { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheckIcon },
+  { name: "Soporte", href: "/dashboard/soporte", icon: LifeBuoyIcon, roles: ["professional", "assistant"] },
+  { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheckIcon, roles: ["admin"] },
   { name: "Configuración", href: "/dashboard/configuracion", icon: SettingsIcon, roles: ["admin"] },
 ];
 
@@ -326,6 +327,14 @@ function BadgeCheckIcon({ className }: { className?: string }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M3.85 8.62a4 4 0 0 1 4.78-4.77 4 4 0 0 1 6.74 0 4 4 0 0 1 4.78 4.78 4 4 0 0 1 0 6.74 4 4 0 0 1-4.77 4.78 4 4 0 0 1-6.75 0 4 4 0 0 1-4.78-4.77 4 4 0 0 1 0-6.76Z" /><path d="m9 12 2 2 4-4" />
+    </svg>
+  );
+}
+
+function LifeBuoyIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><circle cx="12" cy="12" r="4" /><path d="M4.93 4.93l4.24 4.24" /><path d="M14.83 14.83l4.24 4.24" /><path d="M14.83 9.17l4.24-4.24" /><path d="M4.93 19.07l4.24-4.24" />
     </svg>
   );
 }

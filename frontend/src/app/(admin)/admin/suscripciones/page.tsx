@@ -107,7 +107,7 @@ export default function AdminSuscripcionesPage() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500 to-purple-600 shadow-md shadow-violet-500/20">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#7cd1c4] to-[#4aa89b] shadow-md shadow-[#7cd1c4]/20">
               <RepeatIcon className="h-4 w-4 text-white" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">Suscripciones</h1>
@@ -118,7 +118,7 @@ export default function AdminSuscripcionesPage() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:from-indigo-600 hover:to-violet-700 transition-all shadow-md shadow-indigo-500/20 hover:shadow-lg hover:shadow-indigo-500/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-5 py-2.5 text-sm font-medium text-white hover:from-[#1b3553] hover:to-[#4aa89b] transition-all shadow-md shadow-[#1b3553]/20 hover:shadow-lg hover:shadow-[#1b3553]/30"
         >
           <PlusIcon className="h-4 w-4" />
           Asignar Plan
@@ -131,11 +131,11 @@ export default function AdminSuscripcionesPage() {
           onClick={() => setFilterEstado("")}
           className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all ${
             !filterEstado
-              ? "bg-indigo-500/10 border-indigo-500/20 text-indigo-600 dark:text-indigo-400 font-semibold shadow-sm"
+              ? "bg-[#1b3553]/10 border-[#1b3553]/20 text-[#1b3553] dark:text-[#2a4f73] font-semibold shadow-sm"
               : "bg-card hover:bg-muted/50 shadow-sm"
           }`}
         >
-          <span className="flex h-2 w-2 rounded-full bg-indigo-500" />
+          <span className="flex h-2 w-2 rounded-full bg-[#1b3553]" />
           <span className="font-medium">{subs.length}</span>
           <span className="text-xs text-muted-foreground">Todas</span>
         </button>
@@ -166,7 +166,7 @@ export default function AdminSuscripcionesPage() {
         <div className="rounded-2xl border bg-card shadow-sm overflow-hidden animate-in slide-in-from-top-2 duration-200">
           <div className="border-b px-5 py-3.5 bg-muted/20">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <RepeatIcon className="h-4 w-4 text-indigo-500" />
+              <RepeatIcon className="h-4 w-4 text-[#1b3553]" />
               Asignar Plan a Clinica
             </h2>
           </div>
@@ -179,7 +179,7 @@ export default function AdminSuscripcionesPage() {
                 <select
                   value={form.clinica_id}
                   onChange={(e) => setForm({ ...form, clinica_id: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all cursor-pointer"
                   required
                 >
                   <option value="">Seleccionar clinica...</option>
@@ -197,7 +197,7 @@ export default function AdminSuscripcionesPage() {
                 <select
                   value={form.plan_id}
                   onChange={(e) => setForm({ ...form, plan_id: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all cursor-pointer"
                   required
                 >
                   <option value="">Seleccionar plan...</option>
@@ -219,7 +219,7 @@ export default function AdminSuscripcionesPage() {
                   onChange={(e) =>
                     setForm({ ...form, estado: e.target.value as EstadoSubscription })
                   }
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all cursor-pointer"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all cursor-pointer"
                 >
                   {ESTADO_OPTIONS.map((e) => (
                     <option key={e} value={e}>
@@ -236,7 +236,7 @@ export default function AdminSuscripcionesPage() {
                   type="date"
                   value={form.fecha_inicio}
                   onChange={(e) => setForm({ ...form, fecha_inicio: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all"
                   required
                 />
               </div>
@@ -248,7 +248,7 @@ export default function AdminSuscripcionesPage() {
                   type="date"
                   value={form.fecha_fin}
                   onChange={(e) => setForm({ ...form, fecha_fin: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all"
                   required
                 />
               </div>
@@ -263,7 +263,7 @@ export default function AdminSuscripcionesPage() {
                   type="date"
                   value={form.trial_ends_at}
                   onChange={(e) => setForm({ ...form, trial_ends_at: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-indigo-500/20 focus:border-indigo-500 transition-all"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all"
                 />
               </div>
             </div>
@@ -273,7 +273,7 @@ export default function AdminSuscripcionesPage() {
                 type="checkbox"
                 checked={form.auto_renew}
                 onChange={(e) => setForm({ ...form, auto_renew: e.target.checked })}
-                className="rounded accent-indigo-500 h-4 w-4"
+                className="rounded accent-[#1b3553] h-4 w-4"
               />
               <span className="text-sm font-medium">Auto-renovacion</span>
             </label>
@@ -288,7 +288,7 @@ export default function AdminSuscripcionesPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-5 py-2.5 text-sm font-medium text-white hover:from-indigo-600 hover:to-violet-700 transition-all shadow-md shadow-indigo-500/20"
+                className="rounded-xl bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-5 py-2.5 text-sm font-medium text-white hover:from-[#1b3553] hover:to-[#4aa89b] transition-all shadow-md shadow-[#1b3553]/20"
               >
                 Asignar
               </button>
@@ -364,7 +364,7 @@ export default function AdminSuscripcionesPage() {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-violet-500/10 to-purple-500/10 text-violet-600 dark:text-violet-400 text-xs font-bold ring-1 ring-violet-500/10">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7cd1c4]/10 to-[#5bbcad]/10 text-[#5bbcad] dark:text-[#9dddd3] text-xs font-bold ring-1 ring-[#7cd1c4]/10">
                             {sub.clinica?.nombre?.charAt(0)?.toUpperCase() ?? "C"}
                           </div>
                           <span className="font-semibold text-sm">
@@ -373,7 +373,7 @@ export default function AdminSuscripcionesPage() {
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="inline-flex items-center gap-1 rounded-lg bg-indigo-500/10 px-2.5 py-1 text-[11px] font-semibold text-indigo-600 dark:text-indigo-400">
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-[#1b3553]/10 px-2.5 py-1 text-[11px] font-semibold text-[#1b3553] dark:text-[#2a4f73]">
                           <CrownIcon className="h-3 w-3" />
                           {sub.plan?.nombre ?? "—"}
                         </span>
@@ -419,7 +419,7 @@ export default function AdminSuscripcionesPage() {
                           onChange={(e) =>
                             changeEstado(sub.id, e.target.value as EstadoSubscription)
                           }
-                          className="rounded-xl border bg-background px-3 py-1.5 text-xs font-medium outline-none focus:ring-2 focus:ring-indigo-500/20 cursor-pointer opacity-70 group-hover:opacity-100 transition-opacity"
+                          className="rounded-xl border bg-background px-3 py-1.5 text-xs font-medium outline-none focus:ring-2 focus:ring-[#1b3553]/20 cursor-pointer opacity-70 group-hover:opacity-100 transition-opacity"
                         >
                           {ESTADO_OPTIONS.map((e) => (
                             <option key={e} value={e}>

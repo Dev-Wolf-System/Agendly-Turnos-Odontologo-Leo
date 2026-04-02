@@ -222,6 +222,16 @@ export default function DashboardPage() {
       <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" />
     </svg>
   );
+  const checkCircleSvg = (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" />
+    </svg>
+  );
+  const clockConfirmSvg = (
+    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
+    </svg>
+  );
 
   // Helper para verificar visibilidad de KPI
   const isKpiVisible = (kpiId: string): boolean => {
@@ -237,24 +247,34 @@ export default function DashboardPage() {
     return kpiVisibility[`section:${sectionId}`] !== false;
   };
 
+  // Conteo de turnos por estado (para KPIs)
+  const turnosCompletadosHoy = misTurnosHoy.filter((t) => t.estado === "completado").length;
+  const turnosConfirmadosRestantes = misTurnosHoy.filter((t) => t.estado === "confirmado").length;
+
   // KPIs por rol
   const allKpiCards: { id: string; label: string; value: string | number; sub: string; gradient: string; bgGlow: string; icon: React.ReactNode; href: string }[] = [];
 
   if (isProfessional) {
     allKpiCards.push(
-      { id: "turnosHoy", label: "Mis Turnos Hoy", value: misTurnosHoy.length, sub: "turnos programados", gradient: "from-blue-500 to-indigo-600", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-violet-500 to-purple-600", bgGlow: "bg-violet-500/10", icon: usersSvg, href: "/dashboard/pacientes" },
+      { id: "turnosHoy", label: "Mis Turnos Hoy", value: misTurnosHoy.length, sub: "turnos programados", gradient: "from-blue-500 to-[#1b3553]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-sky-500 to-blue-600", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
+      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[#7cd1c4] to-[#4aa89b]", bgGlow: "bg-[#7cd1c4]/10", icon: usersSvg, href: "/dashboard/pacientes" },
     );
   } else if (isAssistant) {
     allKpiCards.push(
-      { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-blue-500 to-indigo-600", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-violet-500 to-purple-600", bgGlow: "bg-violet-500/10", icon: usersSvg, href: "/dashboard/pacientes" },
+      { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-blue-500 to-[#1b3553]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-sky-500 to-blue-600", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
+      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[#7cd1c4] to-[#4aa89b]", bgGlow: "bg-[#7cd1c4]/10", icon: usersSvg, href: "/dashboard/pacientes" },
       { id: "pagosAprobados", label: "Pagos Aprobados", value: stats?.pagosAprobadosMes ?? 0, sub: "aprobados este mes", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: checkSvg, href: "/dashboard/pagos" },
     );
   } else {
     allKpiCards.push(
-      { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-blue-500 to-indigo-600", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-violet-500 to-purple-600", bgGlow: "bg-violet-500/10", icon: usersSvg, href: "/dashboard/pacientes" },
+      { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-blue-500 to-[#1b3553]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-sky-500 to-blue-600", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
+      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[#7cd1c4] to-[#4aa89b]", bgGlow: "bg-[#7cd1c4]/10", icon: usersSvg, href: "/dashboard/pacientes" },
       { id: "ingresosMes", label: "Ingresos del Mes", value: formatCurrency(stats?.ingresosMes ?? 0), sub: "pagos aprobados", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: dollarSvg, href: "/dashboard/pagos" },
       { id: "stockBajo", label: "Stock Bajo", value: stats?.lowStockCount ?? 0, sub: "items bajo mínimo", gradient: (stats?.lowStockCount ?? 0) > 0 ? "from-amber-500 to-orange-600" : "from-slate-400 to-slate-500", bgGlow: (stats?.lowStockCount ?? 0) > 0 ? "bg-amber-500/10" : "bg-slate-500/10", icon: alertSvg, href: "/dashboard/inventario" },
     );
@@ -316,7 +336,7 @@ export default function DashboardPage() {
                 {misTurnosHoy.length > 0 ? `${misTurnosHoy.length} turno${misTurnosHoy.length !== 1 ? "s" : ""} programado${misTurnosHoy.length !== 1 ? "s" : ""}` : "Sin turnos para hoy"}
               </p>
             </div>
-            <button onClick={() => router.push("/dashboard/turnos")} className="text-xs font-medium text-indigo-500 hover:text-indigo-400 transition-colors">Ver todos →</button>
+            <button onClick={() => router.push("/dashboard/turnos")} className="text-xs font-medium text-[#1b3553] hover:text-[#2a4f73] transition-colors">Ver todos →</button>
           </div>
           {misTurnosHoy.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -328,7 +348,7 @@ export default function DashboardPage() {
               {misTurnosHoy.slice(0, 8).map((turno) => (
                 <div key={turno.id} className="flex items-center justify-between rounded-xl border p-3 hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white text-sm font-semibold shadow-sm">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1b3553] to-[#5bbcad] text-white text-sm font-semibold shadow-sm">
                       {turno.paciente?.nombre?.charAt(0) ?? "?"}{turno.paciente?.apellido?.charAt(0) ?? ""}
                     </div>
                     <div>
@@ -372,7 +392,7 @@ export default function DashboardPage() {
             </LineChart>
           </ResponsiveContainer>
           <div className="flex justify-center gap-6 mt-3">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-indigo-500" />Programados</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-[#1b3553]" />Programados</div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Completados</div>
           </div>
         </div>
@@ -397,7 +417,7 @@ export default function DashboardPage() {
               {tratamientos.map((t, i) => {
                 const max = Math.max(...tratamientos.map((x) => x.cantidad), 1);
                 const pct = (t.cantidad / max) * 100;
-                const colors = ["bg-indigo-500", "bg-violet-500", "bg-blue-500", "bg-purple-500", "bg-teal-500"];
+                const colors = ["bg-[#1b3553]", "bg-[#7cd1c4]", "bg-blue-500", "bg-[#5bbcad]", "bg-teal-500"];
                 return (
                   <div key={t.nombre}>
                     <div className="flex items-center justify-between text-sm mb-1">
@@ -458,7 +478,7 @@ export default function DashboardPage() {
               <h2 className="text-base font-semibold">Facturación Diaria</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Ingresos aprobados del mes en curso</p>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-indigo-600 text-white shadow-lg">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-[#1b3553] text-white shadow-lg">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
             </div>
           </div>
@@ -506,7 +526,7 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={() => setEditMode(!editMode)}
-          className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${editMode ? "bg-indigo-50 dark:bg-indigo-950/30 border-indigo-300 dark:border-indigo-700 text-indigo-600 dark:text-indigo-400" : "bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
+          className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${editMode ? "bg-[#eef3f8] dark:bg-[#0e1f33]/30 border-[#3a6a93] dark:border-[#1f3d5e] text-[#1b3553] dark:text-[#2a4f73]" : "bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
           title={editMode ? "Bloquear disposición" : "Personalizar disposición"}
         >
           {editMode ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
@@ -515,7 +535,7 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${kpiCards.length >= 4 ? "xl:grid-cols-4" : kpiCards.length === 3 ? "xl:grid-cols-3" : ""} gap-5`}>
+      <div className={`grid grid-cols-1 sm:grid-cols-2 ${kpiCards.length >= 6 ? "lg:grid-cols-3 xl:grid-cols-6" : kpiCards.length >= 5 ? "lg:grid-cols-3 xl:grid-cols-5" : kpiCards.length >= 4 ? "xl:grid-cols-4" : kpiCards.length === 3 ? "xl:grid-cols-3" : ""} gap-5`}>
         {kpiCards.map((card) => (
           <button
             key={card.label}
@@ -546,10 +566,10 @@ export default function DashboardPage() {
               onDragStart={() => handleDragStart(sectionId)}
               onDragOver={(e) => handleDragOver(e, sectionId)}
               onDragEnd={handleDragEnd}
-              className={`relative transition-all ${editMode ? "cursor-grab active:cursor-grabbing" : ""} ${draggedSection === sectionId ? "opacity-50 scale-[0.98]" : ""} ${editMode ? "ring-2 ring-dashed ring-indigo-300/50 dark:ring-indigo-700/50 rounded-2xl" : ""}`}
+              className={`relative transition-all ${editMode ? "cursor-grab active:cursor-grabbing" : ""} ${draggedSection === sectionId ? "opacity-50 scale-[0.98]" : ""} ${editMode ? "ring-2 ring-dashed ring-[#3a6a93]/50 dark:ring-[#1f3d5e]/50 rounded-2xl" : ""}`}
             >
               {editMode && (
-                <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-lg bg-indigo-500 text-white shadow-md">
+                <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-lg bg-[#1b3553] text-white shadow-md">
                   <GripVertical className="h-3.5 w-3.5" />
                 </div>
               )}

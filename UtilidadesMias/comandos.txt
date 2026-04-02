@@ -1,3 +1,18 @@
+Para Deploy en VPS: 
+
+Para Clonar Repositorio (debe estar en publico): 
+
+  cd /root
+  git clone https://github.com/Dev-Wolf-System/Agendly-Turnos-Odontologo-Leo.git avax-health
+  cd avax-health
+
+Si el repo es privado, usá un token: git clone https://TOKEN@github.com/TU_USUARIO/Agendly-Turnos-Odontologo-Leo.git avax-health
+
+Ahora Deploy:  cd /root/avax-health
+  docker compose -f docker-compose.prod.yml up -d --build
+
+
+
 Para reiniciar el servidor y matar compilaciones viejas:  
 
 Backend:
@@ -69,3 +84,157 @@ Tambien mostro esto: src/services/admin.service.ts (12:20) @ async getAdminDashb
   13 |   return data;
   14 | }
   15 |
+
+
+
+
+# 1. Estructura general
+
+total 12
+drwxr-xr-x  3 root   root   4096 Jan 17 23:46 .
+drwxr-xr-x 25 root   root   4096 Mar 31 16:27 ..
+drwxr-x---  3 ubuntu ubuntu 4096 May 26  2025 ubuntu
+total 148
+drwx------ 19 root root  4096 Mar 16 01:20 .
+drwxr-xr-x 25 root root  4096 Mar 31 16:27 ..
+-rw-------  1 root root 31453 Mar 16 01:20 .bash_history
+-rw-r--r--  1 root root  3106 Apr 22  2024 .bashrc
+drwx------  2 root root  4096 Jun 22  2025 .cache
+drwx------  3 root root  4096 Jun 22  2025 .config
+drwx------  3 root root  4096 Dec 22 00:50 .docker
+-rw-r--r--  1 root root   522 Jun 25  2025 .env
+drwxr-xr-x  3 root root  4096 Jun 22  2025 .local
+-rw-r--r--  1 root root   161 Apr 22  2024 .profile
+drwx------  2 root root  4096 Mar 31 16:28 .ssh
+-rw-r--r--  1 root root   180 Jan 17 07:34 .wget-hsts
+drwxr-xr-x  4 root root  4096 Dec 22 02:59 apache-php
+drwxr-xr-x  2 root root  4096 Sep 28  2025 chatwoot
+-rw-r--r--  1 root root  2289 Sep 28  2025 docker-compose.yml
+drwxr-xr-x  3 root root  4096 Jan 26 10:30 docker-portainer
+drwxr-xr-x  2 root root  4096 Dec 24 23:53 emqx_mqtt
+drwxr-xr-x  2 root root  4096 Dec 23 19:53 evolution_api
+drwxr-xr-x  2 root root  4096 Jan 26 03:45 grafana
+drwxr-xr-x  2 root root  4096 Mar 16 04:15 influx3_db
+drwxr-xr-x  2 root root  4096 Dec 29 00:24 node-red
+drwxr-xr-x 20 root root  4096 Feb  1 21:37 openclaw
+drwxr-xr-x  2 root root  4096 Dec 19 13:13 pg_admin
+drwxr-xr-x  4 root root  4096 Jan 18 20:04 srv-cs1.6
+drwxr-xr-x  3 root root  4096 Feb 19 04:12 wireguard
+
+# 2. Contenedores corriendo
+
+NAMES               IMAGE                                            PORTS                                                                                                 STATUS
+influxdb3           influxdb:3-core                                  0.0.0.0:18181->8181/tcp, [::]:18181->8181/tcp                                                         Up 7 days
+influxdb3-ui        influxdata/influxdb3-ui:latest                   80/tcp, 443/tcp                                                                                       Up 7 days
+grafana             grafana/grafana-enterprise                       3000/tcp                                                                                              Up 7 days
+grafana-renderer    grafana/grafana-image-renderer:latest            8081/tcp                                                                                              Up 7 days (healthy)
+portainer           portainer/portainer-ce:latest                    0.0.0.0:8000->8000/tcp, [::]:8000->8000/tcp, 0.0.0.0:9000->9000/tcp, [::]:9000->9000/tcp, 9443/tcp    Up 7 days
+root-n8n-1          docker.n8n.io/n8nio/n8n:next                     127.0.0.1:5678->5678/tcp                                                                              Up 7 days
+root-traefik-1      traefik                                          0.0.0.0:80->80/tcp, [::]:80->80/tcp, 0.0.0.0:443->443/tcp, [::]:443->443/tcp                          Up 7 days
+wg-easy             ghcr.io/wg-easy/wg-easy:latest                   0.0.0.0:51820->51820/udp, [::]:51820->51820/udp, 0.0.0.0:51821->51821/tcp, [::]:51821->51821/tcp      Up 7 days (healthy)
+openclaw-gateway    openclaw:local                                                                                                                                         Restarting (1) 14 seconds ago
+evolution_api       evoapicloud/evolution-api:latest                 8080/tcp                                                                                              Up 7 days
+evolution_redis     63e868dc880e                                     0.0.0.0:6455->6379/tcp, [::]:6455->6379/tcp                                                           Up 7 days
+postgreSQL          postgres:15.8                                    0.0.0.0:6969->5432/tcp, [::]:6969->5432/tcp                                                           Up 7 days
+emqx                emqx/emqx:latest                                 4370/tcp, 5369/tcp, 8083-8084/tcp, 8883/tcp, 0.0.0.0:1883->1883/tcp, [::]:1883->1883/tcp, 18083/tcp   Up 7 days
+hl-instrumentos     artkirienko/hlds:latest                          27015/tcp, 0.0.0.0:27011->27015/udp, [::]:27011->27015/udp                                            Up 7 days
+cs16-instrumentos   handsomejeck/counter-strike1.6-zpserver:latest   80/tcp, 27015/tcp, 0.0.0.0:27010->27015/udp, [::]:27010->27015/udp                                    Up 7 days
+node-red            nodered/node-red:latest                          1880/tcp                                                                                              Up 7 days (healthy)
+phpmyadmin          phpmyadmin:latest                                80/tcp                                                                                                Up 7 days
+webserver           apache-php-webserver                             0.0.0.0:2080->80/tcp, [::]:2080->80/tcp                                                               Up 7 days
+MySQL               mysql:8.4                                        33060/tcp, 0.0.0.0:4150->3306/tcp, [::]:4150->3306/tcp                                                Up 7 days
+pgadmin             dpage/pgadmin4:latest                            80/tcp, 443/tcp                                                                                       Up 7 days
+chatwoot            chatwoot/chatwoot:latest                         3000/tcp                                                                                              Up 7 days
+chatwoot_sidekiq    chatwoot/chatwoot:latest                         3000/tcp                                                                                              Up 7 days
+chatwoot_postgres   ankane/pgvector                                  5432/tcp                                                                                              Up 7 days
+chatwoot_redis      redis:6.2                                        6379/tcp                                                                                              Up 7 days
+
+
+# 3. Redes Docker
+
+NETWORK ID     NAME                       DRIVER    SCOPE
+bed4faa525fa   apache-php_n8n_evoapi      bridge    local
+a5bf1aea1d96   bridge                     bridge    local
+b830989e6764   docker-portainer_default   bridge    local
+134b641f7e38   evolution_api_default      bridge    local
+5d72aaa5b47b   host                       host      local
+026994a7379f   n8n_evoapi                 bridge    local
+e542734a4e9d   none                       null      local
+42a766991f7e   root_default               bridge    local
+efdd6e47a75c   vpn_net                    bridge    local
+
+# 4. Puertos en uso
+
+LISTEN 0      4096         0.0.0.0:8000       0.0.0.0:*    users:(("docker-proxy",pid=2969,fd=7))                   
+LISTEN 0      4096       127.0.0.1:5678       0.0.0.0:*    users:(("docker-proxy",pid=3187,fd=7))                   
+LISTEN 0      4096         0.0.0.0:80         0.0.0.0:*    users:(("docker-proxy",pid=3798,fd=7))                   
+LISTEN 0      4096         0.0.0.0:443        0.0.0.0:*    users:(("docker-proxy",pid=3817,fd=7))                   
+LISTEN 0      4096            [::]:8000          [::]:*    users:(("docker-proxy",pid=2996,fd=7))                   
+LISTEN 0      4096            [::]:80            [::]:*    users:(("docker-proxy",pid=3804,fd=7))                   
+LISTEN 0      4096            [::]:443           [::]:*    users:(("docker-proxy",pid=3830,fd=7))  
+
+# 5. Nginx/reverse proxy (si hay)
+no nginx config found
+
+# 6. Docker compose files existentes
+
+/root/pg_admin/docker-compose.yml
+/root/docker-compose.yml
+/root/grafana/docker-compose.yml
+/root/docker-portainer/docker-compose.yml
+/root/evolution_api/docker-compose.yml
+/root/chatwoot/docker-compose.yml
+/root/node-red/docker-compose.yml
+/root/node-red/docker-compose.yml.old
+/root/apache-php/docker-compose.yml
+/root/influx3_db/docker-compose.yml
+/root/srv-cs1.6/cs/docker-compose.yml
+/root/srv-cs1.6/hl/docker-compose.yml
+/root/wireguard/docker-compose.yml
+/root/openclaw/docker-compose.yml
+/root/openclaw/docker-compose.yml.save
+/root/emqx_mqtt/docker-compose.yml
+
+# 7. Espacio en disco
+Filesystem      Size  Used Avail Use% Mounted on
+/dev/sda1       193G  101G   93G  52% /
+
+
+Revisar para produccion: 
+
+En la seccion de turnos en la version movil estaria faltando el boton para cambiar de calendario a lista y viceversa.
+Dejar como vista principal la lista y que el calendario sea una opcion mas en todos los dispositivos, con un diseño actractivo y moderno para dispositivossin salir de lo que es el estilo de la app.
+En la version movil, repensar la manera que se muestra el calendario ya que no se ve bien en pantallas pequeñas.
+Los mensajes que da de bienvenida y son aleatorios estan buenisimos, pero podemos hacer que el fonque de los mensajes igual de bonitos pero genericos sin enfoque a ninguna especialidad y mas a la salud en general.
+Agrandar un poco mas el logo en la pantalla de inicio de sesion.
+Quitar la opcion de registro de clinicas/consultorios ya que esto se gestiona desde el panel admin de servicio.
+Ahora, para el registro o creacion de una clinica nueva que ideas propones para que sea mas atractivao, moderno y de alta categoria para qu los usuarios puedan ellos mismos aquirir y registrarse sin necesidad de que nosotros los creemos manualmente. 
+Tambien tener en cuenta de que el usuario pueda elegir el plan que desea adquirir y que se le muestren los beneficios de cada plan de manera clara y concisa. 
+Usa tu imaginacion de manera profecional dime que propones si un portal o creamos una pagina aparte y usarla ya como imagen de la empresa (sistema) dame ideas, se creativo, ingenioso y profecional!
+Revisar que cada profeciona en su panel solo pueda ver los turno que le fueron asignados a el y no de toda la clinica.
+Tambien dar la posibilidad de a futuro en la ficha medica del paciente poder guardar documentos y imagenes. Asi cada paciente tenga un historial medico completo, profecional y de primer nivel.
+Agregar que la seccion soporte pueda estar disponible en todos los (paneles secretaria, profecionales)
+Pensar cual serian los reportes avanzados que pueda generar que ideas propones.
+Revisar por los mensajes no se envian en el chat interno.
+Tambien pensar en agregar la opcion de poder configurar los horarios a cada profecional (dias y horarios).
+Segun lo que te queda se sesion, que es lo que puedes avanzar de esto?
+Y debemos ir planificando como avanzamos con el agente que gestionara todo, que tienes pensado? sera un agente realizado en un flujo de n8n para cada clinica / consultrio o sera una sola que se encargue de todas (en esta opcion hay que contemplar que cada
+clinica tiene distintos consultorio, profecionales, horarios, estado de los turnos ) y que el paciente pueda (ver turnos y horarios disponibles segun la especialidad y medico que elija, poder registrarse si no lo esta, consultar informacion sobre la clinica/consultorio,
+procedimientos constos y toda la info que un paciente puede obtener) y para el admin de la clinica ver (los turnos que tiene programados, finanzas, etc. consultaro todo sobre la clinica), Contemplar toda la gestion de la clinica/consultrio para el admin y el paciente
+
+
+
+Revicion 2: 
+
+1- El profecional ni el secretario/asistente deberia ver la seccion suscripcion. Solo deberian tener opcion de generar un ticket para soporte.
+2- Los planes predefinidos con la posibilidad de modificarlos no estan apareciendo en el panel de admin de servicio.
+3- El loguito que muestran en la pestaña del navegador cambiarlo por el de Avax Health.
+4- Ajustar Iconos de opcion en la seccion de configuracion ya que los iconos en movil no se ajustan a la pantalla
+5- La seccion mi suscripcion no deberia mostrarse a los profecionales ni a los asistentes/secretarios. Solo deberian tener opcion de generar un ticket para soporte.
+6- Landing Page para la imagen de la empresa (sistema) junto con todo lo que incluye no la estaria viendo o quizas aun no se desarrollo.
+
+
+Revisar 3: 
+
+1- Los planes predefinidos no aparecen en el panel de admin de servicio. Solo aparece la opcion de crear uno nuevo. tambien deberia aparecer la opcion de editar los planes predefinidos.
+

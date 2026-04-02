@@ -1,6 +1,6 @@
 # Hoja de Ruta — Reestilizado y Mejoras UI/UX
 
-> Última actualización: 2026-04-01
+> Última actualización: 2026-04-02
 
 ## Fixes aplicados
 - [x] Select de Paciente y Odontólogo en Nuevo Turno mostraba UUID en vez del nombre — corregido con display manual
@@ -402,17 +402,49 @@
 
 ---
 
+## Fase O: Planes Dinámicos + Registro Premium + Auto-Trial ✅ COMPLETADA
+
+### Backend — Plan entity ampliado
+- [x] Nuevos campos: descripcion, is_highlighted, is_default_trial, orden
+- [x] Endpoint público GET /plans (sin auth, @Public) para landing page
+- [x] Plan Trial Gratuito agregado a PLAN_TEMPLATES (precio $0, 2 usuarios, 50 pacientes)
+- [x] 5 templates: Trial + 4 pagos con descripciones, orden y flags
+- [x] DTOs actualizados (CreatePlanDto, UpdatePlanDto) con nuevos campos
+- [x] FEATURE_LABELS exportable para display de features
+
+### Backend — Auto-asignación de trial
+- [x] AuthService.register() inyecta PlansService + SubscriptionsService
+- [x] Al registrarse: busca plan con is_default_trial=true, crea subscription trial 14 días
+- [x] AuthModule importa PlansModule + SubscriptionsModule
+
+### Frontend — Landing /planes dinámica
+- [x] Fetch desde GET /plans en vez de datos hardcodeados
+- [x] Features mapeadas con FEATURE_LABELS
+- [x] Badge "Mas popular" controlado por is_highlighted desde DB
+- [x] Descripción del plan visible
+- [x] Loading skeleton mientras carga
+- [x] plans.service.ts creado para endpoint público
+
+### Frontend — Formulario de registro multi-step premium
+- [x] Step 0: Selección de plan (cards interactivas con radio visual, features, precios)
+- [x] Step 1: Datos de la clínica (con chip del plan seleccionado + botón "Cambiar")
+- [x] Step 2: Cuenta admin (show/hide password, validación real-time, resumen, badge seguridad)
+- [x] Stepper visual con iconos, navegación entre pasos, estados done/active/pending
+- [x] Si llega con ?plan=<id> desde landing, salta al step 1 automáticamente
+- [x] Suspense boundary para useSearchParams
+
+### Frontend — Admin planes mejorado
+- [x] Campos: descripcion, is_highlighted, is_default_trial, orden editables
+- [x] Badges de estado: "Destacado", "Trial", "Inactivo"
+- [x] Número de orden visible en cards
+
+---
+
 ## Pendientes Planificados
 
-### Landing Page + Onboarding (Fase 9.6)
-- [ ] Landing page (/) con hero, features, screenshots, CTA
-- [ ] Página Planes (/planes) con cards comparativas + toggle mensual/anual
-- [ ] Registro wizard 3 pasos: datos clínica → admin → especialidad + horarios
-- [ ] Trial automático del plan elegido + redirect a dashboard
-
 ### Horarios por Profesional
-- [ ] Entidad HorarioProfesional (user_id, clinica_id, horarios jsonb)
-- [ ] Config → tab Equipo: horario individual por profesional
+- [x] Entidad HorarioProfesional (user_id, clinica_id, horarios jsonb) — backend creado
+- [x] Config → tab Equipo: horario individual por profesional — frontend creado
 - [ ] Agente Zoe usa horarios por profesional
 
 ### Reportes Avanzados

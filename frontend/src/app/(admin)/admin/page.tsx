@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
       sub: `${kpis.subscripciones.activas} suscripciones`,
       change: "Ingresos recurrentes",
       changePositive: true,
-      gradient: "from-blue-500 to-indigo-600",
+      gradient: "from-blue-500 to-[#1b3553]",
       bgGlow: "bg-blue-500/10",
       icon: (
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -102,8 +102,8 @@ export default function AdminDashboardPage() {
       sub: `de ${kpis.clinicas.total} totales`,
       change: `${kpis.clinicas.inactivas} inactivas`,
       changePositive: kpis.clinicas.inactivas === 0,
-      gradient: "from-violet-500 to-purple-600",
-      bgGlow: "bg-violet-500/10",
+      gradient: "from-[#7cd1c4] to-[#4aa89b]",
+      bgGlow: "bg-[#7cd1c4]/10",
       icon: (
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /><path d="m14 7 3 3" /><path d="M5 6v4" /><path d="M19 14v4" /><path d="M10 2v2" /><path d="M7 8H3" /><path d="M21 16h-4" /><path d="M11 3H9" />
@@ -201,7 +201,7 @@ export default function AdminDashboardPage() {
                 <path d="M3 3v18h18" /><path d="M7 16v-3" /><path d="M12 16V9" /><path d="M17 16v-5" />
               </svg>
               <p className="text-sm">No hay datos todavia</p>
-              <Link href="/admin/planes" className="text-xs text-indigo-500 hover:underline mt-1">
+              <Link href="/admin/planes" className="text-xs text-[#1b3553] hover:underline mt-1">
                 Crear primer plan
               </Link>
             </div>
@@ -298,7 +298,7 @@ export default function AdminDashboardPage() {
             </div>
             <Link
               href="/admin/planes"
-              className="text-xs font-medium text-indigo-500 hover:text-indigo-400 transition-colors"
+              className="text-xs font-medium text-[#1b3553] hover:text-[#2a4f73] transition-colors"
             >
               Ver todos →
             </Link>
@@ -308,7 +308,7 @@ export default function AdminDashboardPage() {
               <p className="text-sm text-muted-foreground mb-2">No hay planes creados</p>
               <Link
                 href="/admin/planes"
-                className="inline-flex items-center rounded-lg bg-indigo-500 px-4 py-2 text-xs font-medium text-white hover:bg-indigo-600 transition-colors"
+                className="inline-flex items-center rounded-lg bg-[#1b3553] px-4 py-2 text-xs font-medium text-white hover:bg-[#1b3553] transition-colors"
               >
                 + Crear Plan
               </Link>
@@ -321,8 +321,8 @@ export default function AdminDashboardPage() {
                   className="flex items-center justify-between rounded-xl border p-4 hover:bg-muted/30 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-indigo-500/10">
-                      <CrownSmIcon className="h-5 w-5 text-indigo-500" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1b3553]/10">
+                      <CrownSmIcon className="h-5 w-5 text-[#1b3553]" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold">{plan.nombre}</p>
@@ -332,7 +332,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <p className="text-lg font-bold">
-                    <span className="text-indigo-500">
+                    <span className="text-[#1b3553]">
                       ${Number(plan.precio_mensual).toLocaleString("es-AR")}
                     </span>
                     <span className="text-xs font-normal text-muted-foreground">/mes</span>

@@ -35,8 +35,8 @@ export class AdminPlansController {
   }
 
   @Delete(':id')
-  deactivate(@Param('id') id: string) {
-    return this.plansService.deactivate(id);
+  remove(@Param('id') id: string) {
+    return this.plansService.remove(id);
   }
 
   @Get('feature-keys')
@@ -52,10 +52,14 @@ export class AdminPlansController {
       if (!existing) {
         const plan = await this.plansService.create({
           nombre: template.nombre,
+          descripcion: template.descripcion,
           precio_mensual: template.precio_mensual,
           max_usuarios: template.max_usuarios,
           max_pacientes: template.max_pacientes ?? undefined,
           features: template.features,
+          is_highlighted: template.is_highlighted,
+          is_default_trial: template.is_default_trial,
+          orden: template.orden,
           is_active: true,
         });
         results.push({ nombre: plan.nombre, action: 'created' });

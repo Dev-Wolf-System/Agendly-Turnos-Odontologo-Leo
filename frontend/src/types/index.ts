@@ -26,6 +26,10 @@ export interface Plan {
   max_usuarios: number;
   max_pacientes: number | null;
   features: Record<string, boolean>;
+  descripcion: string | null;
+  is_highlighted: boolean;
+  is_default_trial: boolean;
+  orden: number;
   is_active: boolean;
   created_at: string;
 }

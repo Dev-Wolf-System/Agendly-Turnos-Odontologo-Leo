@@ -29,6 +29,23 @@ export class CreatePlanDto {
   features?: Record<string, boolean>;
 
   @IsOptional()
+  @IsString()
+  descripcion?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  is_highlighted?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  is_default_trial?: boolean;
+
+  @IsOptional()
+  @IsNumber()
+  @Min(0)
+  orden?: number;
+
+  @IsOptional()
   @IsBoolean()
   is_active?: boolean;
 }

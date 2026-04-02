@@ -19,6 +19,10 @@ const geistMono = Geist_Mono({
 export const metadata: Metadata = {
   title: "Avax Health - CRM SaaS para Clínicas Médicas",
   description: "Sistema integral de gestión para clínicas y consultorios médicos impulsado por IA",
+  icons: {
+    icon: "/logo.png",
+    apple: "/logo.png",
+  },
 };
 
 export default function RootLayout({

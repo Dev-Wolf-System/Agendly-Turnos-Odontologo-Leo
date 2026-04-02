@@ -62,12 +62,12 @@ function getInitials(nombre: string, apellido: string): string {
 }
 
 const GRADIENT_COLORS = [
-  "from-indigo-500 to-violet-600",
+  "from-[#1b3553] to-[#5bbcad]",
   "from-emerald-500 to-teal-600",
   "from-blue-500 to-cyan-600",
   "from-rose-500 to-pink-600",
   "from-amber-500 to-orange-600",
-  "from-purple-500 to-fuchsia-600",
+  "from-[#5bbcad] to-fuchsia-600",
 ];
 
 function getGradient(id: string): string {
@@ -219,7 +219,7 @@ export default function PacientesPage() {
             {meta.total} paciente{meta.total !== 1 ? "s" : ""} registrado{meta.total !== 1 ? "s" : ""}
           </p>
         </div>
-        <Button onClick={openCreate} className="bg-gradient-to-r from-indigo-500 to-violet-600 hover:from-indigo-600 hover:to-violet-700 text-white shadow-md hover:shadow-lg transition-all">
+        <Button onClick={openCreate} className="bg-gradient-to-r from-[#1b3553] to-[#5bbcad] hover:from-[#1b3553] hover:to-[#4aa89b] text-white shadow-md hover:shadow-lg transition-all">
           <UserPlus className="h-4 w-4 mr-2" />
           Nuevo Paciente
         </Button>
@@ -300,8 +300,8 @@ export default function PacientesPage() {
         </div>
       ) : pacientes.length === 0 ? (
         <div className="flex flex-col items-center justify-center py-20 text-muted-foreground rounded-2xl border bg-card">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500/10 to-violet-500/10 mb-4">
-            <Users className="h-8 w-8 text-indigo-500" />
+          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1b3553]/10 to-[#7cd1c4]/10 mb-4">
+            <Users className="h-8 w-8 text-[#1b3553]" />
           </div>
           <p className="text-lg font-medium text-foreground">No se encontraron pacientes</p>
           <p className="text-sm mt-1">
@@ -375,7 +375,7 @@ export default function PacientesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex-1 h-8 text-xs text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40"
+                    className="flex-1 h-8 text-xs text-[#5bbcad] hover:text-[#4aa89b] hover:bg-[#f0faf8] dark:hover:bg-[#1a5c52]/40"
                     onClick={() => router.push(`/dashboard/pacientes/${paciente.id}`)}
                   >
                     <Eye className="h-3.5 w-3.5 mr-1" />
@@ -440,7 +440,7 @@ export default function PacientesPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-violet-600 hover:text-violet-700 hover:bg-violet-50 dark:hover:bg-violet-950/40 transition-all hover:scale-110"
+                  className="h-8 w-8 text-[#5bbcad] hover:text-[#4aa89b] hover:bg-[#f0faf8] dark:hover:bg-[#1a5c52]/40 transition-all hover:scale-110"
                   onClick={() => router.push(`/dashboard/pacientes/${paciente.id}`)}
                   title="Ver ficha"
                 >

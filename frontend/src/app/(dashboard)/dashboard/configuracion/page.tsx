@@ -12,6 +12,9 @@ import tratamientosService, {
   CreateTratamientoPayload,
 } from "@/services/tratamientos.service";
 import usersService from "@/services/users.service";
+import horariosProfesionalService, {
+  HorarioProfesional,
+} from "@/services/horarios-profesional.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -167,7 +170,7 @@ const LOGOS_ESPECIALIDAD: Record<string, { label: string; svg: (size: number) =>
   },
   psicologia: {
     label: "Psicología",
-    bg: "bg-purple-100 dark:bg-purple-900/50",
+    bg: "bg-teal-100 dark:bg-teal-900/50",
     svg: (s) => (
       <svg width={s} height={s} viewBox="0 0 64 64" fill="none" xmlns="http://www.w3.org/2000/svg">
         <path d="M32 8C20 8 12 18 12 28c0 6 3 12 8 16v12h24V44c5-4 8-10 8-16C52 18 44 8 32 8z" fill="#A855F7" stroke="#9333EA" strokeWidth="2" />
@@ -271,12 +274,12 @@ function ConfiguracionContent() {
       </div>
 
       {/* Tabs */}
-      <div className="flex gap-1 rounded-lg bg-muted p-1 overflow-x-auto scrollbar-none">
+      <div className="flex gap-0.5 sm:gap-1 rounded-lg bg-muted p-1 overflow-x-auto scrollbar-none">
         {tabs.map((tab) => (
           <button
             key={tab.key}
             onClick={() => setActiveTab(tab.key)}
-            className={`flex items-center gap-2 rounded-md px-3 py-2 text-sm font-medium transition-colors whitespace-nowrap shrink-0 ${activeTab === tab.key
+            className={`flex items-center justify-center gap-1.5 rounded-md px-2 py-1.5 sm:px-3 sm:py-2 text-xs sm:text-sm font-medium transition-colors whitespace-nowrap shrink-0 min-w-[36px] sm:min-w-0 ${activeTab === tab.key
               ? "bg-background text-foreground shadow-sm"
               : "text-muted-foreground hover:text-foreground"
               }`}
@@ -292,7 +295,7 @@ function ConfiguracionContent() {
         <TabClinica clinica={clinica} onUpdate={loadData} />
       )}
       {activeTab === "horarios" && (
-        <TabHorarios clinica={clinica} onUpdate={loadData} />
+        <TabHorarios clinica={clinica} users={users} onUpdate={loadData} />
       )}
       {activeTab === "tratamientos" && (
         <TabTratamientos
@@ -631,11 +634,89 @@ function migrateHorarios(raw: any): Record<string, HorarioDia> {
   return result;
 }
 
-function TabHorarios({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => void }) {
+function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: User[]; onUpdate: () => void }) {
   const [horarios, setHorarios] = useState<Record<string, HorarioDia>>(
     () => migrateHorarios(clinica.horarios),
   );
   const [isSaving, setIsSaving] = useState(false);
+
+  // ── Horarios por profesional ──
+  const professionals = users.filter((u) => u.role === "professional");
+  const [horariosProf, setHorariosProf] = useState<HorarioProfesional[]>([]);
+  const [selectedProfId, setSelectedProfId] = useState<string>("");
+  const [profHorarios, setProfHorarios] = useState<Record<string, HorarioDia> | null>(null);
+  const [isSavingProf, setIsSavingProf] = useState(false);
+  const [isLoadingProf, setIsLoadingProf] = useState(false);
+
+  const loadHorariosProf = useCallback(async () => {
+    try {
+      const data = await horariosProfesionalService.getAll();
+      setHorariosProf(data);
+    } catch {
+      // silencio si aún no hay datos
+    }
+  }, []);
+
+  useEffect(() => {
+    loadHorariosProf();
+  }, [loadHorariosProf]);
+
+  const handleSelectProf = async (userId: string) => {
+    setSelectedProfId(userId);
+    if (!userId) {
+      setProfHorarios(null);
+      return;
+    }
+    setIsLoadingProf(true);
+    try {
+      const existing = await horariosProfesionalService.getByUser(userId);
+      setProfHorarios(existing ? migrateHorarios(existing.horarios) : migrateHorarios(clinica.horarios));
+    } catch {
+      setProfHorarios(migrateHorarios(clinica.horarios));
+    } finally {
+      setIsLoadingProf(false);
+    }
+  };
+
+  const updateProfTurno = (dia: string, turno: "manana" | "tarde", field: string, value: string | boolean) => {
+    setProfHorarios((prev) => {
+      if (!prev) return prev;
+      return {
+        ...prev,
+        [dia]: {
+          ...prev[dia],
+          [turno]: { ...prev[dia][turno], [field]: value },
+        },
+      };
+    });
+  };
+
+  const handleSaveProf = async () => {
+    if (!selectedProfId || !profHorarios) return;
+    setIsSavingProf(true);
+    try {
+      await horariosProfesionalService.upsert({ user_id: selectedProfId, horarios: profHorarios });
+      toast.success("Horarios del profesional actualizados");
+      loadHorariosProf();
+    } catch {
+      toast.error("Error al guardar horarios del profesional");
+    } finally {
+      setIsSavingProf(false);
+    }
+  };
+
+  const handleRemoveProf = async () => {
+    if (!selectedProfId) return;
+    try {
+      await horariosProfesionalService.remove(selectedProfId);
+      toast.success("Horario personalizado eliminado — usará el de la clínica");
+      setProfHorarios(null);
+      setSelectedProfId("");
+      loadHorariosProf();
+    } catch {
+      toast.error("Error al eliminar horario del profesional");
+    }
+  };
 
   const updateTurno = (dia: string, turno: "manana" | "tarde", field: string, value: string | boolean) => {
     setHorarios((prev) => ({
@@ -662,102 +743,224 @@ function TabHorarios({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
 
   const isDiaActivo = (dia: HorarioDia) => dia.manana.activo || dia.tarde.activo;
 
+  const profHasCustom = (userId: string) => horariosProf.some((h) => h.user_id === userId);
+
   return (
-    <Card>
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div>
-            <CardTitle className="flex items-center gap-2">
-              <Clock className="h-5 w-5" />
-              Horarios de Atención
-            </CardTitle>
-            <CardDescription>Configurá turnos de mañana y tarde para cada día</CardDescription>
+    <div className="space-y-6">
+      {/* ── Horarios de la clínica ── */}
+      <Card>
+        <CardHeader>
+          <div className="flex items-center justify-between">
+            <div>
+              <CardTitle className="flex items-center gap-2">
+                <Clock className="h-5 w-5" />
+                Horarios de Atención
+              </CardTitle>
+              <CardDescription>Configurá turnos de mañana y tarde para cada día</CardDescription>
+            </div>
+            <Button onClick={handleSave} disabled={isSaving} className="gap-2">
+              <Save className="h-4 w-4" />
+              {isSaving ? "Guardando..." : "Guardar Horarios"}
+            </Button>
           </div>
-          <Button onClick={handleSave} disabled={isSaving} className="gap-2">
-            <Save className="h-4 w-4" />
-            {isSaving ? "Guardando..." : "Guardar Horarios"}
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="space-y-3">
-          {DIAS_SEMANA.map(({ key, label }) => {
-            const dia = horarios[key] || DEFAULT_HORARIOS[key];
-            const activo = isDiaActivo(dia);
-            return (
-              <div
-                key={key}
-                className={`rounded-lg border p-4 transition-colors ${activo ? "bg-background" : "bg-muted/50 opacity-60"
-                  }`}
-              >
-                <div className="flex items-center gap-3 mb-3">
-                  <span className="font-medium text-sm w-28">{label}</span>
-                  {!activo && (
-                    <span className="text-xs text-muted-foreground italic">Cerrado</span>
-                  )}
-                </div>
-                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
-                  {/* Mañana */}
-                  <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.manana.activo ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800" : "bg-muted/30"}`}>
-                    <Switch
-                      checked={dia.manana.activo}
-                      onCheckedChange={(v) => updateTurno(key, "manana", "activo", v)}
-                    />
-                    <span className="text-xs font-medium w-16 shrink-0">Mañana</span>
-                    {dia.manana.activo ? (
-                      <div className="flex items-center gap-1.5">
-                        <Input
-                          type="time"
-                          value={dia.manana.apertura}
-                          onChange={(e) => updateTurno(key, "manana", "apertura", e.target.value)}
-                          className="w-28 h-8 text-xs"
-                        />
-                        <span className="text-muted-foreground text-xs">—</span>
-                        <Input
-                          type="time"
-                          value={dia.manana.cierre}
-                          onChange={(e) => updateTurno(key, "manana", "cierre", e.target.value)}
-                          className="w-28 h-8 text-xs"
-                        />
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground italic">—</span>
+        </CardHeader>
+        <CardContent>
+          <div className="space-y-3">
+            {DIAS_SEMANA.map(({ key, label }) => {
+              const dia = horarios[key] || DEFAULT_HORARIOS[key];
+              const activo = isDiaActivo(dia);
+              return (
+                <div
+                  key={key}
+                  className={`rounded-lg border p-4 transition-colors ${activo ? "bg-background" : "bg-muted/50 opacity-60"
+                    }`}
+                >
+                  <div className="flex items-center gap-3 mb-3">
+                    <span className="font-medium text-sm w-28">{label}</span>
+                    {!activo && (
+                      <span className="text-xs text-muted-foreground italic">Cerrado</span>
                     )}
                   </div>
-                  {/* Tarde */}
-                  <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-indigo-50/50 dark:bg-indigo-950/20 border-indigo-200 dark:border-indigo-800" : "bg-muted/30"}`}>
-                    <Switch
-                      checked={dia.tarde.activo}
-                      onCheckedChange={(v) => updateTurno(key, "tarde", "activo", v)}
-                    />
-                    <span className="text-xs font-medium w-16 shrink-0">Tarde</span>
-                    {dia.tarde.activo ? (
-                      <div className="flex items-center gap-1.5">
-                        <Input
-                          type="time"
-                          value={dia.tarde.apertura}
-                          onChange={(e) => updateTurno(key, "tarde", "apertura", e.target.value)}
-                          className="w-28 h-8 text-xs"
-                        />
-                        <span className="text-muted-foreground text-xs">—</span>
-                        <Input
-                          type="time"
-                          value={dia.tarde.cierre}
-                          onChange={(e) => updateTurno(key, "tarde", "cierre", e.target.value)}
-                          className="w-28 h-8 text-xs"
-                        />
-                      </div>
-                    ) : (
-                      <span className="text-xs text-muted-foreground italic">—</span>
-                    )}
+                  <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                    {/* Mañana */}
+                    <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.manana.activo ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800" : "bg-muted/30"}`}>
+                      <Switch
+                        checked={dia.manana.activo}
+                        onCheckedChange={(v) => updateTurno(key, "manana", "activo", v)}
+                      />
+                      <span className="text-xs font-medium w-16 shrink-0">Mañana</span>
+                      {dia.manana.activo ? (
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="time"
+                            value={dia.manana.apertura}
+                            onChange={(e) => updateTurno(key, "manana", "apertura", e.target.value)}
+                            className="w-28 h-8 text-xs"
+                          />
+                          <span className="text-muted-foreground text-xs">—</span>
+                          <Input
+                            type="time"
+                            value={dia.manana.cierre}
+                            onChange={(e) => updateTurno(key, "manana", "cierre", e.target.value)}
+                            className="w-28 h-8 text-xs"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">—</span>
+                      )}
+                    </div>
+                    {/* Tarde */}
+                    <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 border-[#b0c4d8] dark:border-[#1b3553]" : "bg-muted/30"}`}>
+                      <Switch
+                        checked={dia.tarde.activo}
+                        onCheckedChange={(v) => updateTurno(key, "tarde", "activo", v)}
+                      />
+                      <span className="text-xs font-medium w-16 shrink-0">Tarde</span>
+                      {dia.tarde.activo ? (
+                        <div className="flex items-center gap-1.5">
+                          <Input
+                            type="time"
+                            value={dia.tarde.apertura}
+                            onChange={(e) => updateTurno(key, "tarde", "apertura", e.target.value)}
+                            className="w-28 h-8 text-xs"
+                          />
+                          <span className="text-muted-foreground text-xs">—</span>
+                          <Input
+                            type="time"
+                            value={dia.tarde.cierre}
+                            onChange={(e) => updateTurno(key, "tarde", "cierre", e.target.value)}
+                            className="w-28 h-8 text-xs"
+                          />
+                        </div>
+                      ) : (
+                        <span className="text-xs text-muted-foreground italic">—</span>
+                      )}
+                    </div>
                   </div>
                 </div>
+              );
+            })}
+          </div>
+        </CardContent>
+      </Card>
+
+      {/* ── Horarios por Profesional ── */}
+      {professionals.length > 0 && (
+        <Card>
+          <CardHeader>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="flex items-center gap-2">
+                  <Users className="h-5 w-5" />
+                  Horarios por Profesional
+                </CardTitle>
+                <CardDescription>
+                  Asigná horarios personalizados a cada profesional. Si no tiene horario propio, usará el de la clínica.
+                </CardDescription>
               </div>
-            );
-          })}
-        </div>
-      </CardContent>
-    </Card>
+              {selectedProfId && profHorarios && (
+                <div className="flex gap-2">
+                  {profHasCustom(selectedProfId) && (
+                    <Button variant="outline" size="sm" onClick={handleRemoveProf} className="gap-2 text-destructive hover:text-destructive">
+                      <Trash2 className="h-4 w-4" />
+                      Quitar personalizado
+                    </Button>
+                  )}
+                  <Button onClick={handleSaveProf} disabled={isSavingProf} size="sm" className="gap-2">
+                    <Save className="h-4 w-4" />
+                    {isSavingProf ? "Guardando..." : "Guardar"}
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            {/* Selector de profesional */}
+            <div className="flex flex-wrap gap-2">
+              {professionals.map((prof) => (
+                <button
+                  key={prof.id}
+                  onClick={() => handleSelectProf(prof.id)}
+                  className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
+                    selectedProfId === prof.id
+                      ? "border-[#1b3553] bg-[#1b3553]/10 text-[#1b3553] dark:text-[#2a4f73] shadow-sm"
+                      : "border-border hover:border-muted-foreground/30 hover:bg-muted"
+                  }`}
+                >
+                  <span>{prof.nombre} {prof.apellido}</span>
+                  {profHasCustom(prof.id) && (
+                    <Badge variant="secondary" className="text-[10px] px-1.5 py-0">
+                      Personalizado
+                    </Badge>
+                  )}
+                </button>
+              ))}
+            </div>
+
+            {/* Editor de horarios del profesional */}
+            {isLoadingProf && (
+              <div className="text-sm text-muted-foreground py-4 text-center">Cargando horarios...</div>
+            )}
+            {selectedProfId && profHorarios && !isLoadingProf && (
+              <div className="space-y-3">
+                <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                  <Info className="h-4 w-4" />
+                  Editando horarios de {professionals.find((p) => p.id === selectedProfId)?.nombre ?? ""}. Los cambios solo aplican a este profesional.
+                </div>
+                {DIAS_SEMANA.map(({ key, label }) => {
+                  const dia = profHorarios[key] || DEFAULT_HORARIOS[key];
+                  const activo = isDiaActivo(dia);
+                  return (
+                    <div
+                      key={key}
+                      className={`rounded-lg border p-4 transition-colors ${activo ? "bg-background" : "bg-muted/50 opacity-60"}`}
+                    >
+                      <div className="flex items-center gap-3 mb-3">
+                        <span className="font-medium text-sm w-28">{label}</span>
+                        {!activo && <span className="text-xs text-muted-foreground italic">No atiende</span>}
+                      </div>
+                      <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
+                        <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.manana.activo ? "bg-amber-50/50 dark:bg-amber-950/20 border-amber-200 dark:border-amber-800" : "bg-muted/30"}`}>
+                          <Switch checked={dia.manana.activo} onCheckedChange={(v) => updateProfTurno(key, "manana", "activo", v)} />
+                          <span className="text-xs font-medium w-16 shrink-0">Mañana</span>
+                          {dia.manana.activo ? (
+                            <div className="flex items-center gap-1.5">
+                              <Input type="time" value={dia.manana.apertura} onChange={(e) => updateProfTurno(key, "manana", "apertura", e.target.value)} className="w-28 h-8 text-xs" />
+                              <span className="text-muted-foreground text-xs">—</span>
+                              <Input type="time" value={dia.manana.cierre} onChange={(e) => updateProfTurno(key, "manana", "cierre", e.target.value)} className="w-28 h-8 text-xs" />
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">—</span>
+                          )}
+                        </div>
+                        <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 border-[#b0c4d8] dark:border-[#1b3553]" : "bg-muted/30"}`}>
+                          <Switch checked={dia.tarde.activo} onCheckedChange={(v) => updateProfTurno(key, "tarde", "activo", v)} />
+                          <span className="text-xs font-medium w-16 shrink-0">Tarde</span>
+                          {dia.tarde.activo ? (
+                            <div className="flex items-center gap-1.5">
+                              <Input type="time" value={dia.tarde.apertura} onChange={(e) => updateProfTurno(key, "tarde", "apertura", e.target.value)} className="w-28 h-8 text-xs" />
+                              <span className="text-muted-foreground text-xs">—</span>
+                              <Input type="time" value={dia.tarde.cierre} onChange={(e) => updateProfTurno(key, "tarde", "cierre", e.target.value)} className="w-28 h-8 text-xs" />
+                            </div>
+                          ) : (
+                            <span className="text-xs text-muted-foreground italic">—</span>
+                          )}
+                        </div>
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            )}
+            {!selectedProfId && (
+              <div className="text-sm text-muted-foreground py-6 text-center">
+                Seleccioná un profesional para ver o editar sus horarios
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
+    </div>
   );
 }
 
@@ -1189,7 +1392,7 @@ function TabEquipo({
   };
 
   const roleColor: Record<string, string> = {
-    admin: "bg-violet-100 text-violet-800 dark:bg-violet-900 dark:text-violet-300",
+    admin: "bg-[#e0f5f1] text-[#3a9488] dark:bg-[#2a7a6e] dark:text-[#b0e5dc]",
     professional: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
     assistant: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
   };
@@ -1232,7 +1435,7 @@ function TabEquipo({
                   key={u.id}
                   className="flex items-center gap-3 rounded-lg border p-3 group hover:shadow-sm transition-shadow"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-violet-500 to-purple-600 text-white text-sm font-bold shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#7cd1c4] to-[#4aa89b] text-white text-sm font-bold shrink-0">
                     {u.nombre.charAt(0)}{u.apellido.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1415,7 +1618,7 @@ const WEBHOOK_ESTADOS = [
     key: "recordatorio",
     label: "Recordatorio de Turno",
     description: "Se dispara automáticamente X horas antes del turno confirmado (configurable abajo)",
-    color: "bg-violet-500",
+    color: "bg-[#7cd1c4]",
   },
 ];
 
@@ -1631,7 +1834,7 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-violet-500" />
+                <Bot className="h-5 w-5 text-[#7cd1c4]" />
                 Agente IA — Asistente Virtual
               </CardTitle>
               <CardDescription>
@@ -1662,8 +1865,8 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
                 </p>
               </div>
 
-              <div className="rounded-lg border border-violet-200 dark:border-violet-800 bg-violet-50/50 dark:bg-violet-950/20 p-3">
-                <p className="text-xs text-violet-700 dark:text-violet-300 flex items-center gap-2">
+              <div className="rounded-lg border border-[#c4ebe5] dark:border-[#3a9488] bg-[#f0faf8]/50 dark:bg-[#1a5c52]/20 p-3">
+                <p className="text-xs text-[#4aa89b] dark:text-[#b0e5dc] flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 flex-shrink-0" />
                   <span>
                     El agente usa inteligencia artificial para entender las consultas de tus pacientes

@@ -61,10 +61,10 @@ export function UpgradePrompt({
     description ?? labels?.description ?? "Esta función no está incluida en tu plan actual.";
 
   return (
-    <div className="relative rounded-2xl border border-dashed border-indigo-300 dark:border-indigo-700 bg-indigo-50/50 dark:bg-indigo-950/20 p-6">
+    <div className="relative rounded-2xl border border-dashed border-[#3a6a93] dark:border-[#1f3d5e] bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 p-6">
       {/* Locked overlay */}
       <div className="flex flex-col items-center text-center space-y-4">
-        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-indigo-500 to-violet-600 text-white shadow-lg">
+        <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1b3553] to-[#5bbcad] text-white shadow-lg">
           <LockIcon className="h-6 w-6" />
         </div>
 
@@ -80,7 +80,7 @@ export function UpgradePrompt({
             // TODO: abrir modal de upgrade o redirigir a página de planes
             window.alert("Contactá al administrador para actualizar tu plan.");
           }}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-indigo-500 to-violet-600 px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-indigo-500/25 hover:shadow-xl hover:shadow-indigo-500/30 transition-all duration-300 hover:-translate-y-0.5"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-6 py-2.5 text-sm font-semibold text-white shadow-lg shadow-[#1b3553]/25 hover:shadow-xl hover:shadow-[#1b3553]/30 transition-all duration-300 hover:-translate-y-0.5"
         >
           <CrownIcon className="h-4 w-4" />
           Mejorar Plan

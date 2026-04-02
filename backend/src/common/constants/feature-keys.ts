@@ -19,47 +19,71 @@ export const FEATURES = {
 
 export type FeatureKey = (typeof FEATURES)[keyof typeof FEATURES];
 
+/** Labels legibles para cada feature (para mostrar en landing / admin) */
+export const FEATURE_LABELS: Record<string, string> = {
+  whatsapp_agent: 'WhatsApp + IA',
+  whatsapp_reminders: 'Recordatorios WhatsApp',
+  multi_consultorio: 'Multi-Consultorio',
+  advanced_reports: 'Reportes Avanzados',
+  csv_export: 'Exportación CSV',
+  custom_branding: 'Branding Personalizado',
+  api_access: 'Acceso API',
+  audit_logs: 'Registro de Auditoría',
+  priority_support: 'Soporte Prioritario',
+  inventario: 'Inventario',
+  pagos: 'Gestión de Pagos',
+  proveedores: 'Proveedores',
+};
+
+const ALL_FALSE: Record<string, boolean> = {
+  whatsapp_agent: false,
+  whatsapp_reminders: false,
+  multi_consultorio: false,
+  advanced_reports: false,
+  csv_export: false,
+  custom_branding: false,
+  api_access: false,
+  audit_logs: false,
+  priority_support: false,
+  inventario: false,
+  pagos: false,
+  proveedores: false,
+};
+
 /**
- * Estructura de los 4 planes Avax Health con sus features.
+ * 5 planes Avax Health: Trial (gratis) + 4 pagos.
  * Referencia para seed/migración de datos.
- *
- * Avax Consultorio Standard:
- *   - Básico: turnos, pacientes, historial
- *   - inventario, pagos, proveedores
- *   - whatsapp_reminders, csv_export
- *   - max_usuarios: 3, max_pacientes: 500
- *
- * Avax Consultorio Plus IA:
- *   - Todo lo de Standard +
- *   - whatsapp_agent, advanced_reports, custom_branding, audit_logs
- *   - max_usuarios: 5, max_pacientes: 2000
- *
- * Avax Clinica Standard:
- *   - Todo lo de Consultorio Plus IA +
- *   - multi_consultorio, api_access
- *   - max_usuarios: 15, max_pacientes: null (ilimitado)
- *
- * Avax Clinica Plus IA:
- *   - Todas las features habilitadas +
- *   - priority_support
- *   - max_usuarios: 50, max_pacientes: null (ilimitado)
  */
 export const PLAN_TEMPLATES = {
+  TRIAL: {
+    nombre: 'Trial Gratuito',
+    descripcion: 'Probá Avax Health gratis durante 14 días con funciones básicas.',
+    precio_mensual: 0,
+    max_usuarios: 2,
+    max_pacientes: 50,
+    is_highlighted: false,
+    is_default_trial: true,
+    orden: 0,
+    features: {
+      ...ALL_FALSE,
+      csv_export: true,
+      inventario: true,
+      pagos: true,
+    },
+  },
   CONSULTORIO_STANDARD: {
     nombre: 'Avax Consultorio Standard',
+    descripcion: 'Ideal para consultorios pequeños que buscan digitalizar su gestión.',
     precio_mensual: 4990,
     max_usuarios: 3,
     max_pacientes: 500,
+    is_highlighted: false,
+    is_default_trial: false,
+    orden: 1,
     features: {
-      whatsapp_agent: false,
+      ...ALL_FALSE,
       whatsapp_reminders: true,
-      multi_consultorio: false,
-      advanced_reports: false,
       csv_export: true,
-      custom_branding: false,
-      api_access: false,
-      audit_logs: false,
-      priority_support: false,
       inventario: true,
       pagos: true,
       proveedores: true,
@@ -67,19 +91,21 @@ export const PLAN_TEMPLATES = {
   },
   CONSULTORIO_PLUS_IA: {
     nombre: 'Avax Consultorio Plus IA',
+    descripcion: 'Potenciá tu consultorio con inteligencia artificial y automatizaciones.',
     precio_mensual: 9990,
     max_usuarios: 5,
     max_pacientes: 2000,
+    is_highlighted: false,
+    is_default_trial: false,
+    orden: 2,
     features: {
+      ...ALL_FALSE,
       whatsapp_agent: true,
       whatsapp_reminders: true,
-      multi_consultorio: false,
       advanced_reports: true,
       csv_export: true,
       custom_branding: true,
-      api_access: false,
       audit_logs: true,
-      priority_support: false,
       inventario: true,
       pagos: true,
       proveedores: true,
@@ -87,10 +113,15 @@ export const PLAN_TEMPLATES = {
   },
   CLINICA_STANDARD: {
     nombre: 'Avax Clinica Standard',
+    descripcion: 'Para clínicas con múltiples profesionales que necesitan escalar.',
     precio_mensual: 19990,
     max_usuarios: 15,
     max_pacientes: null,
+    is_highlighted: true,
+    is_default_trial: false,
+    orden: 3,
     features: {
+      ...ALL_FALSE,
       whatsapp_agent: true,
       whatsapp_reminders: true,
       multi_consultorio: true,
@@ -99,7 +130,6 @@ export const PLAN_TEMPLATES = {
       custom_branding: true,
       api_access: true,
       audit_logs: true,
-      priority_support: false,
       inventario: true,
       pagos: true,
       proveedores: true,
@@ -107,9 +137,13 @@ export const PLAN_TEMPLATES = {
   },
   CLINICA_PLUS_IA: {
     nombre: 'Avax Clinica Plus IA',
+    descripcion: 'La experiencia completa: todas las funciones, soporte prioritario y sin límites.',
     precio_mensual: 34990,
     max_usuarios: 50,
     max_pacientes: null,
+    is_highlighted: false,
+    is_default_trial: false,
+    orden: 4,
     features: {
       whatsapp_agent: true,
       whatsapp_reminders: true,

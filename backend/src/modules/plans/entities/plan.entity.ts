@@ -19,6 +19,18 @@ export class Plan extends BaseEntity {
   @Column({ type: 'jsonb', default: {} })
   features: Record<string, boolean>;
 
+  @Column({ type: 'text', nullable: true })
+  descripcion: string;
+
+  @Column({ type: 'boolean', default: false })
+  is_highlighted: boolean;
+
+  @Column({ type: 'boolean', default: false })
+  is_default_trial: boolean;
+
+  @Column({ type: 'int', default: 0 })
+  orden: number;
+
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 

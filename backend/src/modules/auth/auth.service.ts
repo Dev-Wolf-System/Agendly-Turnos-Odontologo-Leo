@@ -14,6 +14,8 @@ import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
 import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { UserRole } from '../../common/enums';
+import { PlansService } from '../plans/plans.service';
+import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 
 @Injectable()
 export class AuthService {
@@ -24,6 +26,8 @@ export class AuthService {
     private readonly clinicaRepository: Repository<Clinica>,
     private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
+    private readonly plansService: PlansService,
+    private readonly subscriptionsService: SubscriptionsService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -54,11 +58,22 @@ export class AuthService {
     });
     const savedUser = await this.userRepository.save(user);
 
+    // Auto-asignar trial subscription
+    let subscription = null;
+    const trialPlan = await this.plansService.findDefaultTrial();
+    if (trialPlan) {
+      subscription = await this.subscriptionsService.createTrialForClinica(
+        savedClinica.id,
+        trialPlan.id,
+      );
+    }
+
     const tokens = await this.generateTokens(savedUser);
 
     return {
       user: this.sanitizeUser(savedUser),
       clinica: savedClinica,
+      subscription,
       ...tokens,
     };
   }

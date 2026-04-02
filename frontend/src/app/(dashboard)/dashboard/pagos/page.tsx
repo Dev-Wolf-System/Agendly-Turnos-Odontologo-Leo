@@ -104,7 +104,7 @@ const METHOD_CONFIG: Record<
   transferencia: {
     label: "Transferencia",
     icon: ArrowRightLeft,
-    color: "text-violet-600",
+    color: "text-[#5bbcad]",
     chartColor: "#8b5cf6",
   },
   tarjeta: {
