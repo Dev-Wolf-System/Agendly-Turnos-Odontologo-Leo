@@ -3,6 +3,8 @@ import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, LessThan } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Subscription } from './entities/subscription.entity';
+import { User } from '../users/entities/user.entity';
+import { Paciente } from '../pacientes/entities/paciente.entity';
 import { EstadoSubscription } from '../../common/enums';
 
 @Injectable()
@@ -10,6 +12,10 @@ export class SubscriptionsService {
   constructor(
     @InjectRepository(Subscription)
     private readonly subscriptionRepository: Repository<Subscription>,
+    @InjectRepository(User)
+    private readonly userRepository: Repository<User>,
+    @InjectRepository(Paciente)
+    private readonly pacienteRepository: Repository<Paciente>,
   ) {}
 
   async findAll(): Promise<Subscription[]> {
@@ -66,6 +72,25 @@ export class SubscriptionsService {
       fecha_fin: trialEnd,
       trial_ends_at: trialEnd,
     });
+  }
+
+  async getUsage(clinicaId: string) {
+    const sub = await this.findByClinica(clinicaId);
+    const [currentUsuarios, currentPacientes] = await Promise.all([
+      this.userRepository.count({ where: { clinica_id: clinicaId } }),
+      this.pacienteRepository.count({ where: { clinica_id: clinicaId } }),
+    ]);
+
+    return {
+      plan: sub?.plan ?? null,
+      estado: sub?.estado ?? null,
+      maxUsuarios: sub?.plan?.max_usuarios ?? 0,
+      maxPacientes: sub?.plan?.max_pacientes ?? null,
+      currentUsuarios,
+      currentPacientes,
+      canAddUsuario: sub?.plan?.max_usuarios ? currentUsuarios < sub.plan.max_usuarios : true,
+      canAddPaciente: sub?.plan?.max_pacientes ? currentPacientes < sub.plan.max_pacientes : true,
+    };
   }
 
   /**

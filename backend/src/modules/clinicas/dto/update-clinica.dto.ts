@@ -1,4 +1,4 @@
-import { IsOptional, IsString, IsNumber, IsObject, Min } from 'class-validator';
+import { IsOptional, IsString, IsNumber, IsObject, IsBoolean, Min } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { normalizePhone } from '../../../common/utils/normalize-phone';
 
@@ -80,4 +80,8 @@ export class UpdateClinicaDto {
   @IsOptional()
   @IsObject()
   kpi_visibility?: Record<string, Record<string, boolean>>;
+
+  @IsOptional()
+  @IsBoolean()
+  onboarding_completado?: boolean;
 }

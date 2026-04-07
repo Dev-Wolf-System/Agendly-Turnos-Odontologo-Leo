@@ -15,6 +15,7 @@ export const FEATURES = {
   INVENTARIO: 'inventario',
   PAGOS: 'pagos',
   PROVEEDORES: 'proveedores',
+  MULTI_SUCURSAL: 'multi_sucursal',
 } as const;
 
 export type FeatureKey = (typeof FEATURES)[keyof typeof FEATURES];
@@ -33,6 +34,7 @@ export const FEATURE_LABELS: Record<string, string> = {
   inventario: 'Inventario',
   pagos: 'Gestión de Pagos',
   proveedores: 'Proveedores',
+  multi_sucursal: 'Multi-Sucursal',
 };
 
 const ALL_FALSE: Record<string, boolean> = {
@@ -48,6 +50,7 @@ const ALL_FALSE: Record<string, boolean> = {
   inventario: false,
   pagos: false,
   proveedores: false,
+  multi_sucursal: false,
 };
 
 /**
@@ -141,6 +144,7 @@ export const PLAN_TEMPLATES = {
     precio_mensual: 34990,
     max_usuarios: 50,
     max_pacientes: null,
+    max_sucursales: null,
     is_highlighted: false,
     is_default_trial: false,
     orden: 4,
@@ -157,6 +161,33 @@ export const PLAN_TEMPLATES = {
       inventario: true,
       pagos: true,
       proveedores: true,
+      multi_sucursal: false,
+    },
+  },
+  CLINICA_PRO_IA: {
+    nombre: 'Avax Clinica Pro IA',
+    descripcion: 'Administrá múltiples clínicas y sucursales desde un solo lugar. Para redes de salud y grupos médicos.',
+    precio_mensual: 59990,
+    max_usuarios: 200,
+    max_pacientes: null,
+    max_sucursales: 10,
+    is_highlighted: true,
+    is_default_trial: false,
+    orden: 5,
+    features: {
+      whatsapp_agent: true,
+      whatsapp_reminders: true,
+      multi_consultorio: true,
+      advanced_reports: true,
+      csv_export: true,
+      custom_branding: true,
+      api_access: true,
+      audit_logs: true,
+      priority_support: true,
+      inventario: true,
+      pagos: true,
+      proveedores: true,
+      multi_sucursal: true,
     },
   },
 };

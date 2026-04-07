@@ -17,6 +17,10 @@ export class RegisterDto {
   clinica_cel?: string;
 
   @IsString()
+  @IsOptional()
+  especialidad?: string;
+
+  @IsString()
   @IsNotEmpty()
   nombre: string;
 

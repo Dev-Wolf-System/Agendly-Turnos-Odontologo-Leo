@@ -10,4 +10,9 @@ export class SubscriptionsController {
   findMiSuscripcion(@CurrentClinica() clinicaId: string) {
     return this.subscriptionsService.findByClinica(clinicaId);
   }
+
+  @Get('usage')
+  getUsage(@CurrentClinica() clinicaId: string) {
+    return this.subscriptionsService.getUsage(clinicaId);
+  }
 }

@@ -225,7 +225,7 @@ function ProveedoresContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -245,7 +245,7 @@ function ProveedoresContent() {
         <Card className="shrink-0">
           <CardContent className="flex items-center gap-3 py-3 px-4">
             <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#e0f5f1] dark:bg-[#2a7a6e]/40">
-              <Building2 className="h-5 w-5 text-[#5bbcad] dark:text-[#9dddd3]" />
+              <Building2 className="h-5 w-5 text-[var(--ht-accent)] dark:text-[#9dddd3]" />
             </div>
             <div>
               <p className="text-2xl font-bold leading-none">{meta.total}</p>
@@ -318,7 +318,7 @@ function ProveedoresContent() {
         <Card>
           <CardContent className="pt-6">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
                 <Building2 className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold">
@@ -348,7 +348,7 @@ function ProveedoresContent() {
                 <CardContent className="py-5">
                   <div className="flex items-start gap-3">
                     {/* Avatar */}
-                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[#7cd1c4] to-[#4aa89b] text-white text-sm font-bold shrink-0">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary-light)] to-[#4aa89b] text-white text-sm font-bold shrink-0">
                       {prov.nombre.charAt(0).toUpperCase()}
                     </div>
                     <div className="flex-1 min-w-0">

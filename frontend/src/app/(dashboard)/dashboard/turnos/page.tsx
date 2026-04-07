@@ -68,22 +68,8 @@ import type { Pago } from "@/services/pagos.service";
 import { WeekCalendar } from "@/components/calendar/WeekCalendar";
 import { DayCalendar } from "@/components/calendar/DayCalendar";
 import { getWeekDays, toDateString } from "@/lib/calendar-utils";
-
-const estadoColors: Record<EstadoTurno, string> = {
-  pendiente: "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  confirmado: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
-  completado: "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  cancelado: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-  perdido: "bg-orange-100 text-orange-800 dark:bg-orange-900 dark:text-orange-300",
-};
-
-const estadoLabels: Record<EstadoTurno, string> = {
-  pendiente: "Pendiente",
-  confirmado: "Confirmado",
-  completado: "Completado",
-  cancelado: "Cancelado",
-  perdido: "Perdido",
-};
+import { StatusBadge } from "@/components/ui/status-badge";
+import { STATUS_COLORS, ESTADO_TURNO_LABELS } from "@/lib/constants";
 
 function formatTime(dateStr: string) {
   return new Date(dateStr).toLocaleTimeString("es-AR", {
@@ -300,7 +286,7 @@ export default function TurnosPage() {
             ? `${conflict.paciente.nombre} ${conflict.paciente.apellido}`
             : "otro paciente";
           setOverlapWarning(
-            `Este odontólogo ya tiene un turno con ${pacName} de ${formatTime(conflict.start_time)} a ${formatTime(conflict.end_time)} (${estadoLabels[conflict.estado]})`,
+            `Este odontólogo ya tiene un turno con ${pacName} de ${formatTime(conflict.start_time)} a ${formatTime(conflict.end_time)} (${ESTADO_TURNO_LABELS[conflict.estado] || conflict.estado})`,
           );
         }
       } catch {
@@ -522,7 +508,7 @@ export default function TurnosPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Turnos</h1>
@@ -538,7 +524,7 @@ export default function TurnosPage() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -551,7 +537,7 @@ export default function TurnosPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -564,7 +550,7 @@ export default function TurnosPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -577,7 +563,7 @@ export default function TurnosPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -590,7 +576,7 @@ export default function TurnosPage() {
             </div>
           </CardContent>
         </Card>
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -761,13 +747,11 @@ export default function TurnosPage() {
                         {getTratamientoLabel(turno.tipo_tratamiento)}
                       </TableCell>
                       <TableCell>
-                        <button type="button" onClick={() => openStatusChange(turno)}>
-                          <Badge
-                            className={`${estadoColors[turno.estado]} cursor-pointer hover:opacity-80 transition-opacity`}
-                          >
-                            {estadoLabels[turno.estado]}
-                          </Badge>
-                        </button>
+                        <StatusBadge
+                          status={turno.estado}
+                          label={ESTADO_TURNO_LABELS[turno.estado]}
+                          onClick={() => openStatusChange(turno)}
+                        />
                       </TableCell>
                       <TableCell>
                         {turno.source === "whatsapp" ? (

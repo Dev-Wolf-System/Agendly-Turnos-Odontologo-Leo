@@ -266,7 +266,7 @@ function InventarioContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -283,7 +283,7 @@ function InventarioContent() {
 
       {/* KPIs */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -298,7 +298,7 @@ function InventarioContent() {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -313,7 +313,7 @@ function InventarioContent() {
           </CardContent>
         </Card>
 
-        <Card className={`relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20 ${stats.low > 0 ? "ring-2 ring-red-200 dark:ring-red-800" : ""}`}>
+        <Card className={`relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20 ${stats.low > 0 ? "ring-2 ring-red-200 dark:ring-red-800" : ""}`}>
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -402,7 +402,7 @@ function InventarioContent() {
             <TableSkeleton rows={5} cols={7} />
           ) : filteredItems.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-14 w-14 items-center justify-center rounded-2xl bg-muted mb-4">
+              <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-muted mb-4">
                 <Package className="h-7 w-7 text-muted-foreground" />
               </div>
               <p className="font-medium">

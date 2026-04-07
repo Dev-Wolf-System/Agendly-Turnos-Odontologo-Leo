@@ -6,7 +6,9 @@ Para Clonar Repositorio (debe estar en publico):
   git clone https://github.com/Dev-Wolf-System/Agendly-Turnos-Odontologo-Leo.git avax-health
   cd avax-health
 
-Si el repo es privado, usá un token: git clone https://TOKEN@github.com/TU_USUARIO/Agendly-Turnos-Odontologo-Leo.git avax-health
+Si el repo es privado, usá un token:
+
+git clone   https://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@github.com/Dev-Wolf-System/Agendly-Turnos-Odontologo-Leo.git avax-health
 
 Ahora Deploy:  cd /root/avax-health
   docker compose -f docker-compose.prod.yml up -d --build
@@ -236,5 +238,124 @@ Revicion 2:
 
 Revisar 3: 
 
-1- Los planes predefinidos no aparecen en el panel de admin de servicio. Solo aparece la opcion de crear uno nuevo. tambien deberia aparecer la opcion de editar los planes predefinidos.
+1- En el panel de admin de Clinica/Consultorio, seccion dashboard principal: se muestan 6 kpis juntos, esto hace que la visual
+n sea muy clara, hacerlos en 2 filas de 3 o ajustar la separacion paraque esten mas comodos y se vean mejor. Tu decides. 
+2- En la seccion de configuracion > Dashboard (Tambien agregar para configuar los kpi y los graficos que se
+muestran en el panel de admin de clinica/Consultorio) que tenga la posibilidad de poder agregar todos si quisiera,
+lo mismo para las demas categoria, dejar por defecto los que ahora tienen y agregar las opciones faltante de Kpis.
+3- resolver este error esporadio que aveces aparece:
 
+  70 | export async function deleteAdminPlan(id: string): Promise<void> {
+> 71 |   await api.delete(`/admin/plans/${id}`);
+     |   ^
+  72 | }
+  73 |
+  74 | export async function seedAdminPlans(): Promise<Plan[]> {
+
+4- Landing Page: A la hora del registro o la suscripcion de los planes de "Avax Consultorio" agregar la opcion de elegir la rama
+poder definir la (especialidad), para que automaticamente defina el logo preestablecido por cada especialidad
+que ya tenemos definida.
+5- Landing Page: Agregar un Nuevo Plan que seria "Avax Clinica Pro IA" la idea de este plan es que pueda administrar varias
+clinicas y los consultorios de estas clinicas. Este plan seria para clinicas grandes o que tengan varias clinicas y estas clinicas
+tengan varios consultorios con varios profecionales y multiples especialidades.
+6- Panel de admin del sistema: De la mano con el punto 5, tendremos que crear una seccion en el panel de "admin de clinicas" llamadas sucursales
+donde ahi dentro podamos administrar las clinicas/sucursales que pertenezcan a la misma "clinica" o "mismo dueño",
+y que el admin de la "clinica" (mismo dueño) pueda ver todo sobre sus clinicas/sucursales, consultorios,
+profecionales, especialidades, pacientes, turnos, finanzas, etc. Todo debe quedar muy bien integrado de manera
+muy profecional y de alto nivel como venimos trabajando, manteniendo la estetica del sistema, usa tu creatividad y expertis
+para que quede de manera muy atractiva y de alto nivel, aclaracion: esto solo debe ser visible cuando el plan sea
+"Avax Clinica Pro IA" y no debe afectar a los demas planes.
+7- Lading Page: Cuando muestren los planes disponibles usar algo como carousel para evitar motrar uno abajo del otro diseño premium
+del carousel, el diseño de las tarjetas se mantiene.
+8- Lading Page: Mejorar el diseño del inicio de manera que quede de alto nivel mas completo y que destaque, que quede a nivel startUp
+dejando atras a la competencia. Si es posible genera y diseña imagenes de de gran nivel e impacto visual.
+9- Lading Page: Cuando muestran los planes disponibles, el boton de Empezar trial gratuito deberia ser algo asi como "Contactame"
+o "Mas Info" para un contacto con el equipo de venta algo asi como las paginas de primer nivel. Y en el formulario de crear
+cuenta por el momento solo deberia dejar crear la cuenta trial. ya que afuturo cuando agreguemos los metodos de pagos se saltara el trial
+e ira al plan que el cliente desee a i tambien agregarle un boton que retroceda la pagina y que no lo tiene.
+10- No vi el instructivo guiado del primer login del admin de clinica.
+11- Panel de admin del sistema: En las opciones del estado de la suscripcion existen 2 que creo que cumplen la misma funcion
+si no es asi corrigeme, Trial - Gracia. Y tambien exite Vencida - Past_due si cumplen la misma fucion solo deja 1 de cada estado, Trial y Vencida. 
+12: Panel de admin del sistema: agregar una seccion tipo propuestas o ventas o noce algo que haga refencia a los pedidos de contactos de los clientes
+que llegan desde la landing page.
+13: Panel de admin de clinicas/consultorio: Se supone que los la clinica/consultori deberia tener las limitaciones que configuro para cada plan,
+en este caso no estan cumpliendo con las limitaciones de cada plan que se le asigna. Por ejemplo si el plan es de 2 pacientes no deberia
+permitir agregar mas de 2 pacientes y asi en todos los casos de limitaciones. Esto debe respetar el plan que se le asigna.
+
+Pd: Los colores no se modifican mantienen el color corporativo de Avax Health.
+
+
+# ═══════════════════════════════════════════════════
+# SESION 2026-04-05 — Implementación Plan de Mejoras
+# ═══════════════════════════════════════════════════
+
+## Completado (13 de 13 puntos — PLAN COMPLETO):
+
+1. KPIs layout 2x3 — grid `lg:grid-cols-3` en dashboard/page.tsx
+2. Config dashboard — 7 KPIs (agregados completadosHoy, confirmadosRestantes) + botones "Seleccionar/Deseleccionar todos"
+3. Fix delete plan — ConflictException si hay suscripciones asociadas, toast error en frontend
+4. Especialidad en registro — select con 14 especialidades en Step 1, auto-logo `__esp:`, DTO backend actualizado
+5. Plan Pro IA — nuevo plan "Avax Clinica Pro IA" ($59990, 200 usuarios, ilimitados pacientes, 10 sucursales), feature `multi_sucursal`
+6. Módulo Sucursales — entity Sucursal, CRUD backend con guard @RequireFeature(multi_sucursal), frontend completo (página, servicio, sidebar condicionado)
+7. Carousel planes — scroll-snap en desktop+mobile, arrows, dots indicator, responsive
+8. Landing premium — hero con mockup dashboard, sección "Para quién", "Cómo funciona" (3 pasos), features, stats, testimonials, integraciones, feature highlights con mini dashboard, CTA premium dark, footer 4 columnas, animaciones Intersection Observer
+9. Botones planes — trial→/register, pagos→mailto:ventas@avaxhealth.com (sin selección de plan en registro)
+10. Onboarding wizard — 5 steps (bienvenida, datos clínica, horarios, tour, listo), campo `onboarding_completado` en clinica entity, se muestra al admin si es false, guarda datos al avanzar
+11. Estados suscripción — labels en español (Trial→Prueba, etc), tooltips descriptivos
+12. Módulo leads/prospectos — Lead entity + CRUD + stats backend, página admin con KPIs/filtros/panel detalle, sidebar actualizado
+13. Enforcement límites — endpoint GET /subscriptions/usage, hook usePlanLimits, indicador "X de Y" en pacientes y equipo, botones bloqueados
+
+## Fix build backend:
+
+Problema: nest build / tsc CLI no emitía archivos con TS 5.9.3 + module:nodenext + incremental:true
+Solucion: tsconfig.json → module:commonjs, moduleResolution:node, incremental:false
+Creado build.js (compilación programática con API TypeScript)
+package.json → "build": "rm -rf dist && node build.js"
+
+## Archivos nuevos creados:
+
+- backend/src/modules/leads/ (entity, dto, service, controller, module)
+- backend/src/modules/sucursales/ (entity, dto, service, controller, module)
+- backend/build.js
+- frontend/src/hooks/usePlanLimits.ts
+- frontend/src/services/leads.service.ts
+- frontend/src/services/sucursales.service.ts
+- frontend/src/app/(admin)/admin/prospectos/page.tsx
+- frontend/src/app/(dashboard)/dashboard/sucursales/page.tsx
+- frontend/src/components/onboarding-wizard.tsx
+
+## Archivos modificados:
+
+- backend/tsconfig.json (module, moduleResolution, incremental)
+- backend/package.json (build script)
+- backend/src/app.module.ts (LeadsModule, SucursalesModule)
+- backend/src/common/constants/feature-keys.ts (multi_sucursal feature + plan CLINICA_PRO_IA)
+- backend/src/modules/auth/dto/register.dto.ts (especialidad)
+- backend/src/modules/auth/auth.service.ts (especialidad + logo_url)
+- backend/src/modules/clinicas/entities/clinica.entity.ts (onboarding_completado)
+- backend/src/modules/clinicas/dto/update-clinica.dto.ts (onboarding_completado)
+- backend/src/modules/plans/entities/plan.entity.ts (max_sucursales)
+- backend/src/modules/plans/plans.module.ts (Subscription entity)
+- backend/src/modules/plans/plans.service.ts (validación FK en remove)
+- backend/src/modules/subscriptions/subscriptions.module.ts (User, Paciente entities)
+- backend/src/modules/subscriptions/subscriptions.service.ts (getUsage)
+- backend/src/modules/subscriptions/subscriptions.controller.ts (GET /usage)
+- frontend/src/types/index.ts (especialidad en RegisterRequest, max_sucursales en Plan)
+- frontend/src/services/clinica.service.ts (onboarding_completado en Clinica y UpdatePayload)
+- frontend/src/app/(dashboard)/dashboard/page.tsx (grid KPIs, OnboardingWizard)
+- frontend/src/app/(dashboard)/dashboard/configuracion/page.tsx (7 KPIs, bulk toggle, usePlanLimits en equipo)
+- frontend/src/app/(dashboard)/dashboard/pacientes/page.tsx (usePlanLimits, indicador X de Y)
+- frontend/src/app/(admin)/admin/planes/page.tsx (toast en delete)
+- frontend/src/app/(admin)/admin/suscripciones/page.tsx (labels español, tooltips)
+- frontend/src/app/(admin)/layout.tsx (Prospectos en sidebar)
+- frontend/src/app/(auth)/register/page.tsx (especialidad, sin selección de plan, solo trial)
+- frontend/src/app/(public)/page.tsx (landing premium completa)
+- frontend/src/app/(public)/layout.tsx (footer 4 columnas)
+- frontend/src/app/(public)/planes/page.tsx (carousel + botones contacto + badge sucursales)
+- frontend/src/components/layout/sidebar.tsx (Sucursales condicionado a feature flag, useFeatureFlags)
+
+## Comandos para correr:
+
+Backend: cd backend && npm run build && node dist/main.js
+Backend dev: cd backend && npm run start:dev
+Frontend: cd frontend && rm -rf .next && npm run dev

@@ -30,6 +30,7 @@ import {
 } from "@/components/ui/select";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import {
   Eye,
   Pencil,
@@ -62,12 +63,12 @@ function getInitials(nombre: string, apellido: string): string {
 }
 
 const GRADIENT_COLORS = [
-  "from-[#1b3553] to-[#5bbcad]",
+  "from-[var(--ht-primary)] to-[var(--ht-accent-dark)]",
   "from-emerald-500 to-teal-600",
   "from-blue-500 to-cyan-600",
   "from-rose-500 to-pink-600",
   "from-amber-500 to-orange-600",
-  "from-[#5bbcad] to-fuchsia-600",
+  "from-[var(--ht-accent)] to-fuchsia-600",
 ];
 
 function getGradient(id: string): string {
@@ -77,6 +78,7 @@ function getGradient(id: string): string {
 
 export default function PacientesPage() {
   const router = useRouter();
+  const { maxPacientes, currentPacientes, canAddPaciente, loading: limitsLoading } = usePlanLimits();
   const [pacientes, setPacientes] = useState<Paciente[]>([]);
   const [meta, setMeta] = useState<PaginationMeta>({ page: 1, limit: 20, total: 0, totalPages: 0 });
   const [page, setPage] = useState(1);
@@ -210,23 +212,33 @@ export default function PacientesPage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* Header */}
       <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Pacientes</h1>
           <p className="text-sm text-muted-foreground mt-1">
             {meta.total} paciente{meta.total !== 1 ? "s" : ""} registrado{meta.total !== 1 ? "s" : ""}
+            {maxPacientes !== null && (
+              <span className={`ml-2 font-medium ${!canAddPaciente ? "text-red-500" : "text-muted-foreground"}`}>
+                ({currentPacientes} de {maxPacientes})
+              </span>
+            )}
           </p>
         </div>
-        <Button onClick={openCreate} className="bg-gradient-to-r from-[#1b3553] to-[#5bbcad] hover:from-[#1b3553] hover:to-[#4aa89b] text-white shadow-md hover:shadow-lg transition-all">
+        <Button
+          onClick={openCreate}
+          disabled={!canAddPaciente}
+          title={!canAddPaciente ? `Límite de ${maxPacientes} pacientes alcanzado. Actualiza tu plan para agregar más.` : undefined}
+          className="bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:from-[var(--ht-primary)] hover:to-[#4aa89b] text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+        >
           <UserPlus className="h-4 w-4 mr-2" />
           Nuevo Paciente
         </Button>
       </div>
 
       {/* Barra de búsqueda y filtros */}
-      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-2xl border bg-card p-4 shadow-sm">
+      <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between rounded-xl border bg-card p-4 shadow-sm">
         <div className="relative flex-1 max-w-md">
           <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
           <Input
@@ -287,7 +299,7 @@ export default function PacientesPage() {
           : "space-y-3"
         }>
           {[...Array(8)].map((_, i) => (
-            <div key={i} className={`rounded-2xl border bg-card ${viewMode === "grid" ? "p-5 h-52" : "p-4 h-20"} animate-pulse`}>
+            <div key={i} className={`rounded-xl border bg-card ${viewMode === "grid" ? "p-5 h-52" : "p-4 h-20"} animate-pulse`}>
               <div className="flex items-center gap-3">
                 <Skeleton className="h-12 w-12 rounded-xl" />
                 <div className="space-y-2">
@@ -299,9 +311,9 @@ export default function PacientesPage() {
           ))}
         </div>
       ) : pacientes.length === 0 ? (
-        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground rounded-2xl border bg-card">
-          <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-gradient-to-br from-[#1b3553]/10 to-[#7cd1c4]/10 mb-4">
-            <Users className="h-8 w-8 text-[#1b3553]" />
+        <div className="flex flex-col items-center justify-center py-20 text-muted-foreground rounded-xl border bg-card">
+          <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-primary)]/10 to-[var(--ht-accent)]/10 mb-4">
+            <Users className="h-8 w-8 text-primary" />
           </div>
           <p className="text-lg font-medium text-foreground">No se encontraron pacientes</p>
           <p className="text-sm mt-1">
@@ -320,7 +332,7 @@ export default function PacientesPage() {
           {pacientes.map((paciente) => (
             <div
               key={paciente.id}
-              className="group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+              className="group relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
             >
               {/* Glow */}
               <div className={`absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br ${getGradient(paciente.id)} opacity-[0.06] rounded-full group-hover:opacity-[0.12] transition-opacity`} />
@@ -375,7 +387,7 @@ export default function PacientesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex-1 h-8 text-xs text-[#5bbcad] hover:text-[#4aa89b] hover:bg-[#f0faf8] dark:hover:bg-[#1a5c52]/40"
+                    className="flex-1 h-8 text-xs text-[var(--ht-accent)] hover:text-[#4aa89b] hover:bg-[#f0faf8] dark:hover:bg-[#1a5c52]/40"
                     onClick={() => router.push(`/dashboard/pacientes/${paciente.id}`)}
                   >
                     <Eye className="h-3.5 w-3.5 mr-1" />
@@ -408,7 +420,7 @@ export default function PacientesPage() {
           {pacientes.map((paciente) => (
             <div
               key={paciente.id}
-              className="group flex items-center gap-4 rounded-2xl border bg-card px-5 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-muted/30"
+              className="group flex items-center gap-4 rounded-xl border bg-card px-5 py-3 shadow-sm hover:shadow-md transition-all duration-200 hover:bg-muted/30"
             >
               <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-gradient-to-br ${getGradient(paciente.id)} text-white text-xs font-bold shadow-sm`}>
                 {getInitials(paciente.nombre, paciente.apellido)}
@@ -440,7 +452,7 @@ export default function PacientesPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-[#5bbcad] hover:text-[#4aa89b] hover:bg-[#f0faf8] dark:hover:bg-[#1a5c52]/40 transition-all hover:scale-110"
+                  className="h-8 w-8 text-[var(--ht-accent)] hover:text-[#4aa89b] hover:bg-[#f0faf8] dark:hover:bg-[#1a5c52]/40 transition-all hover:scale-110"
                   onClick={() => router.push(`/dashboard/pacientes/${paciente.id}`)}
                   title="Ver ficha"
                 >

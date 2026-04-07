@@ -152,7 +152,7 @@ export function ChatWidget() {
   const roleLabel = (role: string) => ({ admin: "Admin", professional: "Profesional", assistant: "Secretaria" }[role] || role);
 
   const roleColor = (role: string) => ({
-    admin: "bg-[#dbe6f0] text-[#1f3d5e] dark:bg-[#142a42]/30 dark:text-[#3a6a93]",
+    admin: "bg-[#dbe6f0] text-[#1f3d5e] dark:bg-[#142a42]/30 dark:text-primary/70",
     professional: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
     assistant: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
   }[role] || "bg-gray-100 text-gray-700");
@@ -164,7 +164,7 @@ export function ChatWidget() {
       {/* Floating button */}
       <button
         onClick={() => { setOpen(!open); if (!open) setView("users"); }}
-        className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[#1b3553] to-[#5bbcad] text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 ${hasNewNotification && !open ? "animate-bounce" : ""}`}
+        className={`fixed bottom-6 right-6 z-50 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-lg hover:shadow-xl transition-all hover:scale-105 ${hasNewNotification && !open ? "animate-bounce" : ""}`}
       >
         {open ? <X className="h-6 w-6" /> : (
           <>
@@ -180,9 +180,9 @@ export function ChatWidget() {
 
       {/* Chat panel */}
       {open && (
-        <div className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-2xl border bg-background shadow-2xl">
+        <div className="fixed bottom-24 right-6 z-50 flex h-[500px] w-[380px] flex-col overflow-hidden rounded-xl border bg-background shadow-2xl">
           {/* Header */}
-          <div className="flex items-center gap-2 border-b bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-4 py-3 text-white">
+          <div className="flex items-center gap-2 border-b bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-4 py-3 text-white">
             {view === "chat" && (
               <button onClick={() => setView("users")} className="rounded-lg p-1 hover:bg-white/20 transition-colors">
                 <ChevronLeft className="h-5 w-5" />
@@ -221,14 +221,14 @@ export function ChatWidget() {
                 className={`flex w-full items-center gap-3 border-b px-4 py-3 text-left hover:bg-muted/50 transition-colors ${(unreadPerUser["general"] ?? 0) > 0 ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20" : ""}`}
               >
                 <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#dbe6f0] to-[#e0f5f1] dark:from-[#142a42]/30 dark:to-[#2a7a6e]/30">
-                  <Users className="h-5 w-5 text-[#1b3553] dark:text-[#2a4f73]" />
+                  <Users className="h-5 w-5 text-primary dark:text-primary/90" />
                 </div>
                 <div className="flex-1 min-w-0">
                   <p className="text-sm font-medium">Canal General</p>
                   <p className="text-xs text-muted-foreground">Mensajes para todo el equipo</p>
                 </div>
                 {(unreadPerUser["general"] ?? 0) > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1b3553] px-1.5 text-[10px] font-bold text-white">
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0F172A] px-1.5 text-[10px] font-bold text-white">
                     {unreadPerUser["general"]}
                   </span>
                 )}
@@ -267,7 +267,7 @@ export function ChatWidget() {
                       </div>
                     </div>
                     {unread > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1b3553] px-1.5 text-[10px] font-bold text-white">
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0F172A] px-1.5 text-[10px] font-bold text-white">
                         {unread}
                       </span>
                     )}
@@ -302,17 +302,17 @@ export function ChatWidget() {
                   const isNew = newMessageIds.has(msg.id);
                   return (
                     <div key={msg.id} className={`flex ${isOwn ? "justify-end" : "justify-start"} ${isNew ? "animate-in slide-in-from-left-3 duration-300" : ""}`}>
-                      <div className={`max-w-[75%] rounded-2xl px-3 py-2 text-sm transition-all duration-500 ${
+                      <div className={`max-w-[75%] rounded-xl px-3 py-2 text-sm transition-all duration-500 ${
                         isOwn
-                          ? "bg-gradient-to-br from-[#1b3553] to-[#5bbcad] text-white"
+                          ? "bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white"
                           : isNew
-                            ? "bg-[#eef3f8] dark:bg-[#0e1f33]/40 ring-2 ring-[#2a4f73]/50"
+                            ? "bg-[#eef3f8] dark:bg-[#0e1f33]/40 ring-2 ring-[var(--ht-primary-dark)]/50"
                             : "bg-muted"
                       }`}>
                         {!isOwn && (
-                          <p className="text-[10px] font-semibold mb-0.5 text-[#1b3553] dark:text-[#2a4f73]">
+                          <p className="text-[10px] font-semibold mb-0.5 text-primary dark:text-primary/90">
                             {msg.sender?.nombre} {msg.sender?.apellido}
-                            {isNew && <span className="ml-1.5 inline-flex items-center rounded-full bg-[#1b3553] px-1.5 py-0 text-[8px] font-bold text-white">NUEVO</span>}
+                            {isNew && <span className="ml-1.5 inline-flex items-center rounded-full bg-[#0F172A] px-1.5 py-0 text-[8px] font-bold text-white">NUEVO</span>}
                           </p>
                         )}
                         <p className="whitespace-pre-wrap break-words">{msg.content}</p>
@@ -344,13 +344,13 @@ export function ChatWidget() {
                     onChange={(e) => setText(e.target.value)}
                     onKeyDown={handleKeyDown}
                     placeholder="Escribe un mensaje..."
-                    className="flex-1 rounded-xl border bg-muted/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/50 transition-all"
+                    className="flex-1 rounded-xl border bg-muted/50 px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-primary/50 transition-all"
                     autoFocus
                   />
                   <button
                     onClick={handleSend}
                     disabled={!text.trim() || sending}
-                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[#1b3553] to-[#5bbcad] text-white disabled:opacity-50 hover:shadow-md transition-all"
+                    className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white disabled:opacity-50 hover:shadow-md transition-all"
                   >
                     <Send className="h-4 w-4" />
                   </button>

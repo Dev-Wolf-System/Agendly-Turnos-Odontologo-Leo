@@ -43,6 +43,9 @@ export class AuthService {
       nombre: registerDto.clinica_nombre,
       nombre_propietario: registerDto.nombre_propietario,
       cel: registerDto.clinica_cel,
+      especialidad: registerDto.especialidad,
+      logo_url: registerDto.especialidad ? `__esp:${registerDto.especialidad}` : undefined,
+      estado_aprobacion: 'pendiente',
     });
     const savedClinica = await this.clinicaRepository.save(clinica);
 
@@ -58,7 +61,7 @@ export class AuthService {
     });
     const savedUser = await this.userRepository.save(user);
 
-    // Auto-asignar trial subscription
+    // Auto-asignar trial subscription (queda inactiva hasta aprobación)
     let subscription = null;
     const trialPlan = await this.plansService.findDefaultTrial();
     if (trialPlan) {
@@ -68,13 +71,11 @@ export class AuthService {
       );
     }
 
-    const tokens = await this.generateTokens(savedUser);
-
     return {
-      user: this.sanitizeUser(savedUser),
+      success: true,
+      message:
+        'Tu solicitud de prueba gratuita fue enviada. Nuestro equipo la revisara y te contactaremos por email.',
       clinica: savedClinica,
-      subscription,
-      ...tokens,
     };
   }
 
@@ -94,6 +95,23 @@ export class AuthService {
 
     if (!isPasswordValid) {
       throw new UnauthorizedException('Contraseña incorrecta');
+    }
+
+    // Verificar estado de aprobación de la clínica
+    if (user.clinica_id) {
+      const clinica = await this.clinicaRepository.findOne({
+        where: { id: user.clinica_id },
+      });
+      if (clinica?.estado_aprobacion === 'pendiente') {
+        throw new UnauthorizedException(
+          'Tu solicitud de prueba gratuita esta pendiente de aprobacion. Te notificaremos por email cuando sea revisada.',
+        );
+      }
+      if (clinica?.estado_aprobacion === 'rechazado') {
+        throw new UnauthorizedException(
+          'Tu solicitud fue rechazada. Contacta a soporte para mas informacion.',
+        );
+      }
     }
 
     const tokens = await this.generateTokens(user);

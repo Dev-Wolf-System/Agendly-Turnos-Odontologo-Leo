@@ -15,6 +15,7 @@ const adminNav = [
   { name: "Clinicas", href: "/admin/clinicas", icon: BuildingIcon, badge: null },
   { name: "Planes", href: "/admin/planes", icon: CrownIcon, badge: null },
   { name: "Suscripciones", href: "/admin/suscripciones", icon: RepeatIcon, badge: null },
+  { name: "Prospectos", href: "/admin/prospectos", icon: UsersIcon, badge: null },
   { name: "Soporte", href: "/admin/soporte", icon: TicketIcon, badge: null },
 ];
 
@@ -54,33 +55,33 @@ function AdminContent({ children }: { children: React.ReactNode }) {
   );
 
   const sidebar = (
-    <aside className="flex h-full w-[272px] flex-col bg-gradient-to-b from-slate-950 via-slate-900 to-slate-950 text-slate-100 border-r border-white/[0.06]">
+    <aside
+      className="flex h-full w-[272px] flex-col text-slate-100 border-r border-white/[0.06]"
+      style={{ background: "var(--gradient-sidebar)" }}
+    >
       {/* Brand */}
-      <div className="flex h-[72px] items-center gap-3.5 px-6 shrink-0">
-        <div className="relative flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1b3553] to-[#5bbcad] text-white font-bold text-base shadow-lg shadow-[#1b3553]/25">
+      <div className="flex h-16 items-center gap-3.5 px-6 shrink-0">
+        <div className="relative flex h-10 w-10 items-center justify-center rounded-xl text-white font-bold text-base shadow-lg" style={{ background: "var(--gradient-primary)", boxShadow: "var(--shadow-primary)" }}>
           A
-          <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-slate-950" />
+          <div className="absolute -bottom-0.5 -right-0.5 h-3 w-3 rounded-full bg-emerald-400 border-2 border-[#0F172A]" />
         </div>
         <div>
           <p className="text-[15px] font-bold tracking-tight">Avax Health</p>
-          <p className="text-[11px] font-medium text-[#3a6a93]/60 uppercase tracking-widest">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/30">
             Admin Panel
           </p>
         </div>
       </div>
 
-      {/* Divider */}
-      <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
-
       {/* Nav label */}
-      <div className="px-6 pt-5 pb-2">
-        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-slate-500">
+      <div className="px-6 pt-4 pb-1.5">
+        <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/30">
           Navegacion
         </p>
       </div>
 
       {/* Navigation */}
-      <nav className="flex-1 space-y-0.5 px-3 overflow-y-auto">
+      <nav className="flex-1 space-y-0.5 px-3 overflow-y-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
         {adminNav.map((item) => {
           const isActive =
             item.href === "/admin"
@@ -92,25 +93,21 @@ function AdminContent({ children }: { children: React.ReactNode }) {
               key={item.name}
               href={item.href}
               className={cn(
-                "group relative flex items-center gap-3 rounded-xl px-3.5 py-2.5 text-[13px] font-medium transition-all duration-200",
+                "group relative flex items-center gap-3 rounded-lg px-3.5 py-2.5 text-[13px] font-medium transition-all duration-150",
                 isActive
-                  ? "bg-gradient-to-r from-[#1b3553]/15 to-[#7cd1c4]/10 text-white shadow-sm"
-                  : "text-slate-400 hover:text-slate-200 hover:bg-white/[0.04]"
+                  ? "bg-[var(--ht-primary)]/10 text-[var(--ht-primary-light)] border-l-2 border-[var(--ht-primary)]"
+                  : "text-white/55 hover:text-white/90 hover:bg-white/5 border-l-2 border-transparent"
               )}
             >
-              {/* Active indicator */}
-              {isActive && (
-                <span className="absolute left-0 top-1/2 -translate-y-1/2 h-7 w-[3px] rounded-r-full bg-gradient-to-b from-[#2a4f73] to-[#7cd1c4]" />
-              )}
               <item.icon
                 className={cn(
                   "h-[18px] w-[18px] shrink-0 transition-colors",
-                  isActive ? "text-[#2a4f73]" : "text-slate-500 group-hover:text-slate-300"
+                  isActive ? "text-[var(--ht-primary-light)]" : "text-white/40 group-hover:text-white/70"
                 )}
               />
               <span className="flex-1">{item.name}</span>
               {item.badge && (
-                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#1b3553]/20 px-1.5 text-[10px] font-bold text-[#3a6a93]">
+                <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[var(--ht-primary)]/15 px-1.5 text-[10px] font-bold text-[var(--ht-primary-light)]">
                   {item.badge}
                 </span>
               )}
@@ -122,11 +119,11 @@ function AdminContent({ children }: { children: React.ReactNode }) {
       {/* Bottom section */}
       <div className="shrink-0">
         {/* Divider */}
-        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/10 to-transparent" />
+        <div className="mx-5 h-px bg-gradient-to-r from-transparent via-white/[0.08] to-transparent" />
 
         {/* System status */}
-        <div className="px-5 py-3">
-          <div className="flex items-center gap-2 rounded-lg bg-emerald-500/[0.08] px-3 py-2">
+        <div className="px-5 py-2">
+          <div className="flex items-center gap-2 rounded-lg bg-[var(--ht-accent)]/[0.08] px-3 py-1.5">
             <span className="relative flex h-2 w-2">
               <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
               <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
@@ -138,20 +135,20 @@ function AdminContent({ children }: { children: React.ReactNode }) {
         </div>
 
         {/* User */}
-        <div className="px-3 pb-4">
-          <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] px-3.5 py-3">
-            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#1b3553]/30 to-[#7cd1c4]/30 text-[#b0c4d8] text-xs font-bold ring-1 ring-white/10">
+        <div className="px-3 pb-3">
+          <div className="flex items-center gap-3 rounded-xl bg-white/[0.04] px-3 py-2.5">
+            <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg text-white text-xs font-bold ring-1 ring-white/10" style={{ background: "var(--gradient-primary)" }}>
               {user.nombre?.charAt(0)}{user.apellido?.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-[13px] font-semibold truncate text-slate-200">
+              <p className="text-[13px] font-semibold truncate text-white/90">
                 {user.nombre} {user.apellido}
               </p>
-              <p className="text-[11px] text-slate-500 truncate">{user.email}</p>
+              <p className="text-[11px] text-white/40 truncate">{user.email}</p>
             </div>
             <button
               onClick={logout}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-slate-500 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-all duration-200"
               title="Cerrar sesion"
             >
               <LogOutIcon className="h-4 w-4" />
@@ -188,7 +185,7 @@ function AdminContent({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="flex h-[72px] items-center justify-between border-b px-4 sm:px-8 shrink-0 bg-background/80 backdrop-blur-sm">
+        <header className="flex h-16 items-center justify-between border-b border-[var(--border-light)] px-4 sm:px-8 shrink-0 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-xl">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileOpen(true)}
@@ -198,18 +195,17 @@ function AdminContent({ children }: { children: React.ReactNode }) {
                 <line x1="4" x2="20" y1="12" y2="12" /><line x1="4" x2="20" y1="6" y2="6" /><line x1="4" x2="20" y1="18" y2="18" />
               </svg>
             </button>
-            <div>
-              <h1 className="text-lg font-bold tracking-tight">
-                {currentPage?.name ?? "Admin"}
-              </h1>
-              <p className="text-xs text-muted-foreground hidden sm:block">
-                Plataforma de gestion Avax Health
-              </p>
+            <div className="flex items-center gap-2 text-sm">
+              <span className="text-[var(--text-muted)]">Admin</span>
+              <span className="text-[var(--text-muted)]">/</span>
+              <span className="font-medium text-[var(--ht-primary)]">
+                {currentPage?.name ?? "Dashboard"}
+              </span>
             </div>
           </div>
           <div className="flex items-center gap-2">
-            <div className="hidden sm:flex items-center gap-1.5 rounded-lg border bg-muted/40 px-3 py-1.5 text-xs text-muted-foreground">
-              <span className="h-1.5 w-1.5 rounded-full bg-[#1b3553]" />
+            <div className="hidden sm:flex items-center gap-1.5 rounded-full border border-[var(--border-light)] bg-[var(--ht-primary)]/5 px-3 py-1.5 text-xs font-medium text-[var(--ht-primary)]">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--ht-primary)]" />
               Superadmin
             </div>
             <ThemeToggle />
@@ -264,6 +260,14 @@ function TicketIcon({ className }: { className?: string }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /><path d="M13 5v2" /><path d="M13 17v2" /><path d="M13 11v2" />
+    </svg>
+  );
+}
+
+function UsersIcon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
     </svg>
   );
 }

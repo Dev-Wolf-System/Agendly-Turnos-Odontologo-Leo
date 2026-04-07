@@ -34,3 +34,6 @@ yarn-error.log*
 
 # Claude Code
 .claude/
+
+# Skills
+.skills/

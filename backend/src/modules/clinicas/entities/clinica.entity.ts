@@ -66,8 +66,14 @@ export class Clinica extends BaseEntity {
   @Column({ type: 'jsonb', nullable: true })
   kpi_visibility: Record<string, Record<string, boolean>>;
 
+  @Column({ type: 'boolean', default: false })
+  onboarding_completado: boolean;
+
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
+
+  @Column({ type: 'text', default: 'aprobado' })
+  estado_aprobacion: 'pendiente' | 'aprobado' | 'rechazado';
 
   @OneToMany(() => Subscription, (sub) => sub.clinica)
   subscriptions: Subscription[];

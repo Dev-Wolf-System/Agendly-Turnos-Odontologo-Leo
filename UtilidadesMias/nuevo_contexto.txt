@@ -1,0 +1,261 @@
+● Ahora arreglo el chat. El problema es que los errores se silencian. Voy a agregar feedback visual y verificar el DTO:   
+
+  Searched for 1 pattern, read 2 files (ctrl+o to expand)
+
+● Veo el problema. En el controller @CurrentUser() devuelve { userId: string } pero necesito verificar cómo se extrae     
+  realmente. Voy a verificar el decorator:
+
+  Searched for 2 patterns, read 1 file (ctrl+o to expand)
+
+● El JWT strategy devuelve { userId, clinicaId, role, email }. Así que user.userId está correcto en el chat controller. El
+   DTO se ve bien también. El problema probablemente es en el frontend — errores silenciados. Agrego toast de error:      
+
+  Searched for 1 pattern, read 1 file (ctrl+o to expand)
+
+● Update(frontend/src/components/layout/chat-widget.tsx)
+  ⎿  Added 2 lines, removed 2 lines
+      118        setText("");
+      119        inputRef.current?.focus();
+      120        scrollToBottom();
+      121 -    } catch {                                                                                                  
+      122 -      // silently fail                                                                                         
+      121 +    } catch (err: any) {                                                                                       
+      122 +      console.error("Chat send error:", err?.response?.data || err);                                           
+      123      } finally {
+      124        setSending(false);
+      125      }
+
+● Ahora verifiquemos que chatService.sendMessage usa la API correctamente. Necesito verificar si hay algún entity
+  mismatch:
+
+  Read 3 files (ctrl+o to expand)
+
+● El backend se ve correcto. Voy a revisar si el chat module importa el User repository:
+
+  Read 1 file (ctrl+o to expand)
+
+● Todo se ve correcto en el backend. El chat debería funcionar. El problema podría ser un error HTTP que se silencia.     
+  Ahora con el console.error el usuario podrá ver en DevTools qué falla exactamente.
+
+  Ahora verifico que compila todo:
+
+● Bash(cd /mnt/d/Proyectos-Dev/Agendly-Turnos-Odontologo-Leo/backend && npx tsc --noEmit 2>&1 | head -10)
+  ⎿  (No output)
+  ⎿  (timeout 1m)
+
+● Bash(cd /mnt/d/Proyectos-Dev/Agendly-Turnos-Odontologo-Leo/frontend && npx tsc --noEmit 2>&1 | head -20)
+  ⎿  .next/dev/types/validator.ts(245,1): error TS1128: Declaration or statement expected.
+  ⎿  (timeout 2m)
+
+● El error es del cache de Next.js, no del código. Verifico:
+
+● Bash(npx tsc --noEmit --project tsconfig.json 2>&1 | grep -v ".next/" | head -10)
+  ⎿  (No output)
+  ⎿  (timeout 2m)
+
+● Todo compila limpio. Ahora hago el commit y te doy las propuestas estratégicas.
+
+● Bash(git add \
+        frontend/src/components/ui/welcome-banner.tsx \…)
+  ⎿  Error: Exit code 128
+     warning: could not open directory 'frontend/frontend/src/': No such file or directory
+     fatal: pathspec 'frontend/src/components/ui/welcome-banner.tsx' did not match any files
+
+● Bash(cd /mnt/d/Proyectos-Dev/Agendly-Turnos-Odontologo-Leo && git add -A && git status --short)
+  ⎿  M  frontend/src/app/(auth)/login/page.tsx
+     M  frontend/src/app/(dashboard)/dashboard/turnos/page.tsx
+     M  frontend/src/components/calendar/CalendarHeader.tsx
+     … +3 lines (ctrl+o to expand)
+
+● Bash(git commit -m "$(cat <<'EOF'
+      fix: mejoras producción — móvil turnos, logo, mensajes, filtro profesional, soporte global…)
+  ⎿  [main 4da6018] fix: mejoras producción — móvil turnos, logo, mensajes, filtro profesional, soporte global
+      6 files changed, 46 insertions(+), 34 deletions(-)
+
+● Ahora las propuestas estratégicas:
+
+  ---
+  Propuestas Estratégicas
+
+  1. Portal de Registro y Onboarding (Landing Page)
+
+  Propongo crear una landing page integrada en el mismo proyecto Next.js (ruta / y /planes) en lugar de un sitio aparte.  
+  Razones:
+  - Un solo deploy, un solo dominio
+  - SEO directo hacia la app
+  - Conversión inmediata (ver plan → registrarse → entrar)
+
+  Flujo propuesto:
+  Landing (/) → Planes (/planes) → Registro (/registro?plan=xxx) → Wizard Config → Dashboard
+
+  Landing page:
+  - Hero con gradiente premium, screenshots del sistema
+  - Sección "Para quién" (clínicas, consultorios, centros médicos)
+  - Features con iconos animados
+  - Testimonios / métricas
+  - CTA → ir a planes
+
+  Página de Planes (/planes):
+  - Cards comparativas lado a lado (como Stripe pricing)
+  - Toggle mensual/anual con descuento
+  - Botón "Empezar trial gratuito" por plan
+  - Feature comparison table debajo
+
+  Registro (/registro?plan=xxx):
+  - Wizard de 3 pasos: (1) Datos clínica, (2) Datos admin, (3) Selección especialidad + horarios
+  - Al terminar → crea clínica + usuario + suscripción trial del plan elegido
+  - Redirige directo al dashboard con onboarding tour
+
+  2. Documentos/Imágenes en Historial Médico
+
+  Propongo:
+  - Nueva entidad ArchivoMedico (paciente_id, nombre, tipo, url, size, uploaded_by)
+  - Almacenamiento: S3/MinIO para producción, o disco local inicialmente
+  - En la ficha del paciente: tab "Documentos" con upload drag-and-drop
+  - Soportar: imágenes (radiografías, fotos), PDFs (estudios, recetas), documentos
+  - Preview inline para imágenes, descarga para PDFs
+
+  3. Horarios por Profesional
+
+  Propongo:
+  - Nueva entidad HorarioProfesional (user_id, clinica_id, horarios jsonb)
+  - Misma estructura de horarios que la clínica (lunes-domingo, mañana/tarde)
+  - En configuración → tab Equipo: cada profesional puede tener su propio horario
+  - El cálculo de turnos disponibles usa el horario del profesional si existe, si no el de la clínica
+  - El agente IA usa estos horarios al mostrar disponibilidad
+
+  4. Reportes Avanzados
+
+  Propongo estos reportes:
+  - Productividad por profesional: turnos completados, tasa de cancelación, ingresos generados
+  - Análisis de pacientes: nuevos vs recurrentes, frecuencia de visitas, retención
+  - Financiero: ingresos por período, por tratamiento, por método de pago, proyecciones
+  - Ocupación: % de slots ocupados por día/semana, horarios más demandados
+  - Tratamientos: más realizados, ingresos por tipo, duración promedio real vs estimada
+  - Export: PDF con branding de la clínica + Excel descargable
+
+  5. Agente IA (Zoe) — Arquitectura
+
+  Propongo: Un solo agente multi-tenant (no uno por clínica). Razones:
+  - Menor costo operativo (1 flujo n8n, no N)
+  - Actualizaciones centralizadas
+  - La API ya es multi-tenant (cada request lleva x-api-key + clinica_id de la instancia Evolution)
+
+  Flujo:
+  WhatsApp (paciente) → Evolution API → Webhook n8n → Agente Zoe → API Avax Health → Respuesta → Evolution → WhatsApp     
+
+  Capacidades del paciente vía WhatsApp:
+  - Ver turnos disponibles (por especialidad/profesional)
+  - Registrarse si no existe
+  - Agendar turno
+  - Cancelar/reprogramar turno
+  - Consultar info de la clínica (dirección, horarios, tratamientos, precios)
+  - Recibir recordatorios automáticos
+
+  Capacidades del admin vía WhatsApp:
+  - Consultar turnos del día/semana
+  - Ver resumen financiero
+  - Estado de la agenda (% ocupación)
+  - Alertas de stock bajo
+  - Notificaciones de nuevos turnos/cancelaciones
+
+  Arquitectura n8n:
+  - 1 workflow principal con router por clinica_id (extraído del webhook)
+  - Sub-workflows reutilizables (buscar paciente, crear turno, consultar horarios)
+  - Contexto de conversación en Redis (para mantener el hilo del chat)
+  - OpenAI como cerebro para interpretar mensajes y decidir acciones
+
+  ---
+  Lo que queda pendiente (priorizado)
+
+  ┌─────┬─────────────────────────────────────────────┬──────────┬───────────┐
+  │  #  │                    Tarea                    │ Esfuerzo │ Prioridad │
+  ├─────┼─────────────────────────────────────────────┼──────────┼───────────┤
+  │ 1 X │ Landing page + planes + registro con wizard │ Grande   │ Alta      │
+  ├─────┼─────────────────────────────────────────────┼──────────┼───────────┤
+  │ 2 X │ Horarios por profesional                    │ Medio    │ Alta      │
+  ├─────┼─────────────────────────────────────────────┼──────────┼───────────┤
+  │ 3 X │ Debug chat (probar en runtime con DevTools) │ Chico    │ Alta      │
+  ├─────┼─────────────────────────────────────────────┼──────────┼───────────┤
+  │ 4   │ Reportes avanzados (módulo + 5 reportes)    │ Grande   │ Media     │
+  ├─────┼─────────────────────────────────────────────┼──────────┼───────────┤
+  │ 5 X │ Archivos/imágenes en historial médico       │ Medio    │ Media     │
+  ├─────┼─────────────────────────────────────────────┼──────────┼───────────┤
+  │ 6   │ Agente Zoe multi-tenant (n8n + Evolution)   │ Grande   │ Media     │
+  ├─────┼─────────────────────────────────────────────┼──────────┼───────────┤
+  │ 7   │ Billing Mercado Pago                        │ Grande   │ Alta      │
+  └─────┴─────────────────────────────────────────────┴──────────┴───────────┘
+
+  ¿Por dónde querés que sigamos?
+
+
+  Plan de ultima revision 02/04/2026
+
+
+  Retomar sesion 06/04/2026:
+
+  claude --resume "redesign-ui-ux-design-system"
+
+
+
+
+  Revision 4:
+  
+0- En el Login de Avax Health aun sigue apareciendo el "No tenes cuenta? Registrate gratis"
+que no deberia aparecer, ya existe el boton de "crear cuenta gratis" aun que me gustaria que diga
+"Solicitar Prueba Gratuita" y haga el proceso de registro y configuracion normal pero que no le permita el acceso
+al la plataforma sin antes que el admin del sistema apruebe la solicitud deberia aparecer en la seccion de prospectos
+indicando que es una solicitud de prueba gratuita para permitir aorobarla o rechazarla.
+
+1- Al iniciar secion en el panel del administrador de servicios:
+
+src/services/admin.service.ts (12:20) @ async getAdminDashboard
+
+  10 |
+  11 | export async function getAdminDashboard()...
+> 12 |   const { data } = await api.get("/admin/...
+     |                    ^
+  13 |   return data;
+  14 | }
+  15 |
+
+Y no cargo bien el Dashboard princiopal.
+
+2-  Al intentar ingresar en la seccion clinicas: 
+
+src/services/admin.service.ts (27:20) @ async getAdminClinicas
+
+  25 |   if (filters?.plan_id) params.set("plan_...
+  26 |   if (filters?.search) params.set("search...
+> 27 |   const { data } = await api.get(`/admin/...
+     |                    ^
+  28 |   return data;
+  29 | }
+  30 |
+
+3- Al ingresar a la seccion clinicas: 
+
+src/services/admin.service.ts (32:20) @ async getAdminClinicaById
+
+  30 |
+  31 | export async function getAdminClinicaById...
+> 32 |   const { data } = await api.get(`/admin/...
+     |                    ^
+  33 |   return data;
+  34 | }
+  35 |
+
+4- Teniendo en cuenta y el contexto completo de todo lo que venimos realizando en los documentos:
+Vamos a realizar un rediseño de la app usando como promp y plan de rediseño el archivo PLAN_REDISENO_UI_AVAX_HEALTH.md
+
+- NO tocar lógica de negocio, solo la capa visual
+- Aplicar el Design System HEALTH_TRUST definido
+- Usar las especificaciones de [COMPONENTE] del prompt
+- Mantener todas las funcionalidades y caracteristicas existentes
+
+Planifica y dame las mejores opciones para continuar con el proyecto.
+
+
+Resumen de conversación:
+
+claude --resume "admin-bugs-trial-ui-redesign"  

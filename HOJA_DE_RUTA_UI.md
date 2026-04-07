@@ -1,6 +1,6 @@
 # Hoja de Ruta — Reestilizado y Mejoras UI/UX
 
-> Última actualización: 2026-04-02
+> Última actualización: 2026-04-07
 
 ## Fixes aplicados
 - [x] Select de Paciente y Odontólogo en Nuevo Turno mostraba UUID en vez del nombre — corregido con display manual
@@ -440,6 +440,49 @@
 
 ---
 
+## Fase P: Bugs Admin + Flujo Trial + Rediseño HEALTH_TRUST ✅ COMPLETADA
+
+### P1: Bug Fixes Admin Panel ✅ COMPLETADA
+- [x] Fix MRR NaN: `Number(mrrResult?.mrr ?? 0)` — admin.service.ts
+- [x] Fix relación plan faltante en findClinicaById: `subscriptions.plan` en relations
+- [x] Error handling en frontend: estado `error` + UI de reintento en clínicas y detalle
+
+### P2: Flujo "Solicitar Prueba Gratuita" ✅ COMPLETADA
+- [x] Columna `estado_aprobacion` en Clinica entity (pendiente | aprobado | rechazado)
+- [x] Registro crea clínica con `estado_aprobacion: 'pendiente'`, no devuelve tokens
+- [x] Login verifica estado de aprobación antes de dar acceso
+- [x] Endpoints PATCH `/admin/clinicas/:id/aprobar` y `/rechazar`
+- [x] Filtro `estado_aprobacion` en listado admin de clínicas
+- [x] Login: eliminado "No tenes cuenta? Registrate gratis", botón → "Solicitar Prueba Gratuita"
+- [x] Registro: pantalla de éxito "Solicitud enviada" sin redirect a dashboard
+- [x] Auth service: register() ya no almacena tokens
+- [x] Admin clínicas: badge "Pendiente" con pulse, botones Aprobar/Rechazar
+
+### P3: Rediseño UI — Design System HEALTH_TRUST ✅ COMPLETADA
+- [x] globals.css reescrito con tokens HEALTH_TRUST (hex), variables de sombras, gradientes, transiciones
+- [x] Fuentes: Plus Jakarta Sans (display) + Inter (body) + JetBrains Mono (mono)
+- [x] Keyframes: page-in, count-up, modal-in, glow-pulse, shimmer
+- [x] Clases utilitarias: animate-page-in, skeleton, card-hover, stagger-item, scrollbar-none
+- [x] Sidebar dashboard: gradiente, grupos con labels uppercase, items con border-l-2 primary
+- [x] Sidebar admin: misma paleta HEALTH_TRUST, paddings optimizados, scrollbar oculto
+- [x] Headers: bg-white/80 backdrop-blur-xl, breadcrumbs con "/" separador y current en primary
+- [x] KPI Card: variantes por tipo (primary/accent/warm/danger), glow decoration, shadow-card
+- [x] Status Badge: bordes semánticos por estado
+- [x] Table: header bg-slate-50/80, uppercase tracking, hover states suaves
+- [x] CHART_COLORS migrados a HEALTH_TRUST, CHART_TOOLTIP_STYLE oscuro
+- [x] Input: focus states con ring-primary/20, border-primary
+- [x] Button: shadow-primary con hover lift
+- [x] Auth pages (login/register): migrados a paleta HEALTH_TRUST
+- [x] Admin pages: colores migrados a tokens HEALTH_TRUST
+- [x] Dashboard pages: colores de charts, gradientes, grid patterns migrados
+- [x] Limpieza global: 0 referencias a #1b3553, #7cd1c4, #5bbcad en codebase
+- [x] animate-page-in en 18+ páginas (dashboard + admin)
+- [x] Fix auth-provider: tipo de retorno de register corregido
+- [x] Fix search-input: useRef con initial value para React 19
+- [x] Dark mode completo con equivalentes oscuros para todos los tokens
+
+---
+
 ## Pendientes Planificados
 
 ### Horarios por Profesional
@@ -480,3 +523,5 @@
 | **L** | Chat Interno + Rediseño Pacientes/Ficha + Dashboard Configurable | ✅ Completada |
 | **M** | Rename professional + Mi Suscripción + Soporte Tickets | ✅ Completada |
 | **N** | Fixes de Producción (móvil, logo, filtro profesional, soporte global) | ✅ Completada |
+| **O** | Planes Dinámicos + Registro Premium + Auto-Trial | ✅ Completada |
+| **P** | Bugs Admin + Flujo Trial + Rediseño UI HEALTH_TRUST | ✅ Completada |

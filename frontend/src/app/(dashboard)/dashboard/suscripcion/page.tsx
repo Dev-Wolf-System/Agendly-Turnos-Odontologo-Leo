@@ -131,7 +131,7 @@ const prioridadColors: Record<string, string> = {
 
 const categoriaColors: Record<string, string> = {
   tecnico:
-    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-[#7cd1c4]",
+    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-accent",
   facturacion:
     "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
   consulta:
@@ -145,7 +145,7 @@ const estadoTicketColors: Record<string, string> = {
   en_progreso:
     "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
   esperando_respuesta:
-    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-[#7cd1c4]",
+    "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-accent",
   resuelto:
     "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
   cerrado:
@@ -232,7 +232,7 @@ function KpiSkeleton() {
       {[...Array(4)].map((_, i) => (
         <div
           key={i}
-          className="rounded-2xl bg-muted/50 animate-pulse h-[120px]"
+          className="rounded-xl bg-muted/50 animate-pulse h-[120px]"
         />
       ))}
     </div>
@@ -241,7 +241,7 @@ function KpiSkeleton() {
 
 function CardSkeleton({ height = "h-[300px]" }: { height?: string }) {
   return (
-    <div className={`rounded-2xl bg-muted/50 animate-pulse ${height}`} />
+    <div className={`rounded-xl bg-muted/50 animate-pulse ${height}`} />
   );
 }
 
@@ -380,7 +380,7 @@ function SuscripcionContent() {
   // RENDER
   // ════════════════════════════════════════════════════════════════
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -412,7 +412,7 @@ function SuscripcionContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Estado */}
-          <Card className="rounded-2xl border-0 shadow-sm bg-gradient-to-br from-[#7cd1c4]/10 to-[#7cd1c4]/5 dark:from-[#7cd1c4]/20 dark:to-[#7cd1c4]/5">
+          <Card className="rounded-xl border-0 shadow-sm bg-gradient-to-br from-[var(--ht-primary-light)]/10 to-[var(--ht-accent)]/5 dark:from-[var(--ht-primary-light)]/20 dark:to-[var(--ht-accent)]/5">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -434,15 +434,15 @@ function SuscripcionContent() {
                     </p>
                   )}
                 </div>
-                <div className="w-11 h-11 rounded-xl bg-[#7cd1c4]/15 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-[#5bbcad] dark:text-[#9dddd3]" />
+                <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent)]/15 flex items-center justify-center">
+                  <ShieldCheck className="w-5 h-5 text-[var(--ht-accent)] dark:text-[#9dddd3]" />
                 </div>
               </div>
             </CardContent>
           </Card>
 
           {/* Plan Actual */}
-          <Card className="rounded-2xl border-0 shadow-sm bg-gradient-to-br from-amber-500/10 to-amber-500/5 dark:from-amber-500/20 dark:to-amber-500/5">
+          <Card className="rounded-xl border-0 shadow-sm bg-gradient-to-br from-amber-500/10 to-amber-500/5 dark:from-amber-500/20 dark:to-amber-500/5">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -462,7 +462,7 @@ function SuscripcionContent() {
           </Card>
 
           {/* Dias Restantes */}
-          <Card className="rounded-2xl border-0 shadow-sm bg-gradient-to-br from-sky-500/10 to-sky-500/5 dark:from-sky-500/20 dark:to-sky-500/5">
+          <Card className="rounded-xl border-0 shadow-sm bg-gradient-to-br from-sky-500/10 to-sky-500/5 dark:from-sky-500/20 dark:to-sky-500/5">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -488,7 +488,7 @@ function SuscripcionContent() {
           </Card>
 
           {/* Proximo Pago */}
-          <Card className="rounded-2xl border-0 shadow-sm bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/5">
+          <Card className="rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/5">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div className="space-y-2">
@@ -519,10 +519,10 @@ function SuscripcionContent() {
         {subLoading ? (
           <CardSkeleton height="h-[380px]" />
         ) : (
-          <Card className="rounded-2xl border shadow-sm">
+          <Card className="rounded-xl border shadow-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[#7cd1c4] to-[#4aa89b] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ht-primary-light)] to-[#4aa89b] flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
@@ -538,7 +538,7 @@ function SuscripcionContent() {
             <CardContent className="space-y-5">
               {subError || !sub ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
                     <AlertTriangle className="w-7 h-7 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium">Sin suscripcion activa</p>
@@ -624,7 +624,7 @@ function SuscripcionContent() {
                     </div>
                     <div className="w-full h-2 bg-muted rounded-full overflow-hidden">
                       <div
-                        className="h-full rounded-full bg-gradient-to-r from-[#7cd1c4] to-[#5bbcad] transition-all duration-500"
+                        className="h-full rounded-full bg-gradient-to-r from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] transition-all duration-500"
                         style={{ width: `${progressPct}%` }}
                       />
                     </div>
@@ -707,7 +707,7 @@ function SuscripcionContent() {
         {pagosLoading ? (
           <CardSkeleton height="h-[380px]" />
         ) : (
-          <Card className="rounded-2xl border shadow-sm">
+          <Card className="rounded-xl border shadow-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
@@ -726,7 +726,7 @@ function SuscripcionContent() {
             <CardContent>
               {pagos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
                     <CreditCard className="w-7 h-7 text-muted-foreground" />
                   </div>
                   <p className="text-sm font-medium">Sin pagos registrados</p>
@@ -788,7 +788,7 @@ function SuscripcionContent() {
       {ticketsLoading ? (
         <CardSkeleton height="h-[350px]" />
       ) : (
-        <Card className="rounded-2xl border shadow-sm">
+        <Card className="rounded-xl border shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -815,7 +815,7 @@ function SuscripcionContent() {
           <CardContent>
             {tickets.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
                   <TicketCheck className="w-7 h-7 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-medium">Sin tickets</p>

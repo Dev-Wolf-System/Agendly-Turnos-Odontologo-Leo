@@ -236,7 +236,7 @@ function HistorialMedicoContent() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -305,7 +305,7 @@ function HistorialMedicoContent() {
               </div>
               {!search && (
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-primary/10 mb-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-primary/10 mb-4">
                     <Stethoscope className="h-8 w-8 text-primary" />
                   </div>
                   <h3 className="text-lg font-semibold">Historial Clínico</h3>
@@ -384,7 +384,7 @@ function HistorialMedicoContent() {
             <Card>
               <CardContent className="pt-6">
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
                     <ClipboardList className="h-8 w-8 text-muted-foreground" />
                   </div>
                   <h3 className="text-lg font-semibold">Sin registros clínicos</h3>

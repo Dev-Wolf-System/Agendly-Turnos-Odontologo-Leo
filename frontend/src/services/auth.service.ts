@@ -20,12 +20,8 @@ export const authService = {
     return response.data;
   },
 
-  async register(data: RegisterRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>("/auth/register", data);
-    const { access_token, refresh_token } = response.data;
-    localStorage.setItem("access_token", access_token);
-    localStorage.setItem("refresh_token", refresh_token);
-    setCookie("access_token", access_token, 1);
+  async register(data: RegisterRequest): Promise<{ success: boolean; message: string }> {
+    const response = await api.post("/auth/register", data);
     return response.data;
   },
 

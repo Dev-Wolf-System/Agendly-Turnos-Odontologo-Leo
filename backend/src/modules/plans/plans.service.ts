@@ -1,13 +1,16 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, ConflictException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { Plan } from './entities/plan.entity';
+import { Subscription } from '../subscriptions/entities/subscription.entity';
 
 @Injectable()
 export class PlansService {
   constructor(
     @InjectRepository(Plan)
     private readonly planRepository: Repository<Plan>,
+    @InjectRepository(Subscription)
+    private readonly subscriptionRepository: Repository<Subscription>,
   ) {}
 
   async findAll(onlyActive = true): Promise<Plan[]> {
@@ -51,6 +54,17 @@ export class PlansService {
 
   async remove(id: string): Promise<void> {
     const plan = await this.findOne(id);
+
+    const activeSubs = await this.subscriptionRepository.count({
+      where: { plan_id: id },
+    });
+
+    if (activeSubs > 0) {
+      throw new ConflictException(
+        `No se puede eliminar el plan "${plan.nombre}": tiene ${activeSubs} suscripción(es) asociada(s). Desactivá el plan en su lugar.`,
+      );
+    }
+
     await this.planRepository.remove(plan);
   }
 }

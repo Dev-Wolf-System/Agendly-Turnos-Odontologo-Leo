@@ -22,11 +22,13 @@ export class AdminClinicasController {
     @Query('is_active') isActive?: string,
     @Query('plan_id') planId?: string,
     @Query('search') search?: string,
+    @Query('estado_aprobacion') estadoAprobacion?: string,
   ) {
     return this.adminService.findAllClinicas({
       is_active: isActive,
       plan_id: planId,
       search,
+      estado_aprobacion: estadoAprobacion,
     });
   }
 
@@ -43,5 +45,15 @@ export class AdminClinicasController {
   @Delete(':id')
   softDelete(@Param('id') id: string) {
     return this.adminService.softDeleteClinica(id);
+  }
+
+  @Patch(':id/aprobar')
+  aprobar(@Param('id') id: string) {
+    return this.adminService.aprobarClinica(id);
+  }
+
+  @Patch(':id/rechazar')
+  rechazar(@Param('id') id: string) {
+    return this.adminService.rechazarClinica(id);
   }
 }

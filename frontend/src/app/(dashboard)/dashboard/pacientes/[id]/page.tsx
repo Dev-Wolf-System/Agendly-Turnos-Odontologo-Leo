@@ -102,12 +102,12 @@ function EstadoBadge({ estado }: { estado: string }) {
 }
 
 const gradients = [
-  "from-[#7cd1c4] to-[#4aa89b]",
+  "from-[var(--ht-primary-light)] to-[#4aa89b]",
   "from-blue-500 to-cyan-500",
   "from-emerald-500 to-teal-500",
   "from-orange-500 to-amber-500",
   "from-rose-500 to-pink-500",
-  "from-[#1b3553] to-blue-600",
+  "from-[var(--ht-primary)] to-blue-600",
 ];
 
 function getGradient(id: string): string {
@@ -140,9 +140,9 @@ export default function FichaPacientePage() {
 
   if (isLoading) {
     return (
-      <div className="space-y-6 p-1">
+      <div className="animate-page-in space-y-6 p-1">
         <div className="flex items-center gap-4">
-          <Skeleton className="h-20 w-20 rounded-2xl" />
+          <Skeleton className="h-20 w-20 rounded-xl" />
           <div className="space-y-2 flex-1">
             <Skeleton className="h-7 w-48" />
             <Skeleton className="h-4 w-72" />
@@ -150,10 +150,10 @@ export default function FichaPacientePage() {
         </div>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <Skeleton key={i} className="h-28 rounded-2xl" />
+            <Skeleton key={i} className="h-28 rounded-xl" />
           ))}
         </div>
-        <Skeleton className="h-96 rounded-2xl" />
+        <Skeleton className="h-96 rounded-xl" />
       </div>
     );
   }
@@ -161,7 +161,7 @@ export default function FichaPacientePage() {
   if (!ficha) {
     return (
       <div className="flex flex-col items-center justify-center py-20 text-muted-foreground">
-        <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mb-4">
+        <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center mb-4">
           <User className="h-8 w-8" />
         </div>
         <p className="text-lg font-medium">Paciente no encontrado</p>
@@ -184,7 +184,7 @@ export default function FichaPacientePage() {
   return (
     <div className="space-y-6 p-1">
       {/* Hero Header */}
-      <div className="relative overflow-hidden rounded-2xl border bg-card">
+      <div className="relative overflow-hidden rounded-xl border bg-card">
         {/* Background decoration */}
         <div className={`absolute inset-0 bg-gradient-to-br ${gradient} opacity-[0.04] dark:opacity-[0.08]`} />
         <div className="absolute top-0 right-0 w-64 h-64 bg-gradient-to-bl from-primary/5 to-transparent rounded-full -translate-y-1/2 translate-x-1/2" />
@@ -203,7 +203,7 @@ export default function FichaPacientePage() {
 
           <div className="flex flex-col sm:flex-row gap-5">
             {/* Avatar */}
-            <div className={`shrink-0 w-20 h-20 rounded-2xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
+            <div className={`shrink-0 w-20 h-20 rounded-xl bg-gradient-to-br ${gradient} flex items-center justify-center shadow-lg`}>
               <span className="text-2xl font-bold text-white">
                 {getInitials(paciente.nombre, paciente.apellido)}
               </span>
@@ -265,7 +265,7 @@ export default function FichaPacientePage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -279,23 +279,23 @@ export default function FichaPacientePage() {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-purple-50 to-teal-100/50 dark:from-teal-950/40 dark:to-teal-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-purple-50 to-teal-100/50 dark:from-teal-950/40 dark:to-teal-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-[#4aa89b]/70 dark:text-[#7cd1c4]/70 uppercase tracking-wider">Último Turno</p>
+                <p className="text-xs font-medium text-[#4aa89b]/70 dark:text-accent/70 uppercase tracking-wider">Último Turno</p>
                 <p className="text-xl font-bold text-teal-700 dark:text-purple-300 mt-1">
                   {kpis.ultimoTurno ? formatFecha(kpis.ultimoTurno) : "—"}
                 </p>
               </div>
-              <div className="w-11 h-11 rounded-xl bg-[#5bbcad]/10 dark:bg-[#7cd1c4]/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-[#4aa89b] dark:text-[#7cd1c4]" />
+              <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent-dark)]/10 dark:bg-[var(--ht-accent)]/10 flex items-center justify-center">
+                <Clock className="h-5 w-5 text-[#4aa89b] dark:text-accent" />
               </div>
             </div>
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -311,7 +311,7 @@ export default function FichaPacientePage() {
           </CardContent>
         </Card>
 
-        <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
+        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
@@ -330,7 +330,7 @@ export default function FichaPacientePage() {
 
       {/* Últimos Procedimientos - Timeline */}
       {historialMedico.length > 0 && (
-        <Card className="rounded-2xl overflow-hidden">
+        <Card className="rounded-xl overflow-hidden">
           <CardHeader className="pb-3">
             <div className="flex items-center gap-2">
               <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
@@ -410,7 +410,7 @@ export default function FichaPacientePage() {
 
         {/* Próximos Turnos */}
         <TabsContent value="proximos">
-          <Card className="rounded-2xl">
+          <Card className="rounded-xl">
             <CardContent className="p-0">
               {proximosTurnos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -458,7 +458,7 @@ export default function FichaPacientePage() {
 
         {/* Historial de Turnos */}
         <TabsContent value="historial-turnos">
-          <Card className="rounded-2xl">
+          <Card className="rounded-xl">
             <CardContent className="p-0">
               {historialTurnos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -506,7 +506,7 @@ export default function FichaPacientePage() {
 
         {/* Historial Médico */}
         <TabsContent value="historial-medico">
-          <Card className="rounded-2xl">
+          <Card className="rounded-xl">
             <CardContent className="p-0">
               {historialMedico.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -552,7 +552,7 @@ export default function FichaPacientePage() {
 
         {/* Pagos */}
         <TabsContent value="pagos">
-          <Card className="rounded-2xl">
+          <Card className="rounded-xl">
             <CardContent className="p-0">
               {pagos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">

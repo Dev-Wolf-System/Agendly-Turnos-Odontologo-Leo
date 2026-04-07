@@ -19,11 +19,13 @@ export async function getAdminClinicas(filters?: {
   is_active?: string;
   plan_id?: string;
   search?: string;
+  estado_aprobacion?: string;
 }): Promise<AdminClinica[]> {
   const params = new URLSearchParams();
   if (filters?.is_active) params.set("is_active", filters.is_active);
   if (filters?.plan_id) params.set("plan_id", filters.plan_id);
   if (filters?.search) params.set("search", filters.search);
+  if (filters?.estado_aprobacion) params.set("estado_aprobacion", filters.estado_aprobacion);
   const { data } = await api.get(`/admin/clinicas?${params.toString()}`);
   return data;
 }
@@ -43,6 +45,16 @@ export async function updateAdminClinica(
 
 export async function deleteAdminClinica(id: string): Promise<void> {
   await api.delete(`/admin/clinicas/${id}`);
+}
+
+export async function aprobarAdminClinica(id: string): Promise<AdminClinica> {
+  const { data } = await api.patch(`/admin/clinicas/${id}/aprobar`);
+  return data;
+}
+
+export async function rechazarAdminClinica(id: string): Promise<AdminClinica> {
+  const { data } = await api.patch(`/admin/clinicas/${id}/rechazar`);
+  return data;
 }
 
 /* ─── Planes ─── */

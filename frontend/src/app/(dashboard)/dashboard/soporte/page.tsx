@@ -41,27 +41,29 @@ import {
   LifeBuoy,
 } from "lucide-react";
 
+import { STATUS_COLORS } from "@/lib/constants";
+
 // ─── Colores ───
 const prioridadColors: Record<string, string> = {
-  baja: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
-  media: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  alta: "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-  urgente: "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
+  baja: STATUS_COLORS.inactivo,
+  media: STATUS_COLORS.abierto,
+  alta: "bg-status-warning-bg text-status-warning-fg",
+  urgente: STATUS_COLORS.cancelado,
 };
 
 const categoriaColors: Record<string, string> = {
-  tecnico: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-[#7cd1c4]",
-  facturacion: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  consulta: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  otro: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+  tecnico: "bg-status-info-bg text-status-info-fg",
+  facturacion: STATUS_COLORS.completado,
+  consulta: STATUS_COLORS.abierto,
+  otro: STATUS_COLORS.inactivo,
 };
 
 const estadoTicketColors: Record<string, string> = {
-  abierto: "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-  en_progreso: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  esperando_respuesta: "bg-teal-100 text-teal-700 dark:bg-teal-900/30 dark:text-[#7cd1c4]",
-  resuelto: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  cerrado: "bg-gray-100 text-gray-700 dark:bg-gray-800 dark:text-gray-400",
+  abierto: STATUS_COLORS.abierto,
+  en_progreso: STATUS_COLORS.en_progreso,
+  esperando_respuesta: "bg-status-info-bg text-status-info-fg",
+  resuelto: STATUS_COLORS.resuelto,
+  cerrado: STATUS_COLORS.cerrado,
 };
 
 const estadoTicketLabels: Record<string, string> = {
@@ -145,7 +147,7 @@ export default function SoportePage() {
   };
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -167,9 +169,9 @@ export default function SoportePage() {
 
       {/* Tickets */}
       {loading ? (
-        <div className="rounded-2xl bg-muted/50 animate-pulse h-[350px]" />
+        <div className="rounded-xl bg-muted/50 animate-pulse h-[350px]" />
       ) : (
-        <Card className="rounded-2xl border shadow-sm">
+        <Card className="rounded-xl border shadow-sm">
           <CardHeader className="pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -194,7 +196,7 @@ export default function SoportePage() {
           <CardContent>
             {tickets.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
-                <div className="w-14 h-14 rounded-2xl bg-muted flex items-center justify-center mb-4">
+                <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
                   <TicketCheck className="w-7 h-7 text-muted-foreground" />
                 </div>
                 <p className="text-sm font-medium">Sin tickets</p>

@@ -29,18 +29,18 @@ export function Breadcrumbs() {
   });
 
   return (
-    <nav className="flex items-center gap-1.5 text-sm">
+    <nav className="flex items-center gap-2 text-sm">
       {crumbs.map((crumb, index) => (
-        <span key={crumb.href} className="flex items-center gap-1.5">
+        <span key={crumb.href} className="flex items-center gap-2">
           {index > 0 && (
-            <ChevronIcon className="h-3.5 w-3.5 text-muted-foreground/50" />
+            <span className="text-[var(--text-muted)]">/</span>
           )}
           {crumb.isLast ? (
-            <span className="font-medium text-foreground">{crumb.label}</span>
+            <span className="font-medium text-primary">{crumb.label}</span>
           ) : (
             <Link
               href={crumb.href}
-              className="text-muted-foreground hover:text-foreground transition-colors"
+              className="text-[var(--text-muted)] hover:text-foreground transition-colors"
             >
               {crumb.label}
             </Link>

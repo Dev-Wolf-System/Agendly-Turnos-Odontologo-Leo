@@ -1,6 +1,7 @@
 "use client";
 
 import React, { useEffect, useState, useCallback, useRef } from "react";
+import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { RoleGuard } from "@/components/guards/role-guard";
 import clinicaService, {
   Clinica,
@@ -252,7 +253,7 @@ function ConfiguracionContent() {
 
   if (isLoading || !clinica) {
     return (
-      <div className="space-y-6">
+      <div className="animate-page-in space-y-6">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Configuración</h1>
           <p className="text-muted-foreground">Personalizá tu clínica</p>
@@ -810,7 +811,7 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
                       )}
                     </div>
                     {/* Tarde */}
-                    <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 border-[#b0c4d8] dark:border-[#1b3553]" : "bg-muted/30"}`}>
+                    <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 border-[#b0c4d8] dark:border-primary" : "bg-muted/30"}`}>
                       <Switch
                         checked={dia.tarde.activo}
                         onCheckedChange={(v) => updateTurno(key, "tarde", "activo", v)}
@@ -883,7 +884,7 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
                   onClick={() => handleSelectProf(prof.id)}
                   className={`flex items-center gap-2 rounded-lg border px-3 py-2 text-sm font-medium transition-all ${
                     selectedProfId === prof.id
-                      ? "border-[#1b3553] bg-[#1b3553]/10 text-[#1b3553] dark:text-[#2a4f73] shadow-sm"
+                      ? "border-primary bg-[#0F172A]/10 text-primary dark:text-primary/90 shadow-sm"
                       : "border-border hover:border-muted-foreground/30 hover:bg-muted"
                   }`}
                 >
@@ -933,7 +934,7 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
                             <span className="text-xs text-muted-foreground italic">—</span>
                           )}
                         </div>
-                        <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 border-[#b0c4d8] dark:border-[#1b3553]" : "bg-muted/30"}`}>
+                        <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 border-[#b0c4d8] dark:border-primary" : "bg-muted/30"}`}>
                           <Switch checked={dia.tarde.activo} onCheckedChange={(v) => updateProfTurno(key, "tarde", "activo", v)} />
                           <span className="text-xs font-medium w-16 shrink-0">Tarde</span>
                           {dia.tarde.activo ? (
@@ -1113,7 +1114,7 @@ function TabTratamientos({
         <CardContent>
           {tratamientos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
                 <Stethoscope className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold">Sin tratamientos configurados</h3>
@@ -1312,6 +1313,7 @@ function TabEquipo({
   clinica: Clinica;
   onUpdate: () => void;
 }) {
+  const { maxUsuarios, currentUsuarios, canAddUsuario } = usePlanLimits();
   const [dialogOpen, setDialogOpen] = useState(false);
   const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
   const [editing, setEditing] = useState<User | null>(null);
@@ -1409,9 +1411,19 @@ function TabEquipo({
               </CardTitle>
               <CardDescription>
                 Gestión de {clinica.label_profesional?.toLowerCase() || "profesional"}es y asistentes
+                {maxUsuarios > 0 && (
+                  <span className={`ml-2 font-medium ${!canAddUsuario ? "text-red-500" : ""}`}>
+                    ({currentUsuarios} de {maxUsuarios})
+                  </span>
+                )}
               </CardDescription>
             </div>
-            <Button onClick={openCreate} className="gap-2">
+            <Button
+              onClick={openCreate}
+              disabled={!canAddUsuario}
+              title={!canAddUsuario ? `Límite de ${maxUsuarios} usuarios alcanzado. Actualiza tu plan.` : undefined}
+              className="gap-2"
+            >
               <UserPlus className="h-4 w-4" />
               Nuevo Miembro
             </Button>
@@ -1420,7 +1432,7 @@ function TabEquipo({
         <CardContent>
           {users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted mb-4">
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
                 <Users className="h-8 w-8 text-muted-foreground" />
               </div>
               <h3 className="text-lg font-semibold">Sin miembros del equipo</h3>
@@ -1435,7 +1447,7 @@ function TabEquipo({
                   key={u.id}
                   className="flex items-center gap-3 rounded-lg border p-3 group hover:shadow-sm transition-shadow"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#7cd1c4] to-[#4aa89b] text-white text-sm font-bold shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary-light)] to-[#4aa89b] text-white text-sm font-bold shrink-0">
                     {u.nombre.charAt(0)}{u.apellido.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1618,7 +1630,7 @@ const WEBHOOK_ESTADOS = [
     key: "recordatorio",
     label: "Recordatorio de Turno",
     description: "Se dispara automáticamente X horas antes del turno confirmado (configurable abajo)",
-    color: "bg-[#7cd1c4]",
+    color: "bg-[var(--ht-accent)]",
   },
 ];
 
@@ -1834,7 +1846,7 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
           <div className="flex items-center justify-between">
             <div>
               <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-[#7cd1c4]" />
+                <Bot className="h-5 w-5 text-accent" />
                 Agente IA — Asistente Virtual
               </CardTitle>
               <CardDescription>
@@ -1952,6 +1964,8 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
 // ─── Tab Dashboard (KPI Visibility) ───
 const KPI_OPTIONS: { id: string; label: string; description: string }[] = [
   { id: "turnosHoy", label: "Turnos Hoy", description: "Cantidad de turnos programados para hoy" },
+  { id: "completadosHoy", label: "Completados Hoy", description: "Turnos finalizados en el día" },
+  { id: "confirmadosRestantes", label: "Confirmados Restantes", description: "Turnos confirmados pendientes de atender" },
   { id: "pacientes", label: "Pacientes", description: "Total de pacientes registrados" },
   { id: "ingresosMes", label: "Ingresos del Mes", description: "Monto total de pagos aprobados del mes" },
   { id: "pagosAprobados", label: "Pagos Aprobados", description: "Cantidad de pagos aprobados del mes" },
@@ -1983,12 +1997,12 @@ function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () =>
       // Defaults: professional sees turnos + pacientes; assistant sees turnos + pacientes + pagos count
       setVisibility({
         professional: {
-          turnosHoy: true, pacientes: true, ingresosMes: false, pagosAprobados: false, stockBajo: false,
+          turnosHoy: true, completadosHoy: true, confirmadosRestantes: true, pacientes: true, ingresosMes: false, pagosAprobados: false, stockBajo: false,
           "section:estadoTurnos": true, "section:turnosHoy": true, "section:turnosSemana": true, "section:tratamientos": true,
           "section:ingresosMensuales": false, "section:facturacionDiaria": false,
         },
         assistant: {
-          turnosHoy: true, pacientes: true, ingresosMes: false, pagosAprobados: true, stockBajo: false,
+          turnosHoy: true, completadosHoy: true, confirmadosRestantes: true, pacientes: true, ingresosMes: false, pagosAprobados: true, stockBajo: false,
           "section:estadoTurnos": true, "section:turnosHoy": true, "section:turnosSemana": true, "section:tratamientos": true,
           "section:ingresosMensuales": false, "section:facturacionDiaria": false,
         },
@@ -2006,6 +2020,18 @@ function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () =>
     }));
   };
 
+  const toggleAll = (role: string, group: "kpi" | "section", value: boolean) => {
+    setVisibility((prev) => {
+      const updated = { ...prev, [role]: { ...prev[role] } };
+      if (group === "kpi") {
+        KPI_OPTIONS.forEach((kpi) => { updated[role][kpi.id] = value; });
+      } else {
+        SECTION_OPTIONS.forEach((s) => { updated[role][`section:${s.id}`] = value; });
+      }
+      return updated;
+    });
+  };
+
   const handleSave = async () => {
     try {
       setIsSaving(true);
@@ -2021,7 +2047,7 @@ function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () =>
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-2xl">
+      <Card className="rounded-xl">
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
             <LayoutDashboard className="h-5 w-5" />
@@ -2042,7 +2068,14 @@ function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () =>
 
               {/* KPIs */}
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tarjetas KPI</h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Tarjetas KPI</h4>
+                  <div className="flex gap-2">
+                    <button onClick={() => toggleAll(role.id, "kpi", true)} className="text-xs text-primary hover:underline">Seleccionar todos</button>
+                    <span className="text-xs text-muted-foreground">|</span>
+                    <button onClick={() => toggleAll(role.id, "kpi", false)} className="text-xs text-muted-foreground hover:underline">Deseleccionar todos</button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                   {KPI_OPTIONS.map((kpi) => (
                     <div
@@ -2068,7 +2101,14 @@ function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () =>
 
               {/* Sections */}
               <div className="space-y-1">
-                <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Secciones del Dashboard</h4>
+                <div className="flex items-center justify-between">
+                  <h4 className="text-sm font-semibold text-muted-foreground uppercase tracking-wider">Secciones del Dashboard</h4>
+                  <div className="flex gap-2">
+                    <button onClick={() => toggleAll(role.id, "section", true)} className="text-xs text-primary hover:underline">Seleccionar todos</button>
+                    <span className="text-xs text-muted-foreground">|</span>
+                    <button onClick={() => toggleAll(role.id, "section", false)} className="text-xs text-muted-foreground hover:underline">Deseleccionar todos</button>
+                  </div>
+                </div>
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3 mt-2">
                   {SECTION_OPTIONS.map((section) => {
                     const key = `section:${section.id}`;

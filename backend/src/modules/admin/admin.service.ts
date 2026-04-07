@@ -32,6 +32,7 @@ export class AdminService {
     is_active?: string;
     plan_id?: string;
     search?: string;
+    estado_aprobacion?: string;
   }) {
     const qb = this.clinicaRepo
       .createQueryBuilder('c')
@@ -52,6 +53,12 @@ export class AdminService {
     if (filters?.search) {
       qb.andWhere('(c.nombre ILIKE :search OR c.email ILIKE :search)', {
         search: `%${filters.search}%`,
+      });
+    }
+
+    if (filters?.estado_aprobacion) {
+      qb.andWhere('c.estado_aprobacion = :estadoAprobacion', {
+        estadoAprobacion: filters.estado_aprobacion,
       });
     }
 
@@ -83,7 +90,7 @@ export class AdminService {
   async findClinicaById(id: string) {
     const clinica = await this.clinicaRepo.findOne({
       where: { id },
-      relations: ['subscriptions', 'users'],
+      relations: ['subscriptions', 'subscriptions.plan', 'users'],
     });
 
     if (!clinica) {
@@ -119,6 +126,25 @@ export class AdminService {
       throw new NotFoundException('Clínica no encontrada');
     }
     Object.assign(clinica, data);
+    return this.clinicaRepo.save(clinica);
+  }
+
+  async aprobarClinica(id: string) {
+    const clinica = await this.clinicaRepo.findOne({ where: { id } });
+    if (!clinica) {
+      throw new NotFoundException('Clínica no encontrada');
+    }
+    clinica.estado_aprobacion = 'aprobado';
+    return this.clinicaRepo.save(clinica);
+  }
+
+  async rechazarClinica(id: string) {
+    const clinica = await this.clinicaRepo.findOne({ where: { id } });
+    if (!clinica) {
+      throw new NotFoundException('Clínica no encontrada');
+    }
+    clinica.estado_aprobacion = 'rechazado';
+    clinica.is_active = false;
     return this.clinicaRepo.save(clinica);
   }
 
@@ -212,7 +238,7 @@ export class AdminService {
         trial: subscripcionesTrial,
         trials_por_vencer: trialsPorVencer,
       },
-      mrr: parseFloat(mrrResult?.mrr) || 0,
+      mrr: Number(mrrResult?.mrr ?? 0) || 0,
       clinicas_por_plan: clinicasPorPlan,
       planes,
     };

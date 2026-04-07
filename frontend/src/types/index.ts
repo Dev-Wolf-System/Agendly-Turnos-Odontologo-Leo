@@ -25,6 +25,7 @@ export interface Plan {
   precio_mensual: number;
   max_usuarios: number;
   max_pacientes: number | null;
+  max_sucursales: number | null;
   features: Record<string, boolean>;
   descripcion: string | null;
   is_highlighted: boolean;
@@ -102,6 +103,7 @@ export interface RegisterRequest {
   clinica_nombre: string;
   nombre_propietario?: string;
   clinica_cel?: string;
+  especialidad?: string;
   nombre: string;
   apellido: string;
   email: string;

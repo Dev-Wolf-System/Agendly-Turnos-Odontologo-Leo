@@ -35,7 +35,7 @@ interface TicketStats {
 const ESTADO_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string }> = {
   abierto: { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", dot: "bg-blue-500", label: "Abierto" },
   en_progreso: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", label: "En Progreso" },
-  esperando_respuesta: { bg: "bg-[#5bbcad]/10", text: "text-[#4aa89b] dark:text-[#7cd1c4]", dot: "bg-[#5bbcad]", label: "Esperando" },
+  esperando_respuesta: { bg: "bg-[var(--ht-accent-dark)]/10", text: "text-[#4aa89b] dark:text-accent", dot: "bg-[var(--ht-accent-dark)]", label: "Esperando" },
   resuelto: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", label: "Resuelto" },
   cerrado: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Cerrado" },
 };
@@ -48,7 +48,7 @@ const PRIORIDAD_CONFIG: Record<string, { bg: string; text: string; label: string
 };
 
 const CATEGORIA_CONFIG: Record<string, { bg: string; text: string; label: string }> = {
-  tecnico: { bg: "bg-teal-100 dark:bg-teal-900/30", text: "text-teal-700 dark:text-[#7cd1c4]", label: "Tecnico" },
+  tecnico: { bg: "bg-teal-100 dark:bg-teal-900/30", text: "text-teal-700 dark:text-accent", label: "Tecnico" },
   facturacion: { bg: "bg-emerald-100 dark:bg-emerald-900/30", text: "text-emerald-700 dark:text-emerald-400", label: "Facturacion" },
   consulta: { bg: "bg-blue-100 dark:bg-blue-900/30", text: "text-blue-700 dark:text-blue-400", label: "Consulta" },
   otro: { bg: "bg-gray-100 dark:bg-gray-800", text: "text-gray-700 dark:text-gray-400", label: "Otro" },
@@ -167,22 +167,22 @@ export default function AdminSoportePage() {
   const totalAll = Object.values(stats).reduce((a, b) => a + (b || 0), 0);
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* ── KPI Stats ── */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
-        <div className="rounded-2xl border bg-gradient-to-br from-blue-500/10 to-blue-500/5 dark:from-blue-500/20 dark:to-blue-500/5 p-5">
+        <div className="rounded-xl border bg-gradient-to-br from-blue-500/10 to-blue-500/5 dark:from-blue-500/20 dark:to-blue-500/5 p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Total Tickets</p>
           <p className="text-2xl font-bold mt-1">{totalAll}</p>
         </div>
-        <div className="rounded-2xl border bg-gradient-to-br from-amber-500/10 to-amber-500/5 dark:from-amber-500/20 dark:to-amber-500/5 p-5">
+        <div className="rounded-xl border bg-gradient-to-br from-amber-500/10 to-amber-500/5 dark:from-amber-500/20 dark:to-amber-500/5 p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Abiertos</p>
           <p className="text-2xl font-bold mt-1 text-amber-600 dark:text-amber-400">{totalAbiertos}</p>
         </div>
-        <div className="rounded-2xl border bg-gradient-to-br from-[#5bbcad]/10 to-[#5bbcad]/5 dark:from-[#5bbcad]/20 dark:to-[#5bbcad]/5 p-5">
+        <div className="rounded-xl border bg-gradient-to-br from-[var(--ht-accent)]/10 to-[var(--ht-accent-dark)]/5 dark:from-[var(--ht-accent)]/20 dark:to-[var(--ht-accent-dark)]/5 p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Esperando</p>
-          <p className="text-2xl font-bold mt-1 text-[#4aa89b] dark:text-[#7cd1c4]">{stats.esperando_respuesta || 0}</p>
+          <p className="text-2xl font-bold mt-1 text-[#4aa89b] dark:text-accent">{stats.esperando_respuesta || 0}</p>
         </div>
-        <div className="rounded-2xl border bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/5 p-5">
+        <div className="rounded-xl border bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/5 p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Resueltos</p>
           <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">{totalResueltos}</p>
         </div>
@@ -235,7 +235,7 @@ export default function AdminSoportePage() {
         </select>
         <button
           onClick={fetchData}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1b3553] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#1f3d5e] transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F172A] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#1f3d5e] transition-colors"
         >
           <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" />
@@ -255,8 +255,8 @@ export default function AdminSoportePage() {
               ))}
             </div>
           ) : filteredTickets.length === 0 ? (
-            <div className="rounded-2xl border bg-card p-12 text-center">
-              <div className="w-16 h-16 rounded-2xl bg-muted flex items-center justify-center mx-auto mb-4">
+            <div className="rounded-xl border bg-card p-12 text-center">
+              <div className="w-16 h-16 rounded-xl bg-muted flex items-center justify-center mx-auto mb-4">
                 <svg className="w-8 h-8 text-muted-foreground" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M2 9a3 3 0 0 1 0 6v2a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2v-2a3 3 0 0 1 0-6V7a2 2 0 0 0-2-2H4a2 2 0 0 0-2 2Z" /><path d="M13 5v2" /><path d="M13 17v2" /><path d="M13 11v2" />
                 </svg>
@@ -282,7 +282,7 @@ export default function AdminSoportePage() {
                   }}
                   className={`w-full text-left rounded-xl border p-4 transition-all duration-200 hover:shadow-md ${
                     isSelected
-                      ? "ring-2 ring-[#1b3553] border-[#1b3553]/50 bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20"
+                      ? "ring-2 ring-primary border-primary/50 bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20"
                       : "bg-card hover:bg-muted/30"
                   }`}
                 >
@@ -336,7 +336,7 @@ export default function AdminSoportePage() {
         {/* Detail panel */}
         <div className="lg:col-span-2">
           {selected ? (
-            <div className="rounded-2xl border bg-card shadow-sm sticky top-6">
+            <div className="rounded-xl border bg-card shadow-sm sticky top-6">
               {/* Header */}
               <div className="p-5 border-b">
                 <div className="flex items-start justify-between gap-3 mb-3">
@@ -444,7 +444,7 @@ export default function AdminSoportePage() {
                   <button
                     onClick={handleRespond}
                     disabled={responding || !respuesta.trim()}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#1b3553] px-4 py-2 text-sm font-medium text-white hover:bg-[#1f3d5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0F172A] px-4 py-2 text-sm font-medium text-white hover:bg-[#1f3d5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {responding ? (
                       <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -475,9 +475,9 @@ export default function AdminSoportePage() {
               </div>
             </div>
           ) : (
-            <div className="rounded-2xl border bg-card shadow-sm p-12 text-center sticky top-6">
-              <div className="w-16 h-16 rounded-2xl bg-gradient-to-br from-[#1b3553]/10 to-[#7cd1c4]/10 flex items-center justify-center mx-auto mb-4">
-                <svg className="w-8 h-8 text-[#2a4f73]" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <div className="rounded-xl border bg-card shadow-sm p-12 text-center sticky top-6">
+              <div className="w-16 h-16 rounded-xl bg-gradient-to-br from-[var(--ht-primary)]/10 to-[var(--ht-accent)]/10 flex items-center justify-center mx-auto mb-4">
+                <svg className="w-8 h-8 text-primary/90" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
                   <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
                 </svg>
               </div>

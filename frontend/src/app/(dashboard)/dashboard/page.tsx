@@ -30,31 +30,9 @@ import dashboardService, {
   TratamientoMes,
 } from "@/services/dashboard.service";
 import { GripVertical, Lock, Unlock } from "lucide-react";
-
-const estadoColors: Record<string, string> = {
-  completado:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  confirmado:
-    "bg-sky-100 text-sky-700 dark:bg-sky-900/30 dark:text-sky-400",
-  pendiente:
-    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  cancelado:
-    "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-};
-
-const mesesCortos: Record<string, string> = {
-  "01": "Ene", "02": "Feb", "03": "Mar", "04": "Abr",
-  "05": "May", "06": "Jun", "07": "Jul", "08": "Ago",
-  "09": "Sep", "10": "Oct", "11": "Nov", "12": "Dic",
-};
-
-const CHART_TOOLTIP_STYLE = {
-  borderRadius: "12px",
-  border: "1px solid hsl(var(--border))",
-  background: "hsl(var(--card))",
-  fontSize: "12px",
-  color: "hsl(var(--foreground))",
-};
+import { OnboardingWizard } from "@/components/onboarding-wizard";
+import { StatusBadge } from "@/components/ui/status-badge";
+import { MONTH_LABELS, CHART_TOOLTIP_STYLE, CHART_COLORS } from "@/lib/constants";
 
 // Sección IDs
 type SectionId = "estadoTurnos" | "turnosHoy" | "turnosSemana" | "tratamientos" | "ingresosMensuales" | "facturacionDiaria";
@@ -80,6 +58,14 @@ export default function DashboardPage() {
   const [editMode, setEditMode] = useState(false);
   const [sectionOrder, setSectionOrder] = useState<SectionId[]>([]);
   const [draggedSection, setDraggedSection] = useState<SectionId | null>(null);
+  const [showOnboarding, setShowOnboarding] = useState(false);
+
+  // Mostrar onboarding si la clinica no lo completó
+  useEffect(() => {
+    if (clinica && isAdmin && clinica.onboarding_completado === false) {
+      setShowOnboarding(true);
+    }
+  }, [clinica, isAdmin]);
 
   // Cargar orden de secciones
   useEffect(() => {
@@ -140,15 +126,15 @@ export default function DashboardPage() {
     const counts: Record<string, number> = { completado: 0, confirmado: 0, pendiente: 0, cancelado: 0 };
     misTurnosHoy.forEach((t) => { if (counts[t.estado] !== undefined) counts[t.estado]++; });
     return [
-      { nombre: "Completados", valor: counts.completado, color: "#10b981" },
-      { nombre: "Confirmados", valor: counts.confirmado, color: "#6366f1" },
-      { nombre: "Pendientes", valor: counts.pendiente, color: "#f59e0b" },
-      { nombre: "Cancelados", valor: counts.cancelado, color: "#ef4444" },
+      { nombre: "Completados", valor: counts.completado, color: CHART_COLORS.success },
+      { nombre: "Confirmados", valor: counts.confirmado, color: CHART_COLORS.info },
+      { nombre: "Pendientes", valor: counts.pendiente, color: CHART_COLORS.warning },
+      { nombre: "Cancelados", valor: counts.cancelado, color: CHART_COLORS.error },
     ];
   })();
 
   const ingresosFormateados = ingresosMensuales.map((item) => ({
-    mes: mesesCortos[item.mes.split("-")[1]] || item.mes,
+    mes: MONTH_LABELS[item.mes.split("-")[1]] || item.mes,
     ingresos: item.ingresos,
   }));
 
@@ -183,14 +169,14 @@ export default function DashboardPage() {
           <div className="h-8 w-64 bg-muted rounded-lg animate-pulse" />
           <div className="h-4 w-48 bg-muted rounded mt-2 animate-pulse" />
         </div>
-        <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-          {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-36 rounded-2xl border bg-card animate-pulse" />
+        <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
+          {[...Array(6)].map((_, i) => (
+            <div key={i} className="h-36 rounded-xl border bg-card animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-80 rounded-2xl border bg-card animate-pulse" />
-          <div className="h-80 rounded-2xl border bg-card animate-pulse" />
+          <div className="h-80 rounded-xl border bg-card animate-pulse" />
+          <div className="h-80 rounded-xl border bg-card animate-pulse" />
         </div>
       </div>
     );
@@ -256,26 +242,26 @@ export default function DashboardPage() {
 
   if (isProfessional) {
     allKpiCards.push(
-      { id: "turnosHoy", label: "Mis Turnos Hoy", value: misTurnosHoy.length, sub: "turnos programados", gradient: "from-blue-500 to-[#1b3553]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
-      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-sky-500 to-blue-600", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
-      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[#7cd1c4] to-[#4aa89b]", bgGlow: "bg-[#7cd1c4]/10", icon: usersSvg, href: "/dashboard/pacientes" },
+      { id: "turnosHoy", label: "Mis Turnos Hoy", value: misTurnosHoy.length, sub: "turnos programados", gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-dark)]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-[var(--ht-primary-light)] to-[var(--ht-primary)]", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
+      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: usersSvg, href: "/dashboard/pacientes" },
     );
   } else if (isAssistant) {
     allKpiCards.push(
-      { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-blue-500 to-[#1b3553]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
-      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-sky-500 to-blue-600", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
-      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[#7cd1c4] to-[#4aa89b]", bgGlow: "bg-[#7cd1c4]/10", icon: usersSvg, href: "/dashboard/pacientes" },
-      { id: "pagosAprobados", label: "Pagos Aprobados", value: stats?.pagosAprobadosMes ?? 0, sub: "aprobados este mes", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: checkSvg, href: "/dashboard/pagos" },
+      { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-dark)]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-[var(--ht-primary-light)] to-[var(--ht-primary)]", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
+      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: usersSvg, href: "/dashboard/pacientes" },
+      { id: "pagosAprobados", label: "Pagos Aprobados", value: stats?.pagosAprobadosMes ?? 0, sub: "aprobados este mes", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: checkSvg, href: "/dashboard/pagos" },
     );
   } else {
     allKpiCards.push(
-      { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-blue-500 to-[#1b3553]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
-      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-sky-500 to-blue-600", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
-      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[#7cd1c4] to-[#4aa89b]", bgGlow: "bg-[#7cd1c4]/10", icon: usersSvg, href: "/dashboard/pacientes" },
-      { id: "ingresosMes", label: "Ingresos del Mes", value: formatCurrency(stats?.ingresosMes ?? 0), sub: "pagos aprobados", gradient: "from-emerald-500 to-teal-600", bgGlow: "bg-emerald-500/10", icon: dollarSvg, href: "/dashboard/pagos" },
+      { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-dark)]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-[var(--ht-primary-light)] to-[var(--ht-primary)]", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
+      { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: usersSvg, href: "/dashboard/pacientes" },
+      { id: "ingresosMes", label: "Ingresos del Mes", value: formatCurrency(stats?.ingresosMes ?? 0), sub: "pagos aprobados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: dollarSvg, href: "/dashboard/pagos" },
       { id: "stockBajo", label: "Stock Bajo", value: stats?.lowStockCount ?? 0, sub: "items bajo mínimo", gradient: (stats?.lowStockCount ?? 0) > 0 ? "from-amber-500 to-orange-600" : "from-slate-400 to-slate-500", bgGlow: (stats?.lowStockCount ?? 0) > 0 ? "bg-amber-500/10" : "bg-slate-500/10", icon: alertSvg, href: "/dashboard/inventario" },
     );
   }
@@ -288,7 +274,7 @@ export default function DashboardPage() {
       title: isProfessional ? "Mis Turnos — Estado" : "Estado de Turnos Hoy",
       visible: isSectionVisible("estadoTurnos"),
       render: () => (
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card p-6 shadow-[var(--shadow-card)]">
           <div className="mb-6">
             <h2 className="text-base font-semibold">{isProfessional ? "Mis Turnos — Estado" : "Estado de Turnos Hoy"}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Distribución de hoy</p>
@@ -328,7 +314,7 @@ export default function DashboardPage() {
       title: isProfessional ? "Mis Turnos de Hoy" : "Turnos de Hoy",
       visible: isSectionVisible("turnosHoy"),
       render: () => (
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card p-6 shadow-[var(--shadow-card)]">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-base font-semibold">{isProfessional ? "Mis Turnos de Hoy" : "Turnos de Hoy"}</h2>
@@ -336,7 +322,7 @@ export default function DashboardPage() {
                 {misTurnosHoy.length > 0 ? `${misTurnosHoy.length} turno${misTurnosHoy.length !== 1 ? "s" : ""} programado${misTurnosHoy.length !== 1 ? "s" : ""}` : "Sin turnos para hoy"}
               </p>
             </div>
-            <button onClick={() => router.push("/dashboard/turnos")} className="text-xs font-medium text-[#1b3553] hover:text-[#2a4f73] transition-colors">Ver todos →</button>
+            <button onClick={() => router.push("/dashboard/turnos")} className="text-xs font-medium text-primary hover:text-primary/80 transition-colors">Ver todos →</button>
           </div>
           {misTurnosHoy.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
@@ -348,7 +334,7 @@ export default function DashboardPage() {
               {misTurnosHoy.slice(0, 8).map((turno) => (
                 <div key={turno.id} className="flex items-center justify-between rounded-xl border p-3 hover:bg-muted/30 transition-colors">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1b3553] to-[#5bbcad] text-white text-sm font-semibold shadow-sm">
+                    <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent)] text-white text-sm font-semibold shadow-sm">
                       {turno.paciente?.nombre?.charAt(0) ?? "?"}{turno.paciente?.apellido?.charAt(0) ?? ""}
                     </div>
                     <div>
@@ -358,7 +344,7 @@ export default function DashboardPage() {
                   </div>
                   <div className="flex items-center gap-3">
                     <span className="text-sm font-medium text-muted-foreground tabular-nums">{formatTime(turno.start_time)}</span>
-                    <span className={`rounded-full px-2.5 py-0.5 text-[10px] font-semibold ${estadoColors[turno.estado] || ""}`}>{turno.estado}</span>
+                    <StatusBadge status={turno.estado} size="sm" />
                   </div>
                 </div>
               ))}
@@ -376,23 +362,23 @@ export default function DashboardPage() {
       title: isProfessional ? "Mis Turnos de la Semana" : "Turnos de la Semana",
       visible: isSectionVisible("turnosSemana"),
       render: () => (
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card p-6 shadow-[var(--shadow-card)]">
           <div className="mb-6">
             <h2 className="text-base font-semibold">{isProfessional ? "Mis Turnos de la Semana" : "Turnos de la Semana"}</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Programados vs completados</p>
           </div>
           <ResponsiveContainer width="100%" height={240}>
             <LineChart data={turnosSemana}>
-              <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+              <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E2E8F0" />
               <XAxis dataKey="dia" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
               <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
               <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
-              <Line type="monotone" dataKey="turnos" stroke="#6366f1" strokeWidth={2} dot={{ fill: "#6366f1", r: 4 }} name="Programados" />
-              <Line type="monotone" dataKey="completados" stroke="#10b981" strokeWidth={2} dot={{ fill: "#10b981", r: 4 }} name="Completados" />
+              <Line type="monotone" dataKey="turnos" stroke={CHART_COLORS.info} strokeWidth={2} dot={{ fill: CHART_COLORS.info, r: 4 }} name="Programados" />
+              <Line type="monotone" dataKey="completados" stroke={CHART_COLORS.success} strokeWidth={2} dot={{ fill: CHART_COLORS.success, r: 4 }} name="Completados" />
             </LineChart>
           </ResponsiveContainer>
           <div className="flex justify-center gap-6 mt-3">
-            <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-[#1b3553]" />Programados</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-primary" />Programados</div>
             <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Completados</div>
           </div>
         </div>
@@ -402,7 +388,7 @@ export default function DashboardPage() {
       title: "Tratamientos del Mes",
       visible: isSectionVisible("tratamientos"),
       render: () => (
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card p-6 shadow-[var(--shadow-card)]">
           <div className="mb-6">
             <h2 className="text-base font-semibold">Tratamientos del Mes</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Más realizados según historial médico</p>
@@ -417,7 +403,7 @@ export default function DashboardPage() {
               {tratamientos.map((t, i) => {
                 const max = Math.max(...tratamientos.map((x) => x.cantidad), 1);
                 const pct = (t.cantidad / max) * 100;
-                const colors = ["bg-[#1b3553]", "bg-[#7cd1c4]", "bg-blue-500", "bg-[#5bbcad]", "bg-teal-500"];
+                const colors = ["bg-[var(--ht-primary)]", "bg-[var(--ht-accent)]", "bg-[var(--ht-accent-warm)]", "bg-[var(--chart-4)]", "bg-[var(--ht-primary-dark)]"];
                 return (
                   <div key={t.nombre}>
                     <div className="flex items-center justify-between text-sm mb-1">
@@ -439,13 +425,13 @@ export default function DashboardPage() {
       title: "Ingresos Mensuales",
       visible: isSectionVisible("ingresosMensuales"),
       render: () => (
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card p-6 shadow-[var(--shadow-card)]">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-base font-semibold">Ingresos Mensuales</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Últimos 6 meses de facturación aprobada</p>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 text-white shadow-lg">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-accent)] to-[var(--ht-accent-dark)] text-white shadow-lg">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M3 3v18h18" /><path d="m19 9-5 5-4-4-3 3" /></svg>
             </div>
           </div>
@@ -457,11 +443,11 @@ export default function DashboardPage() {
           ) : (
             <ResponsiveContainer width="100%" height={260}>
               <BarChart data={ingresosFormateados} barSize={36}>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E2E8F0" />
                 <XAxis dataKey="mes" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(value) => [`$${Number(value).toLocaleString("es-AR")}`, "Ingresos"]} />
-                <Bar dataKey="ingresos" fill="#10b981" radius={[8, 8, 0, 0]} name="Ingresos" />
+                <Bar dataKey="ingresos" fill={CHART_COLORS.success} radius={[8, 8, 0, 0]} name="Ingresos" />
               </BarChart>
             </ResponsiveContainer>
           )}
@@ -472,13 +458,13 @@ export default function DashboardPage() {
       title: "Facturación Diaria",
       visible: isSectionVisible("facturacionDiaria"),
       render: () => (
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card p-6 shadow-[var(--shadow-card)]">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-base font-semibold">Facturación Diaria</h2>
               <p className="text-xs text-muted-foreground mt-0.5">Ingresos aprobados del mes en curso</p>
             </div>
-            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-blue-500 to-[#1b3553] text-white shadow-lg">
+            <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-primary-dark)] text-white shadow-lg">
               <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><line x1="12" x2="12" y1="2" y2="22" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" /></svg>
             </div>
           </div>
@@ -492,15 +478,15 @@ export default function DashboardPage() {
               <AreaChart data={facturacionDiaria}>
                 <defs>
                   <linearGradient id="gradientIngresos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#6366f1" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#6366f1" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
                   </linearGradient>
                 </defs>
-                <CartesianGrid strokeDasharray="3 3" vertical={false} stroke="hsl(var(--border))" />
+                <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E2E8F0" />
                 <XAxis dataKey="dia" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(value) => [`$${Number(value).toLocaleString("es-AR")}`, "Ingreso"]} />
-                <Area type="monotone" dataKey="monto" stroke="#6366f1" fill="url(#gradientIngresos)" strokeWidth={2} />
+                <Area type="monotone" dataKey="monto" stroke="#0EA5E9" fill="url(#gradientIngresos)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           )}
@@ -512,7 +498,10 @@ export default function DashboardPage() {
   const visibleSections = sectionOrder.filter((id) => sectionComponents[id]?.visible);
 
   return (
-    <div className="space-y-8">
+    <div className="space-y-8 animate-page-in">
+      {showOnboarding && (
+        <OnboardingWizard onComplete={() => setShowOnboarding(false)} />
+      )}
       <WelcomeBanner />
 
       {/* Header */}
@@ -526,7 +515,7 @@ export default function DashboardPage() {
         </div>
         <button
           onClick={() => setEditMode(!editMode)}
-          className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${editMode ? "bg-[#eef3f8] dark:bg-[#0e1f33]/30 border-[#3a6a93] dark:border-[#1f3d5e] text-[#1b3553] dark:text-[#2a4f73]" : "bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
+          className={`flex items-center gap-2 rounded-xl border px-3 py-2 text-xs font-medium transition-all ${editMode ? "bg-primary/5 dark:bg-primary/10 border-primary dark:border-primary/50 text-primary dark:text-primary" : "bg-card text-muted-foreground hover:text-foreground hover:bg-muted/50"}`}
           title={editMode ? "Bloquear disposición" : "Personalizar disposición"}
         >
           {editMode ? <Unlock className="h-3.5 w-3.5" /> : <Lock className="h-3.5 w-3.5" />}
@@ -535,12 +524,12 @@ export default function DashboardPage() {
       </div>
 
       {/* KPI Cards */}
-      <div className={`grid grid-cols-1 sm:grid-cols-2 ${kpiCards.length >= 6 ? "lg:grid-cols-3 xl:grid-cols-6" : kpiCards.length >= 5 ? "lg:grid-cols-3 xl:grid-cols-5" : kpiCards.length >= 4 ? "xl:grid-cols-4" : kpiCards.length === 3 ? "xl:grid-cols-3" : ""} gap-5`}>
+      <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
         {kpiCards.map((card) => (
           <button
             key={card.label}
             onClick={() => router.push(card.href)}
-            className="group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 text-left"
+            className="group relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-left"
           >
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-current opacity-[0.04] rounded-full group-hover:opacity-[0.08] transition-opacity" />
             <div className="relative">
@@ -566,10 +555,10 @@ export default function DashboardPage() {
               onDragStart={() => handleDragStart(sectionId)}
               onDragOver={(e) => handleDragOver(e, sectionId)}
               onDragEnd={handleDragEnd}
-              className={`relative transition-all ${editMode ? "cursor-grab active:cursor-grabbing" : ""} ${draggedSection === sectionId ? "opacity-50 scale-[0.98]" : ""} ${editMode ? "ring-2 ring-dashed ring-[#3a6a93]/50 dark:ring-[#1f3d5e]/50 rounded-2xl" : ""}`}
+              className={`relative transition-all ${editMode ? "cursor-grab active:cursor-grabbing" : ""} ${draggedSection === sectionId ? "opacity-50 scale-[0.98]" : ""} ${editMode ? "ring-2 ring-dashed ring-primary/30 dark:ring-primary/20 rounded-xl" : ""}`}
             >
               {editMode && (
-                <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-lg bg-[#1b3553] text-white shadow-md">
+                <div className="absolute -top-2 -left-2 z-10 flex h-6 w-6 items-center justify-center rounded-lg bg-primary text-white shadow-md">
                   <GripVertical className="h-3.5 w-3.5" />
                 </div>
               )}

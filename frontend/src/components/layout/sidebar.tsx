@@ -7,6 +7,7 @@ import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useClinica } from "@/components/providers/clinica-provider";
 import { ClinicLogo } from "@/components/ui/clinic-logo";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
 /* ─── Sidebar Context ─── */
 
@@ -55,20 +56,42 @@ type NavItem = {
   name: string;
   href: string;
   icon: React.ComponentType<{ className?: string }>;
-  roles?: string[]; // si no se define, visible para todos
+  roles?: string[];
+  feature?: string;
 };
 
-const navigation: NavItem[] = [
-  { name: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
-  { name: "Pacientes", href: "/dashboard/pacientes", icon: UsersIcon },
-  { name: "Turnos", href: "/dashboard/turnos", icon: CalendarIcon },
-  { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardIcon, roles: ["admin", "professional"] },
-  { name: "Pagos", href: "/dashboard/pagos", icon: CreditCardIcon, roles: ["admin", "assistant"] },
-  { name: "Inventario", href: "/dashboard/inventario", icon: PackageIcon, roles: ["admin"] },
-  { name: "Proveedores", href: "/dashboard/proveedores", icon: TruckIcon, roles: ["admin"] },
-  { name: "Soporte", href: "/dashboard/soporte", icon: LifeBuoyIcon, roles: ["professional", "assistant"] },
-  { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheckIcon, roles: ["admin"] },
-  { name: "Configuración", href: "/dashboard/configuracion", icon: SettingsIcon, roles: ["admin"] },
+type NavGroup = {
+  label: string;
+  items: NavItem[];
+};
+
+const navGroups: NavGroup[] = [
+  {
+    label: "Principal",
+    items: [
+      { name: "Dashboard", href: "/dashboard", icon: LayoutDashboardIcon },
+      { name: "Pacientes", href: "/dashboard/pacientes", icon: UsersIcon },
+      { name: "Turnos", href: "/dashboard/turnos", icon: CalendarIcon },
+      { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardIcon, roles: ["admin", "professional"] },
+      { name: "Pagos", href: "/dashboard/pagos", icon: CreditCardIcon, roles: ["admin", "assistant"] },
+    ],
+  },
+  {
+    label: "Gestión",
+    items: [
+      { name: "Inventario", href: "/dashboard/inventario", icon: PackageIcon, roles: ["admin"] },
+      { name: "Proveedores", href: "/dashboard/proveedores", icon: TruckIcon, roles: ["admin"] },
+      { name: "Sucursales", href: "/dashboard/sucursales", icon: Building2Icon, roles: ["admin"], feature: "multi_sucursal" },
+    ],
+  },
+  {
+    label: "Cuenta",
+    items: [
+      { name: "Soporte", href: "/dashboard/soporte", icon: LifeBuoyIcon, roles: ["professional", "assistant"] },
+      { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheckIcon, roles: ["admin"] },
+      { name: "Configuración", href: "/dashboard/configuracion", icon: SettingsIcon, roles: ["admin"] },
+    ],
+  },
 ];
 
 /* ─── Sidebar Component ─── */
@@ -78,6 +101,7 @@ export function Sidebar() {
   const { user, logout } = useAuth();
   const { clinica } = useClinica();
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
+  const { isEnabled } = useFeatureFlags();
 
   // Close mobile sidebar on route change
   useEffect(() => {
@@ -96,14 +120,15 @@ export function Sidebar() {
   const sidebarContent = (
     <aside
       className={cn(
-        "flex h-full flex-col bg-sidebar text-sidebar-foreground transition-all duration-300 ease-in-out overflow-hidden",
+        "flex h-full flex-col text-sidebar-foreground transition-all duration-300 ease-in-out overflow-hidden",
         collapsed ? "w-[72px]" : "w-64"
       )}
+      style={{ background: "var(--gradient-sidebar)" }}
     >
       {/* Logo + Clinic name */}
       <div
         className={cn(
-          "flex h-16 items-center border-b border-sidebar-border shrink-0 transition-all duration-300",
+          "flex h-16 items-center border-b border-white/[0.06] shrink-0 transition-all duration-300",
           collapsed ? "justify-center px-2" : "gap-3 px-4"
         )}
       >
@@ -120,7 +145,7 @@ export function Sidebar() {
               {clinica?.nombre || "Avax Health"}
             </p>
             {clinica?.especialidad && (
-              <p className="text-[11px] text-sidebar-foreground/50 truncate capitalize">
+              <p className="text-[11px] text-white/40 truncate capitalize">
                 {clinica.especialidad}
               </p>
             )}
@@ -132,7 +157,7 @@ export function Sidebar() {
       <div className="hidden lg:flex justify-end px-2 pt-2">
         <button
           onClick={() => setCollapsed(!collapsed)}
-          className="flex h-7 w-7 items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-sidebar-foreground hover:bg-sidebar-accent/50 transition-colors"
+          className="flex h-7 w-7 items-center justify-center rounded-md text-white/40 hover:text-white hover:bg-white/5 transition-colors"
           title={collapsed ? "Expandir menú" : "Colapsar menú"}
         >
           <CollapseIcon className={cn("h-4 w-4 transition-transform duration-300", collapsed && "rotate-180")} />
@@ -140,57 +165,76 @@ export function Sidebar() {
       </div>
 
       {/* Navigation */}
-      <nav className={cn("flex-1 space-y-1 px-2 py-3", collapsed ? "overflow-hidden" : "overflow-y-auto")}>
-        {navigation.filter((item) => !item.roles || item.roles.includes(user?.role ?? "")).map((item) => {
-          const isActive =
-            item.href === "/dashboard"
-              ? pathname === "/dashboard"
-              : pathname.startsWith(item.href);
+      <nav className={cn("flex-1 px-2 py-3", collapsed ? "overflow-hidden" : "overflow-y-auto")}>
+        {navGroups.map((group) => {
+          const visibleItems = group.items.filter(
+            (item) =>
+              (!item.roles || item.roles.includes(user?.role ?? "")) &&
+              (!item.feature || isEnabled(item.feature))
+          );
+          if (visibleItems.length === 0) return null;
 
           return (
-            <div key={item.name} className="relative group">
-              <Link
-                href={item.href}
-                className={cn(
-                  "flex items-center rounded-lg text-sm font-medium transition-all duration-200",
-                  collapsed
-                    ? "justify-center px-0 py-2.5 mx-1"
-                    : "gap-3 px-3 py-2.5",
-                  isActive
-                    ? "bg-sidebar-accent text-sidebar-accent-foreground shadow-sm"
-                    : "text-sidebar-foreground/65 hover:bg-sidebar-accent/50 hover:text-sidebar-foreground"
-                )}
-              >
-                {/* Active indicator */}
-                {isActive && (
-                  <span className="absolute left-0 top-1/2 -translate-y-1/2 h-6 w-1 rounded-r-full bg-sidebar-primary transition-all duration-300" />
-                )}
-                <item.icon className={cn("shrink-0 transition-all duration-200", collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
-                {!collapsed && <span>{item.name}</span>}
-              </Link>
-
-              {/* Tooltip when collapsed */}
-              {collapsed && (
-                <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1.5 rounded-md bg-foreground text-background text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 z-50 shadow-lg">
-                  {item.name}
-                </div>
+            <div key={group.label} className="mb-4">
+              {/* Group label */}
+              {!collapsed && (
+                <p className="text-[10px] font-semibold uppercase tracking-[0.15em] text-white/30 px-3 mb-2">
+                  {group.label}
+                </p>
               )}
+              {collapsed && <div className="border-t border-white/[0.06] mx-2 mb-2" />}
+
+              <div className="space-y-0.5">
+                {visibleItems.map((item) => {
+                  const isActive =
+                    item.href === "/dashboard"
+                      ? pathname === "/dashboard"
+                      : pathname.startsWith(item.href);
+
+                  return (
+                    <div key={item.name} className="relative group">
+                      <Link
+                        href={item.href}
+                        className={cn(
+                          "flex items-center rounded-lg text-sm font-medium transition-all duration-150",
+                          collapsed
+                            ? "justify-center px-0 py-2.5 mx-1"
+                            : "gap-3 px-3 py-2",
+                          isActive
+                            ? "bg-[var(--ht-primary)]/10 text-[var(--ht-primary-light)] border-l-2 border-[var(--ht-primary)]"
+                            : "text-white/55 hover:bg-white/5 hover:text-white/90 border-l-2 border-transparent"
+                        )}
+                      >
+                        <item.icon className={cn("shrink-0 transition-all duration-200", collapsed ? "h-5 w-5" : "h-[18px] w-[18px]")} />
+                        {!collapsed && <span>{item.name}</span>}
+                      </Link>
+
+                      {/* Tooltip when collapsed */}
+                      {collapsed && (
+                        <div className="absolute left-full top-1/2 -translate-y-1/2 ml-2 px-2.5 py-1.5 rounded-md bg-[#0F172A] text-white text-xs font-medium whitespace-nowrap opacity-0 pointer-events-none group-hover:opacity-100 transition-opacity duration-200 z-50 shadow-lg border border-white/10">
+                          {item.name}
+                        </div>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
             </div>
           );
         })}
       </nav>
 
       {/* User section */}
-      <div className="border-t border-sidebar-border p-3 shrink-0">
+      <div className="border-t border-white/[0.06] p-3 shrink-0">
         {collapsed ? (
           <div className="flex flex-col items-center gap-2">
-            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 flex items-center justify-center text-sidebar-primary-foreground text-sm font-semibold shadow-sm">
+            <div className="h-9 w-9 rounded-full bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent)] flex items-center justify-center text-white text-sm font-semibold shadow-sm">
               {user?.nombre?.charAt(0)}
               {user?.apellido?.charAt(0)}
             </div>
             <button
               onClick={logout}
-              className="flex h-8 w-8 items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              className="flex h-8 w-8 items-center justify-center rounded-md text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
               title="Cerrar sesión"
             >
               <LogOutIcon className="h-4 w-4" />
@@ -198,21 +242,21 @@ export function Sidebar() {
           </div>
         ) : (
           <div className="flex items-center gap-3">
-            <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-sidebar-primary to-sidebar-primary/70 flex items-center justify-center text-sidebar-primary-foreground text-sm font-semibold shadow-sm">
+            <div className="h-9 w-9 shrink-0 rounded-full bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent)] flex items-center justify-center text-white text-sm font-semibold shadow-sm">
               {user?.nombre?.charAt(0)}
               {user?.apellido?.charAt(0)}
             </div>
             <div className="flex-1 min-w-0">
-              <p className="text-sm font-medium truncate">
+              <p className="text-sm font-medium truncate text-white/90">
                 {user?.nombre} {user?.apellido}
               </p>
-              <p className="text-xs text-sidebar-foreground/50 truncate">
+              <p className="text-xs text-white/40 truncate">
                 {user?.email}
               </p>
             </div>
             <button
               onClick={logout}
-              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-sidebar-foreground/50 hover:text-red-400 hover:bg-red-500/10 transition-colors"
+              className="flex h-8 w-8 shrink-0 items-center justify-center rounded-md text-white/40 hover:text-red-400 hover:bg-red-500/10 transition-colors"
               title="Cerrar sesión"
             >
               <LogOutIcon className="h-4 w-4" />
@@ -343,6 +387,14 @@ function LogOutIcon({ className }: { className?: string }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
       <path d="M9 21H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2h4" /><polyline points="16 17 21 12 16 7" /><line x1="21" x2="9" y1="12" y2="12" />
+    </svg>
+  );
+}
+
+function Building2Icon({ className }: { className?: string }) {
+  return (
+    <svg className={className} xmlns="http://www.w3.org/2000/svg" width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" /><path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" />
     </svg>
   );
 }

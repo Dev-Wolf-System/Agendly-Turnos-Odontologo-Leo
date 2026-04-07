@@ -27,7 +27,7 @@ const WEBHOOK_ESTADOS = [
   { key: "cancelado", label: "Turno Cancelado", color: "bg-red-500" },
   { key: "perdido", label: "Turno Perdido", color: "bg-orange-500" },
   { key: "pendiente", label: "Turno Creado", color: "bg-amber-500" },
-  { key: "recordatorio", label: "Recordatorio", color: "bg-[#7cd1c4]" },
+  { key: "recordatorio", label: "Recordatorio", color: "bg-[var(--ht-accent)]" },
 ];
 
 export default function AdminClinicaDetailPage() {
@@ -36,6 +36,7 @@ export default function AdminClinicaDetailPage() {
   const id = params.id as string;
   const [clinica, setClinica] = useState<AdminClinica | null>(null);
   const [loading, setLoading] = useState(true);
+  const [loadError, setLoadError] = useState<string | null>(null);
 
   // Delete state
   const [showDeleteDialog, setShowDeleteDialog] = useState(false);
@@ -54,7 +55,9 @@ export default function AdminClinicaDetailPage() {
   const [showEvolutionKey, setShowEvolutionKey] = useState(false);
   const [isSavingEvolution, setIsSavingEvolution] = useState(false);
 
-  useEffect(() => {
+  const loadClinica = () => {
+    setLoading(true);
+    setLoadError(null);
     getAdminClinicaById(id)
       .then((c) => {
         setClinica(c);
@@ -63,8 +66,15 @@ export default function AdminClinicaDetailPage() {
         setEvolutionInstance((c as any).evolution_instance || "");
         setEvolutionApiKey((c as any).evolution_api_key || "");
       })
-      .catch(console.error)
+      .catch((err) => {
+        console.error(err);
+        setLoadError(err?.response?.data?.message || "Error al cargar la clinica");
+      })
       .finally(() => setLoading(false));
+  };
+
+  useEffect(() => {
+    loadClinica();
   }, [id]);
 
   const toggleActive = async () => {
@@ -138,18 +148,37 @@ export default function AdminClinicaDetailPage() {
 
   if (loading) {
     return (
-      <div className="space-y-6 animate-in fade-in duration-300">
+      <div className="animate-page-in space-y-6 animate-in fade-in duration-300">
         <div className="h-4 w-40 bg-muted rounded-md animate-pulse" />
         <div className="h-8 w-56 bg-muted rounded-md animate-pulse" />
         <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-28 rounded-2xl border bg-card animate-pulse" />
+            <div key={i} className="h-28 rounded-xl border bg-card animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-64 rounded-2xl border bg-card animate-pulse" />
-          <div className="h-64 rounded-2xl border bg-card animate-pulse" />
+          <div className="h-64 rounded-xl border bg-card animate-pulse" />
+          <div className="h-64 rounded-xl border bg-card animate-pulse" />
         </div>
+      </div>
+    );
+  }
+
+  if (loadError) {
+    return (
+      <div className="flex flex-col items-center justify-center py-20 gap-3">
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-red-500/10 mb-2">
+          <svg className="h-6 w-6 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+            <circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" />
+          </svg>
+        </div>
+        <p className="text-sm font-medium text-muted-foreground">{loadError}</p>
+        <button
+          onClick={loadClinica}
+          className="mt-2 inline-flex items-center gap-2 rounded-lg border px-4 py-2 text-xs font-medium hover:bg-muted transition-colors"
+        >
+          Reintentar
+        </button>
       </div>
     );
   }
@@ -157,13 +186,13 @@ export default function AdminClinicaDetailPage() {
   if (!clinica) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
-        <div className="flex h-16 w-16 items-center justify-center rounded-2xl bg-muted">
+        <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted">
           <BuildingIcon className="h-7 w-7 text-muted-foreground" />
         </div>
         <p className="text-sm font-medium text-muted-foreground">Clinica no encontrada</p>
         <Link
           href="/admin/clinicas"
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#1b3553]/10 px-4 py-2 text-sm font-medium text-[#1b3553] hover:bg-[#1b3553]/20 transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F172A]/10 px-4 py-2 text-sm font-medium text-primary hover:bg-[#0F172A]/20 transition-colors"
         >
           <ArrowLeftIcon className="h-3.5 w-3.5" />
           Volver a clinicas
@@ -179,7 +208,7 @@ export default function AdminClinicaDetailPage() {
   const statsData = [
     { label: "Usuarios", value: stats?.usuarios ?? 0, icon: UsersIcon, gradient: "from-blue-500 to-cyan-500", glow: "shadow-blue-500/20" },
     { label: "Pacientes", value: stats?.pacientes ?? 0, icon: HeartIcon, gradient: "from-pink-500 to-rose-500", glow: "shadow-pink-500/20" },
-    { label: "Turnos", value: stats?.turnos ?? 0, icon: CalendarIcon, gradient: "from-[#1b3553] to-[#7cd1c4]", glow: "shadow-[#1b3553]/20" },
+    { label: "Turnos", value: stats?.turnos ?? 0, icon: CalendarIcon, gradient: "from-[var(--ht-primary)] to-[var(--ht-accent)]", glow: "shadow-[var(--ht-primary)]/20" },
     { label: "Registrada", value: new Date(clinica.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }), icon: ClockIcon, gradient: "from-emerald-500 to-teal-500", glow: "shadow-emerald-500/20" },
   ];
 
@@ -197,7 +226,7 @@ export default function AdminClinicaDetailPage() {
             <span className="font-medium">{clinica.nombre}</span>
           </div>
           <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[#1b3553]/10 to-[#7cd1c4]/10 text-[#1b3553] dark:text-[#2a4f73] text-sm font-bold ring-1 ring-[#1b3553]/10">
+            <div className="flex h-10 w-10 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-primary)]/10 to-[var(--ht-accent)]/10 text-primary dark:text-primary/90 text-sm font-bold ring-1 ring-primary/10">
               {clinica.nombre?.charAt(0)?.toUpperCase()}
             </div>
             <h1 className="text-2xl font-bold tracking-tight">{clinica.nombre}</h1>
@@ -217,7 +246,7 @@ export default function AdminClinicaDetailPage() {
       {/* Stats cards */}
       <div className="grid grid-cols-2 sm:grid-cols-4 gap-4">
         {statsData.map((stat) => (
-          <div key={stat.label} className="group rounded-2xl border bg-card p-4 shadow-sm hover:shadow-md transition-all duration-300">
+          <div key={stat.label} className="group rounded-xl border bg-card p-4 shadow-sm hover:shadow-md transition-all duration-300">
             <div className="flex items-center justify-between mb-3">
               <p className="text-[11px] font-semibold uppercase tracking-wider text-muted-foreground">{stat.label}</p>
               <div className={`flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br ${stat.gradient} shadow-md ${stat.glow} group-hover:scale-110 transition-transform duration-300`}>
@@ -232,10 +261,10 @@ export default function AdminClinicaDetailPage() {
       {/* Info + Suscripcion */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Info */}
-        <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
           <div className="border-b px-5 py-3.5 bg-muted/20">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <InfoIcon className="h-4 w-4 text-[#1b3553]" />
+              <InfoIcon className="h-4 w-4 text-primary" />
               Informacion General
             </h2>
           </div>
@@ -260,10 +289,10 @@ export default function AdminClinicaDetailPage() {
         </div>
 
         {/* Suscripcion */}
-        <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
           <div className="border-b px-5 py-3.5 bg-muted/20">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <CrownIcon className="h-4 w-4 text-[#1b3553]" />
+              <CrownIcon className="h-4 w-4 text-primary" />
               Suscripcion
             </h2>
           </div>
@@ -273,7 +302,7 @@ export default function AdminClinicaDetailPage() {
                 <div className="flex items-center justify-between">
                   <dt className="text-sm text-muted-foreground">Plan</dt>
                   <dd>
-                    <span className="inline-flex items-center gap-1 rounded-lg bg-[#1b3553]/10 px-2.5 py-1 text-xs font-semibold text-[#1b3553] dark:text-[#2a4f73]">
+                    <span className="inline-flex items-center gap-1 rounded-lg bg-[#0F172A]/10 px-2.5 py-1 text-xs font-semibold text-primary dark:text-primary/90">
                       <CrownIcon className="h-3 w-3" />
                       {sub.plan?.nombre ?? "—"}
                     </span>
@@ -301,7 +330,7 @@ export default function AdminClinicaDetailPage() {
                 {sub.plan && (
                   <div className="flex items-center justify-between pt-3 border-t">
                     <dt className="text-sm font-medium">Precio mensual</dt>
-                    <dd className="text-lg font-bold text-[#1b3553] dark:text-[#2a4f73]">
+                    <dd className="text-lg font-bold text-primary dark:text-primary/90">
                       ${Number(sub.plan.precio_mensual).toLocaleString("es-AR")}
                       <span className="text-xs font-normal text-muted-foreground">/mes</span>
                     </dd>
@@ -310,11 +339,11 @@ export default function AdminClinicaDetailPage() {
               </dl>
             ) : (
               <div className="flex flex-col items-center py-8 gap-3">
-                <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
                   <CrownIcon className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <p className="text-sm text-muted-foreground">Sin suscripcion asignada</p>
-                <Link href="/admin/suscripciones" className="inline-flex items-center gap-1.5 rounded-lg bg-[#1b3553] px-4 py-2 text-sm font-medium text-white hover:bg-[#1b3553] transition-colors shadow-md shadow-[#1b3553]/20">
+                <Link href="/admin/suscripciones" className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F172A] px-4 py-2 text-sm font-medium text-white hover:bg-[#0F172A] transition-colors shadow-md shadow-[var(--ht-primary)]/20">
                   Asignar plan
                 </Link>
               </div>
@@ -324,16 +353,16 @@ export default function AdminClinicaDetailPage() {
       </div>
 
       {/* Webhooks Configuration */}
-      <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
         <div className="border-b px-5 py-3.5 bg-muted/20 flex items-center justify-between">
           <h2 className="text-sm font-semibold flex items-center gap-2">
-            <WebhookIcon className="h-4 w-4 text-[#7cd1c4]" />
+            <WebhookIcon className="h-4 w-4 text-accent" />
             Webhooks de la Clinica
           </h2>
           <button
             onClick={handleSaveWebhooks}
             disabled={isSavingWebhooks}
-            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
+            className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
           >
             {isSavingWebhooks ? "Guardando..." : "Guardar Webhooks"}
           </button>
@@ -351,7 +380,7 @@ export default function AdminClinicaDetailPage() {
                     <button
                       type="button"
                       onClick={() => updateWebhookField(key, "activo", !wh.activo)}
-                      className={`flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors ${wh.activo ? "bg-[#1b3553]" : "bg-muted-foreground/20"}`}
+                      className={`flex h-5 w-9 shrink-0 cursor-pointer items-center rounded-full p-0.5 transition-colors ${wh.activo ? "bg-[#0F172A]" : "bg-muted-foreground/20"}`}
                     >
                       <span className={`h-4 w-4 rounded-full bg-white shadow-sm transition-transform ${wh.activo ? "translate-x-4" : "translate-x-0"}`} />
                     </button>
@@ -362,7 +391,7 @@ export default function AdminClinicaDetailPage() {
                       value={wh.url}
                       onChange={(e) => updateWebhookField(key, "url", e.target.value)}
                       placeholder="https://n8n.example.com/webhook/..."
-                      className="flex-1 rounded-md border bg-background px-3 py-1.5 text-xs font-mono outline-none focus:ring-2 focus:ring-[#1b3553]/20 transition-all"
+                      className="flex-1 rounded-md border bg-background px-3 py-1.5 text-xs font-mono outline-none focus:ring-2 focus:ring-primary/20 transition-all"
                       disabled={!wh.activo}
                     />
                   </div>
@@ -376,7 +405,7 @@ export default function AdminClinicaDetailPage() {
       {/* Evolution API + Agent Config */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Evolution API */}
-        <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
           <div className="border-b px-5 py-3.5 bg-muted/20 flex items-center justify-between">
             <h2 className="text-sm font-semibold flex items-center gap-2">
               <WhatsAppIcon className="h-4 w-4 text-green-500" />
@@ -427,7 +456,7 @@ export default function AdminClinicaDetailPage() {
         </div>
 
         {/* Danger Zone */}
-        <div className="rounded-2xl border border-red-200 dark:border-red-900/50 bg-card shadow-sm overflow-hidden">
+        <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-card shadow-sm overflow-hidden">
           <div className="border-b border-red-200 dark:border-red-900/50 px-5 py-3.5 bg-red-50/50 dark:bg-red-950/20">
             <h2 className="text-sm font-semibold flex items-center gap-2 text-red-600 dark:text-red-400">
               <TrashIcon className="h-4 w-4" />

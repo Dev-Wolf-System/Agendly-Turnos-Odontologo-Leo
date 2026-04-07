@@ -9,7 +9,7 @@ export function Header() {
   const { setMobileOpen } = useSidebar();
 
   return (
-    <header className="flex h-16 items-center justify-between border-b px-4 sm:px-6">
+    <header className="flex h-16 items-center justify-between border-b border-[var(--border-light)] px-4 sm:px-6 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-xl">
       <div className="flex items-center gap-3">
         {/* Hamburger — mobile only */}
         <button

@@ -36,6 +36,7 @@ export interface Clinica {
   agent_nombre: string | null;
   agent_instrucciones: string | null;
   kpi_visibility: Record<string, Record<string, boolean>> | null;
+  onboarding_completado: boolean;
   created_at: string;
 }
 
@@ -58,6 +59,7 @@ export interface UpdateClinicaPayload {
   agent_nombre?: string;
   agent_instrucciones?: string;
   kpi_visibility?: Record<string, Record<string, boolean>>;
+  onboarding_completado?: boolean;
 }
 
 export interface SubscriptionStatus {

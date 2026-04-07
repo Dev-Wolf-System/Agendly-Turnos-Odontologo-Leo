@@ -1,6 +1,6 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef, useCallback } from "react";
 import Link from "next/link";
 import type { Plan } from "@/types";
 import { plansService } from "@/services/plans.service";
@@ -77,7 +77,33 @@ export default function PlanesPage() {
   const [annual, setAnnual] = useState(false);
   const [plans, setPlans] = useState<Plan[]>([]);
   const [loading, setLoading] = useState(true);
+  const [activeIndex, setActiveIndex] = useState(0);
+  const carouselRef = useRef<HTMLDivElement>(null);
   const discount = 0.8;
+
+  const scrollToIndex = useCallback((index: number) => {
+    const el = carouselRef.current;
+    if (!el) return;
+    const card = el.children[index] as HTMLElement | undefined;
+    if (card) {
+      el.scrollTo({ left: card.offsetLeft - el.offsetLeft, behavior: "smooth" });
+    }
+  }, []);
+
+  const handleScroll = useCallback(() => {
+    const el = carouselRef.current;
+    if (!el || plans.length === 0) return;
+    const scrollCenter = el.scrollLeft + el.offsetWidth / 2;
+    let closest = 0;
+    let minDist = Infinity;
+    for (let i = 0; i < el.children.length; i++) {
+      const child = el.children[i] as HTMLElement;
+      const childCenter = child.offsetLeft + child.offsetWidth / 2;
+      const dist = Math.abs(scrollCenter - childCenter);
+      if (dist < minDist) { minDist = dist; closest = i; }
+    }
+    setActiveIndex(closest);
+  }, [plans.length]);
 
   useEffect(() => {
     plansService
@@ -95,17 +121,17 @@ export default function PlanesPage() {
       {/* ── Header ── */}
       <section className="relative overflow-hidden pt-16 pb-8 sm:pt-24 sm:pb-12">
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-br from-[#1b3553]/15 via-[#7cd1c4]/15 to-[#5bbcad]/10 blur-3xl" />
+          <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[500px] w-[800px] rounded-full bg-gradient-to-br from-[var(--ht-primary)]/15 via-[var(--ht-primary-light)]/15 to-[var(--ht-accent-dark)]/10 blur-3xl" />
         </div>
 
         <div className="mx-auto max-w-3xl text-center px-4">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[#1b3553]/20 bg-[#1b3553]/10 px-4 py-1.5 text-sm font-medium text-[#2a4f73]">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-[#0F172A]/10 px-4 py-1.5 text-sm font-medium text-primary/90">
             <SparkleIcon />
             14 dias de prueba gratis
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
             Elige el plan ideal para tu{" "}
-            <span className="bg-gradient-to-r from-[#1b3553] to-[#7cd1c4] bg-clip-text text-transparent">
+            <span className="bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] bg-clip-text text-transparent">
               clinica
             </span>
           </h1>
@@ -120,7 +146,7 @@ export default function PlanesPage() {
               onClick={() => setAnnual(false)}
               className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
                 !annual
-                  ? "bg-gradient-to-r from-[#1b3553] to-[#5bbcad] text-white shadow-md"
+                  ? "bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -130,7 +156,7 @@ export default function PlanesPage() {
               onClick={() => setAnnual(true)}
               className={`rounded-full px-5 py-2 text-sm font-medium transition-all ${
                 annual
-                  ? "bg-gradient-to-r from-[#1b3553] to-[#5bbcad] text-white shadow-md"
+                  ? "bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-md"
                   : "text-muted-foreground hover:text-foreground"
               }`}
             >
@@ -147,11 +173,11 @@ export default function PlanesPage() {
       <section className="pb-24 sm:pb-32">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
           {loading ? (
-            <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-4">
-              {[...Array(4)].map((_, i) => (
+            <div className="flex gap-6 overflow-hidden">
+              {[...Array(3)].map((_, i) => (
                 <div
                   key={i}
-                  className="h-[420px] rounded-2xl border bg-card animate-pulse"
+                  className="h-[420px] min-w-[320px] flex-shrink-0 rounded-xl border bg-card animate-pulse"
                 />
               ))}
             </div>
@@ -162,107 +188,167 @@ export default function PlanesPage() {
               </p>
             </div>
           ) : (
-            <div
-              className={`grid gap-6 sm:grid-cols-2 ${
-                plans.length <= 3
-                  ? "lg:grid-cols-3 max-w-5xl mx-auto"
-                  : "lg:grid-cols-4"
-              }`}
-            >
-              {plans.map((plan) => {
-                const price = annual
-                  ? Math.round(Number(plan.precio_mensual) * discount)
-                  : Number(plan.precio_mensual);
-
-                const features = ALL_FEATURE_KEYS.map((key) => ({
-                  key,
-                  label: FEATURE_LABELS[key] || key,
-                  included: !!plan.features?.[key],
-                }));
-
-                return (
-                  <div
-                    key={plan.id}
-                    className={`relative flex flex-col rounded-2xl border p-6 transition-all ${
-                      plan.is_highlighted
-                        ? "border-[#1b3553]/50 bg-gradient-to-b from-[#1b3553]/[0.06] to-transparent shadow-lg shadow-[#1b3553]/10 scale-[1.02] lg:scale-105"
-                        : "border-border/50 bg-card hover:border-border hover:shadow-md"
-                    }`}
+            <div className="relative">
+              {/* Carousel navigation arrows */}
+              {plans.length > 1 && (
+                <>
+                  <button
+                    onClick={() => scrollToIndex(Math.max(0, activeIndex - 1))}
+                    className="absolute -left-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-card shadow-lg hover:bg-muted transition-all disabled:opacity-30"
+                    disabled={activeIndex === 0}
+                    aria-label="Plan anterior"
                   >
-                    {/* Popular badge */}
-                    {plan.is_highlighted && (
-                      <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-4 py-1 text-xs font-semibold text-white shadow-md">
-                        Mas popular
-                      </div>
-                    )}
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m15 18-6-6 6-6"/></svg>
+                  </button>
+                  <button
+                    onClick={() => scrollToIndex(Math.min(plans.length - 1, activeIndex + 1))}
+                    className="absolute -right-4 top-1/2 -translate-y-1/2 z-10 flex h-10 w-10 items-center justify-center rounded-full border bg-card shadow-lg hover:bg-muted transition-all disabled:opacity-30"
+                    disabled={activeIndex === plans.length - 1}
+                    aria-label="Plan siguiente"
+                  >
+                    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="m9 18 6-6-6-6"/></svg>
+                  </button>
+                </>
+              )}
 
-                    {/* Plan name */}
-                    <h3 className="text-lg font-bold">{plan.nombre}</h3>
+              {/* Carousel container */}
+              <div
+                ref={carouselRef}
+                onScroll={handleScroll}
+                className="flex gap-6 overflow-x-auto snap-x snap-mandatory scroll-smooth pb-4 -mx-4 px-4 scrollbar-hide"
+                style={{ scrollbarWidth: "none", msOverflowStyle: "none" }}
+              >
+                {plans.map((plan) => {
+                  const price = annual
+                    ? Math.round(Number(plan.precio_mensual) * discount)
+                    : Number(plan.precio_mensual);
 
-                    {/* Description */}
-                    {plan.descripcion && (
-                      <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
-                        {plan.descripcion}
-                      </p>
-                    )}
+                  const features = ALL_FEATURE_KEYS.map((key) => ({
+                    key,
+                    label: FEATURE_LABELS[key] || key,
+                    included: !!plan.features?.[key],
+                  }));
 
-                    {/* Price */}
-                    <div className="mt-4 flex items-baseline gap-1">
-                      <span className="text-3xl font-extrabold tracking-tight">
-                        {fmt(price)}
-                      </span>
-                      <span className="text-sm text-muted-foreground">/mes</span>
-                    </div>
-                    {annual && (
-                      <p className="mt-1 text-xs text-muted-foreground line-through">
-                        {fmt(Number(plan.precio_mensual))}/mes
-                      </p>
-                    )}
-
-                    {/* Limits */}
-                    <div className="mt-4 flex flex-wrap gap-2">
-                      <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
-                        {plan.max_usuarios} usuario{plan.max_usuarios > 1 ? "s" : ""}
-                      </span>
-                      <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
-                        {plan.max_pacientes
-                          ? `${plan.max_pacientes.toLocaleString("es-AR")} pacientes`
-                          : "Pacientes ilimitados"}
-                      </span>
-                    </div>
-
-                    {/* Features */}
-                    <ul className="mt-6 flex-1 space-y-3">
-                      {features.map((f) => (
-                        <li key={f.key} className="flex items-start gap-2.5">
-                          {f.included ? <CheckIcon /> : <XIcon />}
-                          <span
-                            className={`text-sm ${
-                              f.included
-                                ? "text-foreground"
-                                : "text-muted-foreground/50"
-                            }`}
-                          >
-                            {f.label}
-                          </span>
-                        </li>
-                      ))}
-                    </ul>
-
-                    {/* CTA */}
-                    <Link
-                      href={`/register?plan=${plan.id}`}
-                      className={`mt-6 inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                  return (
+                    <div
+                      key={plan.id}
+                      className={`relative flex flex-col rounded-xl border p-6 transition-all snap-center flex-shrink-0 w-[85vw] sm:w-[380px] lg:w-[340px] ${
                         plan.is_highlighted
-                          ? "bg-gradient-to-r from-[#1b3553] to-[#5bbcad] text-white shadow-md hover:from-[#1b3553] hover:to-[#7cd1c4]"
-                          : "border border-border bg-background text-foreground hover:bg-muted"
+                          ? "border-primary/50 bg-gradient-to-b from-[var(--ht-primary)]/[0.06] to-transparent shadow-lg shadow-[var(--ht-primary)]/10 scale-[1.02]"
+                          : "border-border/50 bg-card hover:border-border hover:shadow-md"
                       }`}
                     >
-                      Empezar trial gratuito
-                    </Link>
-                  </div>
-                );
-              })}
+                      {/* Popular badge */}
+                      {plan.is_highlighted && (
+                        <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-4 py-1 text-xs font-semibold text-white shadow-md">
+                          Mas popular
+                        </div>
+                      )}
+
+                      {/* Plan name */}
+                      <h3 className="text-lg font-bold">{plan.nombre}</h3>
+
+                      {/* Description */}
+                      {plan.descripcion && (
+                        <p className="mt-1 text-xs text-muted-foreground leading-relaxed">
+                          {plan.descripcion}
+                        </p>
+                      )}
+
+                      {/* Price */}
+                      <div className="mt-4 flex items-baseline gap-1">
+                        <span className="text-3xl font-extrabold tracking-tight">
+                          {fmt(price)}
+                        </span>
+                        <span className="text-sm text-muted-foreground">/mes</span>
+                      </div>
+                      {annual && (
+                        <p className="mt-1 text-xs text-muted-foreground line-through">
+                          {fmt(Number(plan.precio_mensual))}/mes
+                        </p>
+                      )}
+
+                      {/* Limits */}
+                      <div className="mt-4 flex flex-wrap gap-2">
+                        <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
+                          {plan.max_usuarios} usuario{plan.max_usuarios > 1 ? "s" : ""}
+                        </span>
+                        <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
+                          {plan.max_pacientes
+                            ? `${plan.max_pacientes.toLocaleString("es-AR")} pacientes`
+                            : "Pacientes ilimitados"}
+                        </span>
+                        {plan.max_sucursales && (
+                          <span className="rounded-full bg-muted px-3 py-1 text-xs font-medium">
+                            {plan.max_sucursales} sucursales
+                          </span>
+                        )}
+                      </div>
+
+                      {/* Features */}
+                      <ul className="mt-6 flex-1 space-y-3">
+                        {features.map((f) => (
+                          <li key={f.key} className="flex items-start gap-2.5">
+                            {f.included ? <CheckIcon /> : <XIcon />}
+                            <span
+                              className={`text-sm ${
+                                f.included
+                                  ? "text-foreground"
+                                  : "text-muted-foreground/50"
+                              }`}
+                            >
+                              {f.label}
+                            </span>
+                          </li>
+                        ))}
+                      </ul>
+
+                      {/* CTA */}
+                      {Number(plan.precio_mensual) > 0 ? (
+                        <a
+                          href="mailto:ventas@avaxhealth.com?subject=Consulta%20plan%20"
+                          className={`mt-6 inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                            plan.is_highlighted
+                              ? "bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-md hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent)]"
+                              : "border border-border bg-background text-foreground hover:bg-muted"
+                          }`}
+                        >
+                          Contactanos
+                        </a>
+                      ) : (
+                        <Link
+                          href="/register"
+                          className={`mt-6 inline-flex items-center justify-center rounded-xl px-4 py-3 text-sm font-semibold transition-all ${
+                            plan.is_highlighted
+                              ? "bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-md hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent)]"
+                              : "border border-border bg-background text-foreground hover:bg-muted"
+                          }`}
+                        >
+                          Empezar prueba gratuita
+                        </Link>
+                      )}
+                    </div>
+                  );
+                })}
+              </div>
+
+              {/* Dots indicator */}
+              {plans.length > 1 && (
+                <div className="flex justify-center gap-2 mt-6">
+                  {plans.map((_, i) => (
+                    <button
+                      key={i}
+                      onClick={() => scrollToIndex(i)}
+                      className={`h-2.5 rounded-full transition-all ${
+                        i === activeIndex
+                          ? "w-8 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)]"
+                          : "w-2.5 bg-muted-foreground/20 hover:bg-muted-foreground/40"
+                      }`}
+                      aria-label={`Ir al plan ${i + 1}`}
+                    />
+                  ))}
+                </div>
+              )}
             </div>
           )}
 
@@ -273,7 +359,7 @@ export default function PlanesPage() {
             Necesitas algo personalizado?{" "}
             <a
               href="mailto:soporte@avaxhealth.com"
-              className="font-medium text-[#1b3553] hover:text-[#2a4f73] transition-colors"
+              className="font-medium text-primary hover:text-primary/80 transition-colors"
             >
               Contactanos
             </a>

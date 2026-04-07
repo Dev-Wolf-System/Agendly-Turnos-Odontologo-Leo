@@ -16,6 +16,9 @@ export class Plan extends BaseEntity {
   @Column({ type: 'int', nullable: true })
   max_pacientes: number;
 
+  @Column({ type: 'int', nullable: true })
+  max_sucursales: number;
+
   @Column({ type: 'jsonb', default: {} })
   features: Record<string, boolean>;
 

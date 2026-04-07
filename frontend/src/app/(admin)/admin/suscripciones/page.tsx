@@ -10,14 +10,14 @@ import {
 } from "@/services/admin.service";
 import type { Subscription, AdminClinica, Plan, EstadoSubscription } from "@/types";
 
-const ESTADO_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string }> = {
-  trial: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", label: "Trial" },
-  activa: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", label: "Activa" },
-  past_due: { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400", dot: "bg-yellow-500", label: "Pago Pendiente" },
-  gracia: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500", label: "En Gracia" },
-  suspendida: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", dot: "bg-red-500", label: "Suspendida" },
-  cancelada: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Cancelada" },
-  vencida: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500", label: "Vencida" },
+const ESTADO_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string; tooltip: string }> = {
+  trial: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", label: "Prueba", tooltip: "Período de prueba gratuito con acceso limitado al plan seleccionado" },
+  activa: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", label: "Activa", tooltip: "Suscripción activa con pagos al día" },
+  past_due: { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400", dot: "bg-yellow-500", label: "Pago Pendiente", tooltip: "El pago está vencido pero el servicio sigue activo temporalmente" },
+  gracia: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500", label: "En Gracia", tooltip: "Período de gracia después del trial — acceso limitado hasta activar un plan pago" },
+  suspendida: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", dot: "bg-red-500", label: "Suspendida", tooltip: "Acceso denegado por falta de pago. Se requiere regularizar para continuar" },
+  cancelada: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Cancelada", tooltip: "La suscripción fue cancelada por el cliente o el administrador" },
+  vencida: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500", label: "Vencida", tooltip: "El período de suscripción expiró. Se debe renovar para continuar" },
 };
 
 const ESTADO_OPTIONS: EstadoSubscription[] = [
@@ -102,12 +102,12 @@ export default function AdminSuscripcionesPage() {
   }, {} as Record<string, number>);
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* Header */}
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[#7cd1c4] to-[#4aa89b] shadow-md shadow-[#7cd1c4]/20">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary-light)] to-[#4aa89b] shadow-md shadow-[var(--ht-primary-light)]/20">
               <RepeatIcon className="h-4 w-4 text-white" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">Suscripciones</h1>
@@ -118,7 +118,7 @@ export default function AdminSuscripcionesPage() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-5 py-2.5 text-sm font-medium text-white hover:from-[#1b3553] hover:to-[#4aa89b] transition-all shadow-md shadow-[#1b3553]/20 hover:shadow-lg hover:shadow-[#1b3553]/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[#4aa89b] transition-all shadow-md shadow-[var(--ht-primary)]/20 hover:shadow-lg hover:shadow-[var(--ht-primary)]/30"
         >
           <PlusIcon className="h-4 w-4" />
           Asignar Plan
@@ -131,11 +131,11 @@ export default function AdminSuscripcionesPage() {
           onClick={() => setFilterEstado("")}
           className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all ${
             !filterEstado
-              ? "bg-[#1b3553]/10 border-[#1b3553]/20 text-[#1b3553] dark:text-[#2a4f73] font-semibold shadow-sm"
+              ? "bg-[#0F172A]/10 border-primary/20 text-primary dark:text-primary/90 font-semibold shadow-sm"
               : "bg-card hover:bg-muted/50 shadow-sm"
           }`}
         >
-          <span className="flex h-2 w-2 rounded-full bg-[#1b3553]" />
+          <span className="flex h-2 w-2 rounded-full bg-[#0F172A]" />
           <span className="font-medium">{subs.length}</span>
           <span className="text-xs text-muted-foreground">Todas</span>
         </button>
@@ -147,6 +147,7 @@ export default function AdminSuscripcionesPage() {
             <button
               key={e}
               onClick={() => setFilterEstado(filterEstado === e ? "" : e)}
+              title={config.tooltip}
               className={`flex items-center gap-2 rounded-xl border px-4 py-2.5 text-sm transition-all ${
                 filterEstado === e
                   ? `${config.bg} border-transparent ${config.text} font-semibold shadow-sm`
@@ -163,10 +164,10 @@ export default function AdminSuscripcionesPage() {
 
       {/* Create form */}
       {showForm && (
-        <div className="rounded-2xl border bg-card shadow-sm overflow-hidden animate-in slide-in-from-top-2 duration-200">
+        <div className="rounded-xl border bg-card shadow-sm overflow-hidden animate-in slide-in-from-top-2 duration-200">
           <div className="border-b px-5 py-3.5 bg-muted/20">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <RepeatIcon className="h-4 w-4 text-[#1b3553]" />
+              <RepeatIcon className="h-4 w-4 text-primary" />
               Asignar Plan a Clinica
             </h2>
           </div>
@@ -179,7 +180,7 @@ export default function AdminSuscripcionesPage() {
                 <select
                   value={form.clinica_id}
                   onChange={(e) => setForm({ ...form, clinica_id: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all cursor-pointer"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                   required
                 >
                   <option value="">Seleccionar clinica...</option>
@@ -197,7 +198,7 @@ export default function AdminSuscripcionesPage() {
                 <select
                   value={form.plan_id}
                   onChange={(e) => setForm({ ...form, plan_id: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all cursor-pointer"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                   required
                 >
                   <option value="">Seleccionar plan...</option>
@@ -219,7 +220,7 @@ export default function AdminSuscripcionesPage() {
                   onChange={(e) =>
                     setForm({ ...form, estado: e.target.value as EstadoSubscription })
                   }
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all cursor-pointer"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all cursor-pointer"
                 >
                   {ESTADO_OPTIONS.map((e) => (
                     <option key={e} value={e}>
@@ -236,7 +237,7 @@ export default function AdminSuscripcionesPage() {
                   type="date"
                   value={form.fecha_inicio}
                   onChange={(e) => setForm({ ...form, fecha_inicio: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   required
                 />
               </div>
@@ -248,7 +249,7 @@ export default function AdminSuscripcionesPage() {
                   type="date"
                   value={form.fecha_fin}
                   onChange={(e) => setForm({ ...form, fecha_fin: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                   required
                 />
               </div>
@@ -263,7 +264,7 @@ export default function AdminSuscripcionesPage() {
                   type="date"
                   value={form.trial_ends_at}
                   onChange={(e) => setForm({ ...form, trial_ends_at: e.target.value })}
-                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-[#1b3553]/20 focus:border-[#1b3553] transition-all"
+                  className="w-full rounded-xl border bg-background px-4 py-2.5 text-sm outline-none focus:ring-2 focus:ring-primary/20 focus:border-primary transition-all"
                 />
               </div>
             </div>
@@ -273,7 +274,7 @@ export default function AdminSuscripcionesPage() {
                 type="checkbox"
                 checked={form.auto_renew}
                 onChange={(e) => setForm({ ...form, auto_renew: e.target.checked })}
-                className="rounded accent-[#1b3553] h-4 w-4"
+                className="rounded accent-[var(--ht-primary)] h-4 w-4"
               />
               <span className="text-sm font-medium">Auto-renovacion</span>
             </label>
@@ -288,7 +289,7 @@ export default function AdminSuscripcionesPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-[#1b3553] to-[#5bbcad] px-5 py-2.5 text-sm font-medium text-white hover:from-[#1b3553] hover:to-[#4aa89b] transition-all shadow-md shadow-[#1b3553]/20"
+                className="rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[#4aa89b] transition-all shadow-md shadow-[var(--ht-primary)]/20"
               >
                 Asignar
               </button>
@@ -298,7 +299,7 @@ export default function AdminSuscripcionesPage() {
       )}
 
       {/* Table */}
-      <div className="rounded-2xl border bg-card shadow-sm overflow-hidden">
+      <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
         <div className="overflow-x-auto">
           <table className="w-full text-sm">
             <thead>
@@ -345,7 +346,7 @@ export default function AdminSuscripcionesPage() {
                 <tr>
                   <td colSpan={7} className="text-center py-16">
                     <div className="flex flex-col items-center gap-2">
-                      <div className="flex h-12 w-12 items-center justify-center rounded-2xl bg-muted">
+                      <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
                         <RepeatIcon className="h-5 w-5 text-muted-foreground" />
                       </div>
                       <p className="text-sm font-medium text-muted-foreground">
@@ -364,7 +365,7 @@ export default function AdminSuscripcionesPage() {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[#7cd1c4]/10 to-[#5bbcad]/10 text-[#5bbcad] dark:text-[#9dddd3] text-xs font-bold ring-1 ring-[#7cd1c4]/10">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary-light)]/10 to-[var(--ht-accent-dark)]/10 text-[var(--ht-accent)] dark:text-[#9dddd3] text-xs font-bold ring-1 ring-[var(--ht-primary-light)]/10">
                             {sub.clinica?.nombre?.charAt(0)?.toUpperCase() ?? "C"}
                           </div>
                           <span className="font-semibold text-sm">
@@ -373,14 +374,15 @@ export default function AdminSuscripcionesPage() {
                         </div>
                       </td>
                       <td className="px-5 py-3.5">
-                        <span className="inline-flex items-center gap-1 rounded-lg bg-[#1b3553]/10 px-2.5 py-1 text-[11px] font-semibold text-[#1b3553] dark:text-[#2a4f73]">
+                        <span className="inline-flex items-center gap-1 rounded-lg bg-[#0F172A]/10 px-2.5 py-1 text-[11px] font-semibold text-primary dark:text-primary/90">
                           <CrownIcon className="h-3 w-3" />
                           {sub.plan?.nombre ?? "—"}
                         </span>
                       </td>
                       <td className="px-5 py-3.5 text-center">
                         <span
-                          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold ${config.bg} ${config.text}`}
+                          className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold ${config.bg} ${config.text} cursor-help`}
+                          title={config.tooltip}
                         >
                           <span className={`h-1.5 w-1.5 rounded-full ${config.dot}`} />
                           {config.label}
@@ -419,7 +421,7 @@ export default function AdminSuscripcionesPage() {
                           onChange={(e) =>
                             changeEstado(sub.id, e.target.value as EstadoSubscription)
                           }
-                          className="rounded-xl border bg-background px-3 py-1.5 text-xs font-medium outline-none focus:ring-2 focus:ring-[#1b3553]/20 cursor-pointer opacity-70 group-hover:opacity-100 transition-opacity"
+                          className="rounded-xl border bg-background px-3 py-1.5 text-xs font-medium outline-none focus:ring-2 focus:ring-primary/20 cursor-pointer opacity-70 group-hover:opacity-100 transition-opacity"
                         >
                           {ESTADO_OPTIONS.map((e) => (
                             <option key={e} value={e}>

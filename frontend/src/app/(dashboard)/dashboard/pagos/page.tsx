@@ -47,7 +47,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import { Badge } from "@/components/ui/badge";
 import { TableSkeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import {
@@ -75,15 +74,9 @@ import {
   Tooltip,
 } from "recharts";
 
-/* ─── Constantes ─── */
+import { StatusBadge } from "@/components/ui/status-badge";
 
-const estadoColors: Record<string, string> = {
-  pendiente:
-    "bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300",
-  aprobado:
-    "bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300",
-  rechazado: "bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300",
-};
+/* ─── Constantes ─── */
 
 const METHOD_CONFIG: Record<
   string,
@@ -104,7 +97,7 @@ const METHOD_CONFIG: Record<
   transferencia: {
     label: "Transferencia",
     icon: ArrowRightLeft,
-    color: "text-[#5bbcad]",
+    color: "text-[var(--ht-accent)]",
     chartColor: "#8b5cf6",
   },
   tarjeta: {
@@ -391,7 +384,7 @@ function PagosContent() {
       : 0;
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -418,7 +411,7 @@ function PagosContent() {
       {resumen && (
         <div className={`grid gap-4 grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
           {/* Aprobados */}
-          <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
+          <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
@@ -438,7 +431,7 @@ function PagosContent() {
           </Card>
 
           {/* Pendientes */}
-          <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
+          <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
@@ -458,7 +451,7 @@ function PagosContent() {
           </Card>
 
           {/* Rechazados */}
-          <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20">
+          <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20">
             <CardContent className="p-5">
               <div className="flex items-center justify-between">
                 <div>
@@ -479,7 +472,7 @@ function PagosContent() {
 
           {/* Ticket Promedio — solo admin */}
           {isAdmin && (
-            <Card className="relative overflow-hidden rounded-2xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
+            <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
               <CardContent className="p-5">
                 <div className="flex items-center justify-between">
                   <div>
@@ -879,12 +872,7 @@ function PagosContent() {
                         )}
                       </TableCell>
                       <TableCell>
-                        <Badge
-                          className={estadoColors[pago.estado] || ""}
-                        >
-                          {pago.estado.charAt(0).toUpperCase() +
-                            pago.estado.slice(1)}
-                        </Badge>
+                        <StatusBadge status={pago.estado} />
                       </TableCell>
                       <TableCell>
                         <div className="flex items-center justify-center gap-0.5">

@@ -24,19 +24,19 @@ export default function AdminDashboardPage() {
 
   if (loading) {
     return (
-      <div className="space-y-8">
+      <div className="animate-page-in space-y-8">
         <div>
           <div className="h-8 w-64 bg-muted rounded-lg animate-pulse" />
           <div className="h-4 w-48 bg-muted rounded mt-2 animate-pulse" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-36 rounded-2xl border bg-card animate-pulse" />
+            <div key={i} className="h-36 rounded-xl border bg-card animate-pulse" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-80 rounded-2xl border bg-card animate-pulse" />
-          <div className="h-80 rounded-2xl border bg-card animate-pulse" />
+          <div className="h-80 rounded-xl border bg-card animate-pulse" />
+          <div className="h-80 rounded-xl border bg-card animate-pulse" />
         </div>
       </div>
     );
@@ -72,7 +72,7 @@ export default function AdminDashboardPage() {
       sub: `${kpis.subscripciones.activas} suscripciones`,
       change: "Ingresos recurrentes",
       changePositive: true,
-      gradient: "from-blue-500 to-[#1b3553]",
+      gradient: "from-blue-500 to-[var(--ht-primary)]",
       bgGlow: "bg-blue-500/10",
       icon: (
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -102,8 +102,8 @@ export default function AdminDashboardPage() {
       sub: `de ${kpis.clinicas.total} totales`,
       change: `${kpis.clinicas.inactivas} inactivas`,
       changePositive: kpis.clinicas.inactivas === 0,
-      gradient: "from-[#7cd1c4] to-[#4aa89b]",
-      bgGlow: "bg-[#7cd1c4]/10",
+      gradient: "from-[var(--ht-primary-light)] to-[#4aa89b]",
+      bgGlow: "bg-[var(--ht-accent)]/10",
       icon: (
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
           <path d="m21.64 3.64-1.28-1.28a1.21 1.21 0 0 0-1.72 0L2.36 18.64a1.21 1.21 0 0 0 0 1.72l1.28 1.28a1.2 1.2 0 0 0 1.72 0L21.64 5.36a1.2 1.2 0 0 0 0-1.72" /><path d="m14 7 3 3" /><path d="M5 6v4" /><path d="M19 14v4" /><path d="M10 2v2" /><path d="M7 8H3" /><path d="M21 16h-4" /><path d="M11 3H9" />
@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className="group relative overflow-hidden rounded-2xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+            className="group relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
           >
             {/* Background glow */}
             <div className={`absolute top-0 right-0 w-32 h-32 ${card.bgGlow} rounded-full -translate-y-1/2 translate-x-1/2 opacity-60 group-hover:opacity-100 transition-opacity`} />
@@ -186,7 +186,7 @@ export default function AdminDashboardPage() {
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Bar chart — clínicas por plan */}
-        <div className="lg:col-span-3 rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="lg:col-span-3 rounded-xl border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between mb-6">
             <div>
               <h2 className="text-base font-semibold">Clinicas por Plan</h2>
@@ -201,7 +201,7 @@ export default function AdminDashboardPage() {
                 <path d="M3 3v18h18" /><path d="M7 16v-3" /><path d="M12 16V9" /><path d="M17 16v-5" />
               </svg>
               <p className="text-sm">No hay datos todavia</p>
-              <Link href="/admin/planes" className="text-xs text-[#1b3553] hover:underline mt-1">
+              <Link href="/admin/planes" className="text-xs text-primary hover:underline mt-1">
                 Crear primer plan
               </Link>
             </div>
@@ -227,7 +227,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Pie chart — distribución */}
-        <div className="lg:col-span-2 rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="lg:col-span-2 rounded-xl border bg-card p-6 shadow-sm">
           <div className="mb-6">
             <h2 className="text-base font-semibold">Distribucion</h2>
             <p className="text-xs text-muted-foreground mt-0.5">
@@ -288,7 +288,7 @@ export default function AdminDashboardPage() {
       {/* Bottom cards */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Planes disponibles */}
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
           <div className="flex items-center justify-between mb-5">
             <div>
               <h2 className="text-base font-semibold">Planes Disponibles</h2>
@@ -298,7 +298,7 @@ export default function AdminDashboardPage() {
             </div>
             <Link
               href="/admin/planes"
-              className="text-xs font-medium text-[#1b3553] hover:text-[#2a4f73] transition-colors"
+              className="text-xs font-medium text-primary hover:text-primary/80 transition-colors"
             >
               Ver todos →
             </Link>
@@ -308,7 +308,7 @@ export default function AdminDashboardPage() {
               <p className="text-sm text-muted-foreground mb-2">No hay planes creados</p>
               <Link
                 href="/admin/planes"
-                className="inline-flex items-center rounded-lg bg-[#1b3553] px-4 py-2 text-xs font-medium text-white hover:bg-[#1b3553] transition-colors"
+                className="inline-flex items-center rounded-lg bg-[#0F172A] px-4 py-2 text-xs font-medium text-white hover:bg-[#0F172A] transition-colors"
               >
                 + Crear Plan
               </Link>
@@ -321,8 +321,8 @@ export default function AdminDashboardPage() {
                   className="flex items-center justify-between rounded-xl border p-4 hover:bg-muted/30 transition-colors"
                 >
                   <div className="flex items-center gap-3">
-                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#1b3553]/10">
-                      <CrownSmIcon className="h-5 w-5 text-[#1b3553]" />
+                    <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#0F172A]/10">
+                      <CrownSmIcon className="h-5 w-5 text-primary" />
                     </div>
                     <div>
                       <p className="text-sm font-semibold">{plan.nombre}</p>
@@ -332,7 +332,7 @@ export default function AdminDashboardPage() {
                     </div>
                   </div>
                   <p className="text-lg font-bold">
-                    <span className="text-[#1b3553]">
+                    <span className="text-primary">
                       ${Number(plan.precio_mensual).toLocaleString("es-AR")}
                     </span>
                     <span className="text-xs font-normal text-muted-foreground">/mes</span>
@@ -344,7 +344,7 @@ export default function AdminDashboardPage() {
         </div>
 
         {/* Quick stats */}
-        <div className="rounded-2xl border bg-card p-6 shadow-sm">
+        <div className="rounded-xl border bg-card p-6 shadow-sm">
           <div className="mb-5">
             <h2 className="text-base font-semibold">Resumen de Suscripciones</h2>
             <p className="text-xs text-muted-foreground mt-0.5">Estado actual del sistema</p>
