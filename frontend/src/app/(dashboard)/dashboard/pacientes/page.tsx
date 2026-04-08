@@ -230,7 +230,7 @@ export default function PacientesPage() {
           onClick={openCreate}
           disabled={!canAddPaciente}
           title={!canAddPaciente ? `Límite de ${maxPacientes} pacientes alcanzado. Actualiza tu plan para agregar más.` : undefined}
-          className="bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:from-[var(--ht-primary)] hover:to-[#4aa89b] text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
+          className="bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent-dark)] text-white shadow-md hover:shadow-lg transition-all disabled:opacity-50 disabled:cursor-not-allowed"
         >
           <UserPlus className="h-4 w-4 mr-2" />
           Nuevo Paciente
@@ -387,7 +387,7 @@ export default function PacientesPage() {
                   <Button
                     variant="ghost"
                     size="sm"
-                    className="flex-1 h-8 text-xs text-[var(--ht-accent)] hover:text-[#4aa89b] hover:bg-[#f0faf8] dark:hover:bg-[#1a5c52]/40"
+                    className="flex-1 h-8 text-xs text-[var(--ht-accent)] hover:text-[var(--ht-accent)] hover:bg-emerald-50 dark:hover:bg-emerald-900/40"
                     onClick={() => router.push(`/dashboard/pacientes/${paciente.id}`)}
                   >
                     <Eye className="h-3.5 w-3.5 mr-1" />
@@ -452,7 +452,7 @@ export default function PacientesPage() {
                 <Button
                   variant="ghost"
                   size="icon"
-                  className="h-8 w-8 text-[var(--ht-accent)] hover:text-[#4aa89b] hover:bg-[#f0faf8] dark:hover:bg-[#1a5c52]/40 transition-all hover:scale-110"
+                  className="h-8 w-8 text-[var(--ht-accent)] hover:text-[var(--ht-accent)] hover:bg-emerald-50 dark:hover:bg-emerald-900/40 transition-all hover:scale-110"
                   onClick={() => router.push(`/dashboard/pacientes/${paciente.id}`)}
                   title="Ver ficha"
                 >

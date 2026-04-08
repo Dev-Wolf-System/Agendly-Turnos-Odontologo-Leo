@@ -107,7 +107,7 @@ export default function AdminSuscripcionesPage() {
       <div className="flex flex-col sm:flex-row sm:items-end sm:justify-between gap-4">
         <div>
           <div className="flex items-center gap-2.5 mb-1">
-            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary-light)] to-[#4aa89b] shadow-md shadow-[var(--ht-primary-light)]/20">
+            <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] shadow-md shadow-[var(--ht-primary-light)]/20">
               <RepeatIcon className="h-4 w-4 text-white" />
             </div>
             <h1 className="text-2xl font-bold tracking-tight">Suscripciones</h1>
@@ -118,7 +118,7 @@ export default function AdminSuscripcionesPage() {
         </div>
         <button
           onClick={() => setShowForm(true)}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[#4aa89b] transition-all shadow-md shadow-[var(--ht-primary)]/20 hover:shadow-lg hover:shadow-[var(--ht-primary)]/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent-dark)] transition-all shadow-md shadow-[var(--ht-primary)]/20 hover:shadow-lg hover:shadow-[var(--ht-primary)]/30"
         >
           <PlusIcon className="h-4 w-4" />
           Asignar Plan
@@ -289,7 +289,7 @@ export default function AdminSuscripcionesPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[#4aa89b] transition-all shadow-md shadow-[var(--ht-primary)]/20"
+                className="rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent-dark)] transition-all shadow-md shadow-[var(--ht-primary)]/20"
               >
                 Asignar
               </button>
@@ -365,7 +365,7 @@ export default function AdminSuscripcionesPage() {
                     >
                       <td className="px-5 py-3.5">
                         <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary-light)]/10 to-[var(--ht-accent-dark)]/10 text-[var(--ht-accent)] dark:text-[#9dddd3] text-xs font-bold ring-1 ring-[var(--ht-primary-light)]/10">
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary-light)]/10 to-[var(--ht-accent-dark)]/10 text-[var(--ht-accent)] dark:text-emerald-300 text-xs font-bold ring-1 ring-[var(--ht-primary-light)]/10">
                             {sub.clinica?.nombre?.charAt(0)?.toUpperCase() ?? "C"}
                           </div>
                           <span className="font-semibold text-sm">

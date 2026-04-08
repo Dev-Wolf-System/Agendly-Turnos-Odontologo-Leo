@@ -35,7 +35,7 @@ interface TicketStats {
 const ESTADO_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string }> = {
   abierto: { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", dot: "bg-blue-500", label: "Abierto" },
   en_progreso: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", label: "En Progreso" },
-  esperando_respuesta: { bg: "bg-[var(--ht-accent-dark)]/10", text: "text-[#4aa89b] dark:text-accent", dot: "bg-[var(--ht-accent-dark)]", label: "Esperando" },
+  esperando_respuesta: { bg: "bg-[var(--ht-accent-dark)]/10", text: "text-[var(--ht-accent)] dark:text-accent", dot: "bg-[var(--ht-accent-dark)]", label: "Esperando" },
   resuelto: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", label: "Resuelto" },
   cerrado: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Cerrado" },
 };
@@ -180,7 +180,7 @@ export default function AdminSoportePage() {
         </div>
         <div className="rounded-xl border bg-gradient-to-br from-[var(--ht-accent)]/10 to-[var(--ht-accent-dark)]/5 dark:from-[var(--ht-accent)]/20 dark:to-[var(--ht-accent-dark)]/5 p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Esperando</p>
-          <p className="text-2xl font-bold mt-1 text-[#4aa89b] dark:text-accent">{stats.esperando_respuesta || 0}</p>
+          <p className="text-2xl font-bold mt-1 text-[var(--ht-accent)] dark:text-accent">{stats.esperando_respuesta || 0}</p>
         </div>
         <div className="rounded-xl border bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/5 p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Resueltos</p>
@@ -235,7 +235,7 @@ export default function AdminSoportePage() {
         </select>
         <button
           onClick={fetchData}
-          className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F172A] px-3.5 py-2 text-sm font-medium text-white hover:bg-[#1f3d5e] transition-colors"
+          className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--bg-sidebar)] px-3.5 py-2 text-sm font-medium text-white hover:bg-[var(--bg-sidebar-hover)] transition-colors"
         >
           <svg className="w-4 h-4" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
             <path d="M21 12a9 9 0 1 1-9-9c2.52 0 4.93 1 6.74 2.74L21 8" /><path d="M21 3v5h-5" />
@@ -282,7 +282,7 @@ export default function AdminSoportePage() {
                   }}
                   className={`w-full text-left rounded-xl border p-4 transition-all duration-200 hover:shadow-md ${
                     isSelected
-                      ? "ring-2 ring-primary border-primary/50 bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20"
+                      ? "ring-2 ring-primary border-primary/50 bg-primary/5 dark:bg-primary/10"
                       : "bg-card hover:bg-muted/30"
                   }`}
                 >
@@ -444,7 +444,7 @@ export default function AdminSoportePage() {
                   <button
                     onClick={handleRespond}
                     disabled={responding || !respuesta.trim()}
-                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[#0F172A] px-4 py-2 text-sm font-medium text-white hover:bg-[#1f3d5e] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="flex-1 inline-flex items-center justify-center gap-1.5 rounded-lg bg-[var(--bg-sidebar)] px-4 py-2 text-sm font-medium text-white hover:bg-[var(--bg-sidebar-hover)] transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {responding ? (
                       <svg className="w-4 h-4 animate-spin" xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">

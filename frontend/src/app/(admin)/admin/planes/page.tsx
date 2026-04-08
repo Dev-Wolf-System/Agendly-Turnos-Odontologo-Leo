@@ -145,7 +145,7 @@ export default function AdminPlanesPage() {
             resetForm();
             setShowForm(true);
           }}
-          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[#4aa89b] transition-all shadow-md shadow-[var(--ht-primary)]/20 hover:shadow-lg hover:shadow-[var(--ht-primary)]/30"
+          className="inline-flex items-center gap-2 rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent-dark)] transition-all shadow-md shadow-[var(--ht-primary)]/20 hover:shadow-lg hover:shadow-[var(--ht-primary)]/30"
         >
           <PlusIcon className="h-4 w-4" />
           Nuevo Plan
@@ -338,7 +338,7 @@ export default function AdminPlanesPage() {
               </button>
               <button
                 type="submit"
-                className="rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[#4aa89b] transition-all shadow-md shadow-[var(--ht-primary)]/20"
+                className="rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent-dark)] transition-all shadow-md shadow-[var(--ht-primary)]/20"
               >
                 {editingId ? "Guardar Cambios" : "Crear Plan"}
               </button>
@@ -363,7 +363,7 @@ export default function AdminPlanesPage() {
           <div className="flex gap-3">
             <button
               onClick={() => load(true)}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-4 py-2 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[#4aa89b] transition-all shadow-md shadow-[var(--ht-primary)]/20"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-4 py-2 text-sm font-medium text-white hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent-dark)] transition-all shadow-md shadow-[var(--ht-primary)]/20"
             >
               <DownloadIcon className="h-3.5 w-3.5" />
               Reintentar

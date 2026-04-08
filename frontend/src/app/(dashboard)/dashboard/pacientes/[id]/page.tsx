@@ -102,7 +102,7 @@ function EstadoBadge({ estado }: { estado: string }) {
 }
 
 const gradients = [
-  "from-[var(--ht-primary-light)] to-[#4aa89b]",
+  "from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)]",
   "from-blue-500 to-cyan-500",
   "from-emerald-500 to-teal-500",
   "from-orange-500 to-amber-500",
@@ -283,13 +283,13 @@ export default function FichaPacientePage() {
           <CardContent className="p-5">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-xs font-medium text-[#4aa89b]/70 dark:text-accent/70 uppercase tracking-wider">Último Turno</p>
+                <p className="text-xs font-medium text-[var(--ht-accent)]/70 dark:text-accent/70 uppercase tracking-wider">Último Turno</p>
                 <p className="text-xl font-bold text-teal-700 dark:text-purple-300 mt-1">
                   {kpis.ultimoTurno ? formatFecha(kpis.ultimoTurno) : "—"}
                 </p>
               </div>
               <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent-dark)]/10 dark:bg-[var(--ht-accent)]/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-[#4aa89b] dark:text-accent" />
+                <Clock className="h-5 w-5 text-[var(--ht-accent)] dark:text-accent" />
               </div>
             </div>
           </CardContent>

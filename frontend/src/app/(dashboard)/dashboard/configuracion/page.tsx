@@ -266,7 +266,7 @@ function ConfiguracionContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="animate-page-in space-y-6">
       <div>
         <h1 className="text-2xl font-bold tracking-tight">Configuración</h1>
         <p className="text-muted-foreground">
@@ -811,7 +811,7 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
                       )}
                     </div>
                     {/* Tarde */}
-                    <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 border-[#b0c4d8] dark:border-primary" : "bg-muted/30"}`}>
+                    <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-primary/5 dark:bg-primary/10 border-primary/30 dark:border-primary" : "bg-muted/30"}`}>
                       <Switch
                         checked={dia.tarde.activo}
                         onCheckedChange={(v) => updateTurno(key, "tarde", "activo", v)}
@@ -934,7 +934,7 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
                             <span className="text-xs text-muted-foreground italic">—</span>
                           )}
                         </div>
-                        <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 border-[#b0c4d8] dark:border-primary" : "bg-muted/30"}`}>
+                        <div className={`flex items-center gap-2 rounded-md border px-3 py-2 ${dia.tarde.activo ? "bg-primary/5 dark:bg-primary/10 border-primary/30 dark:border-primary" : "bg-muted/30"}`}>
                           <Switch checked={dia.tarde.activo} onCheckedChange={(v) => updateProfTurno(key, "tarde", "activo", v)} />
                           <span className="text-xs font-medium w-16 shrink-0">Tarde</span>
                           {dia.tarde.activo ? (
@@ -1394,7 +1394,7 @@ function TabEquipo({
   };
 
   const roleColor: Record<string, string> = {
-    admin: "bg-[#e0f5f1] text-[#3a9488] dark:bg-[#2a7a6e] dark:text-[#b0e5dc]",
+    admin: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/40 dark:text-emerald-300",
     professional: "bg-blue-100 text-blue-800 dark:bg-blue-900 dark:text-blue-300",
     assistant: "bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300",
   };
@@ -1447,7 +1447,7 @@ function TabEquipo({
                   key={u.id}
                   className="flex items-center gap-3 rounded-lg border p-3 group hover:shadow-sm transition-shadow"
                 >
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary-light)] to-[#4aa89b] text-white text-sm font-bold shrink-0">
+                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] text-white text-sm font-bold shrink-0">
                     {u.nombre.charAt(0)}{u.apellido.charAt(0)}
                   </div>
                   <div className="flex-1 min-w-0">
@@ -1877,8 +1877,8 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
                 </p>
               </div>
 
-              <div className="rounded-lg border border-[#c4ebe5] dark:border-[#3a9488] bg-[#f0faf8]/50 dark:bg-[#1a5c52]/20 p-3">
-                <p className="text-xs text-[#4aa89b] dark:text-[#b0e5dc] flex items-center gap-2">
+              <div className="rounded-lg border border-emerald-200 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/20 p-3">
+                <p className="text-xs text-emerald-600 dark:text-emerald-300 flex items-center gap-2">
                   <Sparkles className="h-3.5 w-3.5 flex-shrink-0" />
                   <span>
                     El agente usa inteligencia artificial para entender las consultas de tus pacientes

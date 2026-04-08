@@ -435,7 +435,7 @@ function SuscripcionContent() {
                   )}
                 </div>
                 <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent)]/15 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-[var(--ht-accent)] dark:text-[#9dddd3]" />
+                  <ShieldCheck className="w-5 h-5 text-[var(--ht-accent)] dark:text-emerald-300" />
                 </div>
               </div>
             </CardContent>
@@ -522,7 +522,7 @@ function SuscripcionContent() {
           <Card className="rounded-xl border shadow-sm">
             <CardHeader className="pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ht-primary-light)] to-[#4aa89b] flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>

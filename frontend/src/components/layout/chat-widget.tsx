@@ -152,10 +152,10 @@ export function ChatWidget() {
   const roleLabel = (role: string) => ({ admin: "Admin", professional: "Profesional", assistant: "Secretaria" }[role] || role);
 
   const roleColor = (role: string) => ({
-    admin: "bg-[#dbe6f0] text-[#1f3d5e] dark:bg-[#142a42]/30 dark:text-primary/70",
+    admin: "bg-sky-100 text-sky-800 dark:bg-sky-900/30 dark:text-sky-300",
     professional: "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-300",
     assistant: "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-300",
-  }[role] || "bg-gray-100 text-gray-700");
+  }[role] || "bg-slate-100 text-slate-700 dark:bg-slate-800 dark:text-slate-300");
 
   const isOnline = (userId: string) => onlineUserIds.has(userId);
 
@@ -218,9 +218,9 @@ export function ChatWidget() {
               {/* General channel */}
               <button
                 onClick={() => openChat(null)}
-                className={`flex w-full items-center gap-3 border-b px-4 py-3 text-left hover:bg-muted/50 transition-colors ${(unreadPerUser["general"] ?? 0) > 0 ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20" : ""}`}
+                className={`flex w-full items-center gap-3 border-b px-4 py-3 text-left hover:bg-muted/50 transition-colors ${(unreadPerUser["general"] ?? 0) > 0 ? "bg-primary/5 dark:bg-primary/10" : ""}`}
               >
-                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[#dbe6f0] to-[#e0f5f1] dark:from-[#142a42]/30 dark:to-[#2a7a6e]/30">
+                <div className="relative flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-sky-100 to-emerald-100 dark:from-sky-900/30 dark:to-emerald-900/30">
                   <Users className="h-5 w-5 text-primary dark:text-primary/90" />
                 </div>
                 <div className="flex-1 min-w-0">
@@ -228,7 +228,7 @@ export function ChatWidget() {
                   <p className="text-xs text-muted-foreground">Mensajes para todo el equipo</p>
                 </div>
                 {(unreadPerUser["general"] ?? 0) > 0 && (
-                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0F172A] px-1.5 text-[10px] font-bold text-white">
+                  <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
                     {unreadPerUser["general"]}
                   </span>
                 )}
@@ -240,7 +240,7 @@ export function ChatWidget() {
                   <button
                     key={u.id}
                     onClick={() => openChat(u)}
-                    className={`flex w-full items-center gap-3 border-b px-4 py-3 text-left hover:bg-muted/50 transition-colors ${unread > 0 ? "bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20" : ""}`}
+                    className={`flex w-full items-center gap-3 border-b px-4 py-3 text-left hover:bg-muted/50 transition-colors ${unread > 0 ? "bg-primary/5 dark:bg-primary/10" : ""}`}
                   >
                     <div className="relative">
                       <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-slate-100 to-slate-200 dark:from-slate-800 dark:to-slate-700">
@@ -267,7 +267,7 @@ export function ChatWidget() {
                       </div>
                     </div>
                     {unread > 0 && (
-                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-[#0F172A] px-1.5 text-[10px] font-bold text-white">
+                      <span className="flex h-5 min-w-5 items-center justify-center rounded-full bg-primary px-1.5 text-[10px] font-bold text-white">
                         {unread}
                       </span>
                     )}
@@ -306,13 +306,13 @@ export function ChatWidget() {
                         isOwn
                           ? "bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white"
                           : isNew
-                            ? "bg-[#eef3f8] dark:bg-[#0e1f33]/40 ring-2 ring-[var(--ht-primary-dark)]/50"
+                            ? "bg-primary/5 dark:bg-primary/10 ring-2 ring-primary/50"
                             : "bg-muted"
                       }`}>
                         {!isOwn && (
                           <p className="text-[10px] font-semibold mb-0.5 text-primary dark:text-primary/90">
                             {msg.sender?.nombre} {msg.sender?.apellido}
-                            {isNew && <span className="ml-1.5 inline-flex items-center rounded-full bg-[#0F172A] px-1.5 py-0 text-[8px] font-bold text-white">NUEVO</span>}
+                            {isNew && <span className="ml-1.5 inline-flex items-center rounded-full bg-primary px-1.5 py-0 text-[8px] font-bold text-white">NUEVO</span>}
                           </p>
                         )}
                         <p className="whitespace-pre-wrap break-words">{msg.content}</p>

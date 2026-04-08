@@ -529,7 +529,7 @@ export default function DashboardPage() {
           <button
             key={card.label}
             onClick={() => router.push(card.href)}
-            className="group relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-left"
+            className="stagger-item group relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-200 hover:-translate-y-0.5 text-left animate-page-in"
           >
             <div className="absolute -top-10 -right-10 w-32 h-32 bg-gradient-to-br from-current opacity-[0.04] rounded-full group-hover:opacity-[0.08] transition-opacity" />
             <div className="relative">

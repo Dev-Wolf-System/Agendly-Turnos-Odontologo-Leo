@@ -45,7 +45,7 @@ export default function LoginPage() {
           <div
             className="absolute inset-0 opacity-[0.03]"
             style={{
-              backgroundImage: `linear-gradient(rgba(124,209,196,0.5) 1px, transparent 1px), linear-gradient(90deg, rgba(124,209,196,0.5) 1px, transparent 1px)`,
+              backgroundImage: `linear-gradient(rgba(56,189,248,0.3) 1px, transparent 1px), linear-gradient(90deg, rgba(56,189,248,0.3) 1px, transparent 1px)`,
               backgroundSize: "60px 60px",
             }}
           />

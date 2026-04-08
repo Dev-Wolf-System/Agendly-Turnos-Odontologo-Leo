@@ -61,7 +61,7 @@ export function UpgradePrompt({
     description ?? labels?.description ?? "Esta función no está incluida en tu plan actual.";
 
   return (
-    <div className="relative rounded-xl border border-dashed border-primary/50 dark:border-[#1f3d5e] bg-[#eef3f8]/50 dark:bg-[#0e1f33]/20 p-6">
+    <div className="relative rounded-xl border border-dashed border-primary/50 dark:border-primary/30 bg-primary/5 dark:bg-primary/10 p-6">
       {/* Locked overlay */}
       <div className="flex flex-col items-center text-center space-y-4">
         <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-lg">

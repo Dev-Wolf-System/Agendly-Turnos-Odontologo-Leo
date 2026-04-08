@@ -102,7 +102,7 @@ export default function AdminDashboardPage() {
       sub: `de ${kpis.clinicas.total} totales`,
       change: `${kpis.clinicas.inactivas} inactivas`,
       changePositive: kpis.clinicas.inactivas === 0,
-      gradient: "from-[var(--ht-primary-light)] to-[#4aa89b]",
+      gradient: "from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)]",
       bgGlow: "bg-[var(--ht-accent)]/10",
       icon: (
         <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -151,7 +151,7 @@ export default function AdminDashboardPage() {
           <Link
             key={card.label}
             href={card.href}
-            className="group relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5"
+            className="stagger-item group relative overflow-hidden rounded-xl border bg-card p-5 shadow-sm hover:shadow-md transition-all duration-300 hover:-translate-y-0.5 animate-page-in"
           >
             {/* Background glow */}
             <div className={`absolute top-0 right-0 w-32 h-32 ${card.bgGlow} rounded-full -translate-y-1/2 translate-x-1/2 opacity-60 group-hover:opacity-100 transition-opacity`} />
