@@ -1,24 +1,46 @@
 # Pendientes Planificados — Avax Health
 
-> Actualizado: 2026-04-07
+> Actualizado: 2026-04-09
 
 ---
 
 ## 1. Agente Zoe IA (Multi-tenant)
 
 **Prioridad:** Alta — diferenciador de producto
+**Estado:** Flujo core implementado y publicado en n8n
 
-- [ ] 1 flujo n8n para todas las clinicas, router por `clinica_id`
-- [ ] Paciente via WhatsApp: ver turnos, registrarse, agendar, info clinica
-- [ ] Admin via WhatsApp: resumen turnos, finanzas, alertas
-- [ ] Horarios por profesional integrados con Zoe (entidad ya creada en backend)
-- [ ] Widget frontend con gradiente especial `from-primary to-accent` y `glow-pulse`
+- [x] 1 flujo n8n para todas las clinicas, router por `clinica_id` (instancia Evolution)
+- [x] Endpoints API dedicados para el agente (`/api/agent/*`)
+- [x] Paciente via WhatsApp: registrarse, agendar turno, cancelar, consultar info clinica
+- [x] System prompt dinamico por clinica (nombre, horarios, profesionales, tratamientos)
+- [x] Procesamiento de audio (Whisper) + texto
+- [x] Buffer Redis con debounce 5s para mensajes rapidos
+- [x] Memoria conversacional en PostgreSQL (30 mensajes)
+- [x] Widget frontend demo con gradiente `from-primary to-accent` y `glow-pulse`
+- [x] Config WhatsApp en dashboard: credenciales Evolution + instrucciones del agente
+- [ ] Admin via WhatsApp: resumen turnos, finanzas, alertas (Flujo 4 del plan)
+- [ ] Recordatorios automaticos de turnos via WhatsApp (Flujo 2 — cron)
+- [ ] Confirmacion/cancelacion post-recordatorio (Flujo 3)
+- [ ] Follow-up post-turno (Flujo 6)
+- [ ] Configurar credenciales HTTP en n8n (Avax Health API Key para nodos HTTP Request)
+- [ ] Mover config WhatsApp (Evolution instance/key) de clinica a admin panel
 
-**Dependencias:** Evolution API configurada por clinica, OpenAI API key
+**Workflow n8n:** `d68rLn6WSlnfkvZo` — "Asistente Avax Health IA Virtual - Zoé"
+**Dependencias:** Evolution API configurada por clinica, OpenAI API key, Redis
 
 ---
 
-## 2. Reportes Avanzados
+## 2. Mejoras Admin Panel
+
+**Prioridad:** Alta — UX del panel de gestion
+
+- [ ] Simplificar estados de suscripciones a 4: Activa, Inactiva, Cancelada, Vencida
+- [ ] Mover configuracion WhatsApp (Evolution instance/API key) de clinica a admin
+- [ ] Mejorar UX de acciones masivas en suscripciones
+
+---
+
+## 3. Reportes Avanzados
 
 **Prioridad:** Media — valor para clinicas grandes
 
@@ -34,7 +56,7 @@
 
 ---
 
-## 3. Archivos Medicos
+## 4. Archivos Medicos
 
 **Prioridad:** Media — solicitado por clinicas
 
@@ -50,7 +72,7 @@
 
 ---
 
-## 4. Infraestructura
+## 5. Infraestructura
 
 **Prioridad:** Alta — necesario para colaboracion
 
@@ -61,7 +83,7 @@
 
 ---
 
-## 5. Mejoras Menores Pendientes
+## 6. Mejoras Menores Pendientes
 
 **Prioridad:** Baja — polish
 
@@ -77,10 +99,11 @@
 
 ```
 1. Infraestructura (GitHub + CI)     → desbloquea colaboracion
-2. Agente Zoe IA                     → diferenciador de producto
-3. Reportes Avanzados                → valor para clinicas grandes
-4. Archivos Medicos                  → feature solicitada
-5. Mejoras Menores                   → polish continuo
+2. Mejoras Admin Panel               → UX critica (suscripciones + WhatsApp config)
+3. Agente Zoe IA (flujos faltantes)  → recordatorios, follow-up, notif admin
+4. Reportes Avanzados                → valor para clinicas grandes
+5. Archivos Medicos                  → feature solicitada
+6. Mejoras Menores                   → polish continuo
 ```
 
 ---
@@ -105,3 +128,4 @@
 | N | Fixes de Produccion | 2026-04 |
 | O | Planes Dinamicos + Registro Premium | 2026-04 |
 | P | Bugs Admin + Flujo Trial + Rediseno HEALTH_TRUST | 2026-04-07 |
+| Q | Workflow n8n Zoé + Fixes Admin + Widget Zoé + Config WhatsApp | 2026-04-09 |

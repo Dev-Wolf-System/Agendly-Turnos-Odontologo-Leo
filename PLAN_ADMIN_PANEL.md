@@ -1,6 +1,6 @@
 # Plan de Desarrollo — Panel de Administración de Clínicas (SaaS)
 
-> Última actualización: 2026-04-01 (Fases 1-3 + 5 + 7 completadas, Soporte + Fixes producción)
+> Última actualización: 2026-04-09 (Fases 1-3 + 5 + 7 completadas, Soporte + Fixes producción + Fixes cascade delete + KPIs + Ribbon badges)
 
 ## Concepto
 
