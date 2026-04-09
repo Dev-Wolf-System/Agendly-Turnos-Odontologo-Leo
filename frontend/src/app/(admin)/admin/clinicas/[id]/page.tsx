@@ -465,7 +465,7 @@ export default function AdminClinicaDetailPage() {
           </div>
           <div className="p-5 space-y-4">
             <p className="text-xs text-muted-foreground">
-              Eliminar esta clinica es una accion irreversible. Se eliminarán todos los datos asociados: pacientes, turnos, historial y pagos.
+              Eliminar esta clínica es una acción irreversible. Se eliminarán todos los datos asociados: usuarios, pacientes, turnos, historial médico y suscripciones. Los pagos registrados se conservarán.
             </p>
 
             {!showDeleteDialog ? (

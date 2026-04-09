@@ -6,6 +6,7 @@ import { Header } from "@/components/layout/header";
 import { SubscriptionBanner } from "@/components/layout/subscription-banner";
 import { HealthLoader } from "@/components/ui/health-loader";
 import { ChatWidget } from "@/components/layout/chat-widget";
+import { ZoeWidget } from "@/components/layout/zoe-widget";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FeatureFlagContext, useFeatureFlagProvider } from "@/hooks/useFeatureFlags";
@@ -44,6 +45,7 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
           </div>
         </div>
         <ChatWidget />
+        <ZoeWidget />
       </SidebarProvider>
     </FeatureFlagContext.Provider>
   );

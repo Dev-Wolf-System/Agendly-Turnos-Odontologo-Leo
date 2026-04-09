@@ -43,8 +43,8 @@ export class AdminClinicasController {
   }
 
   @Delete(':id')
-  softDelete(@Param('id') id: string) {
-    return this.adminService.softDeleteClinica(id);
+  remove(@Param('id') id: string) {
+    return this.adminService.deleteClinica(id);
   }
 
   @Patch(':id/aprobar')

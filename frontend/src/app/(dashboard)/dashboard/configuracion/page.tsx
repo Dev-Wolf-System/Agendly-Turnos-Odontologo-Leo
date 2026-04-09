@@ -1821,13 +1821,23 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
 function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => void }) {
   const [agentActivo, setAgentActivo] = useState(!!clinica.agent_nombre && clinica.agent_nombre !== "");
   const [agentNombre, setAgentNombre] = useState(clinica.agent_nombre || "Zoe");
+  const [agentInstrucciones, setAgentInstrucciones] = useState(clinica.agent_instrucciones || "");
+  const [evolutionInstance, setEvolutionInstance] = useState(clinica.evolution_instance || "");
+  const [evolutionApiKey, setEvolutionApiKey] = useState(clinica.evolution_api_key || "");
+  const [showApiKey, setShowApiKey] = useState(false);
   const [isSaving, setIsSaving] = useState(false);
+  const [testStatus, setTestStatus] = useState<"idle" | "testing" | "success" | "error">("idle");
+
+  const isConnected = !!clinica.evolution_instance && !!clinica.evolution_api_key;
 
   const handleSave = async () => {
     try {
       setIsSaving(true);
       await clinicaService.updateMe({
         agent_nombre: agentActivo ? agentNombre : "",
+        agent_instrucciones: agentInstrucciones,
+        evolution_instance: evolutionInstance,
+        evolution_api_key: evolutionApiKey,
       });
       toast.success("Configuración del agente guardada");
       onUpdate();
@@ -1835,6 +1845,29 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
       toast.error("Error al guardar configuración");
     } finally {
       setIsSaving(false);
+    }
+  };
+
+  const handleTestConnection = async () => {
+    if (!evolutionInstance || !evolutionApiKey) {
+      toast.error("Completá la instancia y API key primero");
+      return;
+    }
+    setTestStatus("testing");
+    try {
+      const res = await fetch(`https://${evolutionInstance}/instance/connectionState/${evolutionInstance.split("/").pop()}`, {
+        headers: { apikey: evolutionApiKey },
+      });
+      if (res.ok) {
+        setTestStatus("success");
+        toast.success("Conexión exitosa con Evolution API");
+      } else {
+        setTestStatus("error");
+        toast.error("No se pudo conectar. Verificá las credenciales.");
+      }
+    } catch {
+      setTestStatus("error");
+      toast.error("Error de conexión. Verificá la URL de la instancia.");
     }
   };
 
@@ -1898,6 +1931,108 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
         </CardContent>
       </Card>
 
+      {/* Conexión WhatsApp — Evolution API */}
+      {agentActivo && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Key className="h-5 w-5 text-green-500" />
+              Conexión WhatsApp
+              {isConnected && (
+                <Badge variant="outline" className="ml-2 border-emerald-300 text-emerald-600 text-[10px]">
+                  Conectado
+                </Badge>
+              )}
+            </CardTitle>
+            <CardDescription>
+              Credenciales de Evolution API para enviar y recibir mensajes de WhatsApp
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-4">
+            <div className="space-y-2">
+              <Label htmlFor="evolution_instance">Nombre de Instancia</Label>
+              <Input
+                id="evolution_instance"
+                value={evolutionInstance}
+                onChange={(e) => setEvolutionInstance(e.target.value)}
+                placeholder="mi-clinica"
+              />
+              <p className="text-xs text-muted-foreground">
+                El nombre de tu instancia en Evolution API (ej: &ldquo;clinica-dental-sur&rdquo;).
+              </p>
+            </div>
+            <div className="space-y-2">
+              <Label htmlFor="evolution_api_key">API Key de Evolution</Label>
+              <div className="flex gap-2">
+                <div className="relative flex-1">
+                  <Input
+                    id="evolution_api_key"
+                    type={showApiKey ? "text" : "password"}
+                    value={evolutionApiKey}
+                    onChange={(e) => setEvolutionApiKey(e.target.value)}
+                    placeholder="Tu API key de Evolution API"
+                  />
+                  <button
+                    type="button"
+                    onClick={() => setShowApiKey(!showApiKey)}
+                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                  >
+                    {showApiKey ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                  </button>
+                </div>
+                <Button
+                  variant="outline"
+                  size="sm"
+                  onClick={handleTestConnection}
+                  disabled={testStatus === "testing"}
+                  className="shrink-0"
+                >
+                  {testStatus === "testing" ? (
+                    "Probando..."
+                  ) : testStatus === "success" ? (
+                    <span className="text-emerald-500">OK</span>
+                  ) : testStatus === "error" ? (
+                    <span className="text-red-500">Error</span>
+                  ) : (
+                    <Send className="h-4 w-4" />
+                  )}
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                La clave de autenticación proporcionada por Evolution API.
+              </p>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Instrucciones personalizadas */}
+      {agentActivo && (
+        <Card>
+          <CardHeader>
+            <CardTitle className="flex items-center gap-2">
+              <Sparkles className="h-5 w-5 text-purple-500" />
+              Instrucciones Personalizadas
+            </CardTitle>
+            <CardDescription>
+              Indicaciones adicionales para que el agente se adapte a tu clínica
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="space-y-3">
+            <textarea
+              value={agentInstrucciones}
+              onChange={(e) => setAgentInstrucciones(e.target.value)}
+              placeholder={"Ej: Siempre preguntá si el paciente tiene obra social.\nNo agendes turnos los feriados.\nSi preguntan por ortodoncia, derivá al Dr. Pérez."}
+              rows={5}
+              className="w-full rounded-lg border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y min-h-[100px]"
+            />
+            <p className="text-xs text-muted-foreground">
+              Estas instrucciones se agregan al contexto del agente. Usá lenguaje natural para indicar reglas específicas de tu clínica, preferencias de atención, o información adicional.
+            </p>
+          </CardContent>
+        </Card>
+      )}
+
       {/* Funcionalidades del Agente */}
       <Card>
         <CardHeader>
@@ -1945,8 +2080,6 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
             <p className="text-xs text-green-700 dark:text-green-300">
               La conexión de WhatsApp y la configuración técnica del agente son administradas por el equipo de Avax Health.
               Si necesitás conectar o cambiar tu número de WhatsApp, contactá al equipo de soporte.
-
-              Disfruta de la experiencia Avax Health!
             </p>
           </div>
         </div>

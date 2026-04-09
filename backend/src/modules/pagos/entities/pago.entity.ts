@@ -5,8 +5,8 @@ import { Turno } from '../../turnos/entities/turno.entity';
 
 @Entity('pagos')
 export class Pago extends BaseEntity {
-  @Column({ name: 'turno_id', type: 'uuid' })
-  turno_id: string;
+  @Column({ name: 'turno_id', type: 'uuid', nullable: true })
+  turno_id: string | null;
 
   @Column({ type: 'numeric', precision: 10, scale: 2, nullable: true })
   total: number;

@@ -1,6 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
-import { Repository, Between, In } from 'typeorm';
+import { Repository, Between, In, DataSource } from 'typeorm';
 import { Clinica } from '../clinicas/entities/clinica.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { Plan } from '../plans/entities/plan.entity';
@@ -24,6 +24,7 @@ export class AdminService {
     private readonly pacienteRepo: Repository<Paciente>,
     @InjectRepository(Turno)
     private readonly turnoRepo: Repository<Turno>,
+    private readonly dataSource: DataSource,
   ) {}
 
   // ─── Clínicas ────────────────────────────────────────
@@ -148,13 +149,55 @@ export class AdminService {
     return this.clinicaRepo.save(clinica);
   }
 
-  async softDeleteClinica(id: string) {
+  async deleteClinica(id: string) {
     const clinica = await this.clinicaRepo.findOne({ where: { id } });
     if (!clinica) {
       throw new NotFoundException('Clínica no encontrada');
     }
-    clinica.is_active = false;
-    return this.clinicaRepo.save(clinica);
+
+    const qr = this.dataSource.createQueryRunner();
+    await qr.connect();
+    await qr.startTransaction();
+
+    try {
+      // 1. Desvincular pagos de los turnos (SET NULL) para preservarlos
+      await qr.query(
+        `UPDATE pagos SET turno_id = NULL WHERE turno_id IN (SELECT id FROM turnos WHERE clinica_id = $1)`,
+        [id],
+      );
+
+      // 2. Eliminar entidades hoja (sin dependencias propias)
+      await qr.query(`DELETE FROM historial_medico WHERE turno_id IN (SELECT id FROM turnos WHERE clinica_id = $1)`, [id]);
+      await qr.query(`DELETE FROM historial_medico WHERE paciente_id IN (SELECT id FROM pacientes WHERE clinica_id = $1)`, [id]);
+      await qr.query(`DELETE FROM notificaciones WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM chat_messages WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM tickets WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM horarios_profesional WHERE clinica_id = $1`, [id]);
+
+      // 3. Eliminar entidades intermedias
+      await qr.query(`DELETE FROM turnos WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM pacientes WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM inventario WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM proveedores WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM tratamientos WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM categorias WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM sucursales WHERE clinica_padre_id = $1`, [id]);
+
+      // 4. Eliminar usuarios y suscripciones
+      await qr.query(`DELETE FROM users WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM subscriptions WHERE clinica_id = $1`, [id]);
+
+      // 5. Eliminar la clínica
+      await qr.query(`DELETE FROM clinicas WHERE id = $1`, [id]);
+
+      await qr.commitTransaction();
+      return { deleted: true, clinica: clinica.nombre };
+    } catch (error) {
+      await qr.rollbackTransaction();
+      throw error;
+    } finally {
+      await qr.release();
+    }
   }
 
   // ─── Dashboard KPIs ─────────────────────────────────
@@ -180,7 +223,7 @@ export class AdminService {
       planes,
     ] = await Promise.all([
       this.clinicaRepo.count(),
-      this.clinicaRepo.count({ where: { is_active: true } }),
+      this.clinicaRepo.count({ where: { is_active: true, estado_aprobacion: 'aprobado' } }),
       this.clinicaRepo.count({ where: { is_active: false } }),
       this.clinicaRepo
         .createQueryBuilder('c')

@@ -7,6 +7,12 @@ import { workflow, node, trigger, sticky, placeholder, newCredential, ifElse, sw
 //  de Avax Health para gestionar turnos y pacientes.
 // ════════════════════════════════════════════════════════════════
 
+// ──── CONFIGURACION ────
+// URL base de la API Avax Health (cambiar en produccion)
+const API = 'https://api.avaxhealth.com/api';
+// URL base de Evolution API (cambiar segun tu instancia)
+const EVO = 'https://evo.avaxhealth.com';
+
 // ──────────────────────────────────────────────────
 //  1. TRIGGER — Webhook de Evolution API
 // ──────────────────────────────────────────────────
@@ -17,7 +23,7 @@ const webhookEvolution = trigger({
     name: 'Webhook Evolution API',
     parameters: {
       httpMethod: 'POST',
-      path: '18af0a77-f363-4fbc-a680-4b03b7371a50',
+      path: '1ba8d255-5fe4-4352-9cd2-36bf565db238',
       responseMode: 'onReceived',
       options: {}
     },
@@ -58,6 +64,7 @@ const extraerDatos = node({
 
 // ──────────────────────────────────────────────────
 //  3. IDENTIFICAR CLINICA por instancia Evolution
+//  GET /api/agent/clinica/by-instance/:instanceName
 // ──────────────────────────────────────────────────
 const buscarClinica = node({
   type: 'n8n-nodes-base.httpRequest',
@@ -66,7 +73,7 @@ const buscarClinica = node({
     name: 'Buscar Clinica por Instancia',
     parameters: {
       method: 'GET',
-      url: expr('{{ $json.instance_name }}'),
+      url: expr(`{{ "${API}/agent/clinica/by-instance/" + $json.instance_name }}`),
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       options: {}
@@ -310,6 +317,7 @@ const combinarMensajes = node({
 
 // ──────────────────────────────────────────────────
 // 11. OBTENER INFO CLINICA (contexto para el agente)
+//  GET /api/agent/clinica/:clinicaId/info
 // ──────────────────────────────────────────────────
 const obtenerInfoClinica = node({
   type: 'n8n-nodes-base.httpRequest',
@@ -318,7 +326,7 @@ const obtenerInfoClinica = node({
     name: 'Obtener Info Clinica',
     parameters: {
       method: 'GET',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.clinicaId }}'),
+      url: expr(`{{ "${API}/agent/clinica/" + $("Buscar Clinica por Instancia").item.json.clinicaId + "/info" }}`),
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       options: {}
@@ -374,6 +382,7 @@ const toolPensar = tool({
   }
 });
 
+// GET /api/agent/pacientes/by-phone/:phone?clinicaId=xxx
 const toolBuscarPacienteTel = tool({
   type: 'n8n-nodes-base.httpRequestTool',
   version: 4.4,
@@ -381,7 +390,7 @@ const toolBuscarPacienteTel = tool({
     name: 'Buscar Paciente por Telefono',
     parameters: {
       method: 'GET',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.clinicaId }}'),
+      url: expr(`{{ "${API}/agent/pacientes/by-phone/" + $("Extraer Datos WhatsApp").item.json.sender_phone }}`),
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       sendQuery: true,
@@ -398,6 +407,7 @@ const toolBuscarPacienteTel = tool({
   }
 });
 
+// GET /api/agent/pacientes/by-dni/:dni?clinicaId=xxx
 const toolBuscarPacienteDni = tool({
   type: 'n8n-nodes-base.httpRequestTool',
   version: 4.4,
@@ -405,7 +415,7 @@ const toolBuscarPacienteDni = tool({
     name: 'Buscar Paciente por DNI',
     parameters: {
       method: 'GET',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.clinicaId }}'),
+      url: expr(`{{ "${API}/agent/pacientes/by-dni/" + $fromAI("dni", "DNI del paciente a buscar", "string") }}`),
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       sendQuery: true,
@@ -422,6 +432,7 @@ const toolBuscarPacienteDni = tool({
   }
 });
 
+// POST /api/agent/pacientes
 const toolRegistrarPaciente = tool({
   type: 'n8n-nodes-base.httpRequestTool',
   version: 4.4,
@@ -429,7 +440,7 @@ const toolRegistrarPaciente = tool({
     name: 'Registrar Paciente',
     parameters: {
       method: 'POST',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.clinicaId }}'),
+      url: `${API}/agent/pacientes`,
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       sendBody: true,
@@ -443,6 +454,7 @@ const toolRegistrarPaciente = tool({
   }
 });
 
+// GET /api/agent/turnos/disponibles?clinicaId=xxx&dias=3&profesionalId=xxx
 const toolTurnosDisponibles = tool({
   type: 'n8n-nodes-base.httpRequestTool',
   version: 4.4,
@@ -450,7 +462,7 @@ const toolTurnosDisponibles = tool({
     name: 'Consultar Turnos Disponibles',
     parameters: {
       method: 'GET',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.clinicaId }}'),
+      url: `${API}/agent/turnos/disponibles`,
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       sendQuery: true,
@@ -468,6 +480,7 @@ const toolTurnosDisponibles = tool({
   }
 });
 
+// GET /api/agent/turnos/verificar/:pacienteId?clinicaId=xxx
 const toolVerificarTurno = tool({
   type: 'n8n-nodes-base.httpRequestTool',
   version: 4.4,
@@ -475,7 +488,7 @@ const toolVerificarTurno = tool({
     name: 'Verificar Turno Existente',
     parameters: {
       method: 'GET',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.clinicaId }}'),
+      url: expr(`{{ "${API}/agent/turnos/verificar/" + $fromAI("paciente_id", "UUID del paciente a verificar", "string") }}`),
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       sendQuery: true,
@@ -492,6 +505,7 @@ const toolVerificarTurno = tool({
   }
 });
 
+// POST /api/agent/turnos
 const toolCrearTurno = tool({
   type: 'n8n-nodes-base.httpRequestTool',
   version: 4.4,
@@ -499,7 +513,7 @@ const toolCrearTurno = tool({
     name: 'Crear Turno',
     parameters: {
       method: 'POST',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.clinicaId }}'),
+      url: `${API}/agent/turnos`,
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       sendBody: true,
@@ -513,6 +527,7 @@ const toolCrearTurno = tool({
   }
 });
 
+// PATCH /api/agent/turnos/:turnoId/estado
 const toolModificarEstado = tool({
   type: 'n8n-nodes-base.httpRequestTool',
   version: 4.4,
@@ -520,13 +535,13 @@ const toolModificarEstado = tool({
     name: 'Modificar Estado Turno',
     parameters: {
       method: 'PATCH',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.clinicaId }}'),
+      url: expr(`{{ "${API}/agent/turnos/" + $fromAI("turno_id", "UUID del turno a modificar", "string") + "/estado" }}`),
       authentication: 'genericCredentialType',
       genericAuthType: 'httpHeaderAuth',
       sendBody: true,
       contentType: 'json',
       specifyBody: 'json',
-      jsonBody: expr('{{ JSON.stringify({ clinicaId: $("Buscar Clinica por Instancia").item.json.clinicaId, estado: $fromAI("estado", "Nuevo estado del turno: confirmado o cancelado", "string") }) }}'),
+      jsonBody: expr('{{ JSON.stringify({ clinicaId: $("Buscar Clinica por Instancia").item.json.clinicaId, estado: $fromAI("estado", "Nuevo estado del turno: CONFIRMADO o CANCELADO", "string") }) }}'),
       options: {}
     },
     credentials: { httpHeaderAuth: newCredential('Avax Health API Key') },
@@ -553,7 +568,7 @@ const agenteZoe = node({
           '\\nTelefono clinica: {{ $("Obtener Info Clinica").item.json.cel }}' +
           '\\nDuracion turno default: {{ $("Obtener Info Clinica").item.json.duracion_turno_default }} minutos' +
           '\\n\\nProfesionales disponibles:' +
-          '\\n{{ $("Obtener Info Clinica").item.json.profesionales.map(p => "- " + p.nombre + " (" + p.role + ")").join("\\n") }}' +
+          '\\n{{ $("Obtener Info Clinica").item.json.profesionales.map(p => "- " + p.nombre + " (ID: " + p.id + ")").join("\\n") }}' +
           '\\n\\nTratamientos disponibles:' +
           '\\n{{ $("Obtener Info Clinica").item.json.tratamientos.map(t => "- " + t.nombre + (t.precio ? " ($" + t.precio + ")" : "") + (t.duracion_min ? " " + t.duracion_min + "min" : "")).join("\\n") }}' +
           '\\n\\nHorarios de la clinica:' +
@@ -561,16 +576,18 @@ const agenteZoe = node({
           '\\n\\n--- INSTRUCCIONES ---' +
           '\\n1. BIENVENIDA: Saluda segun la hora (Buenos dias/tardes/noches). Presentate con tu nombre y el de la clinica.' +
           '\\n2. DETECTAR INTENCION: Usa Pensar para interpretar si el paciente quiere: agendar turno, cancelar, consultar info, u otra cosa.' +
-          '\\n3. IDENTIFICAR PACIENTE: Busca primero por telefono con el numero {{ $("Extraer Datos WhatsApp").item.json.sender_phone }}. Si no existe, pedi el DNI. Si no esta registrado, ofrece registrarlo.' +
-          '\\n4. TURNOS: Usa Consultar Turnos Disponibles para mostrar horarios libres.' +
-          '\\n5. VERIFICAR: Antes de agendar, verifica que no tenga un turno activo.' +
-          '\\n6. CREAR: Cuando tengas todos los datos, crea el turno.' +
-          '\\n7. CANCELAR/CONFIRMAR: Usa Modificar Estado Turno para cambiar estados.' +
+          '\\n3. IDENTIFICAR PACIENTE: Busca primero por telefono con el numero {{ $("Extraer Datos WhatsApp").item.json.sender_phone }}. Si no existe, pedi el DNI y busca por DNI. Si no esta registrado, ofrece registrarlo pidiendo nombre, apellido y DNI.' +
+          '\\n4. TURNOS: Usa Consultar Turnos Disponibles para mostrar horarios libres. Muestra las opciones de forma clara.' +
+          '\\n5. VERIFICAR: Antes de agendar, verifica con Verificar Turno Existente que no tenga un turno activo.' +
+          '\\n6. CREAR: Cuando tengas paciente_id, user_id (profesional), start_time y end_time, crea el turno. Calcula end_time sumando la duracion del turno al start_time.' +
+          '\\n7. CANCELAR/CONFIRMAR: Usa Modificar Estado Turno con el turno_id y estado CONFIRMADO o CANCELADO.' +
           '\\n\\n--- REGLAS ---' +
           '\\n- Siempre usa Pensar antes de decisiones complejas' +
           '\\n- No agendes sin registro previo del paciente' +
           '\\n- No des info personal sin validar identidad' +
           '\\n- No respondas fuera del contexto de la clinica' +
+          '\\n- Usa el ID del profesional (user_id) al crear turnos, no el nombre' +
+          '\\n- Los estados de turno son: PENDIENTE, CONFIRMADO, CANCELADO (en mayusculas)' +
           '\\n- Estilo: calido, profesional, WhatsApp. Emojis con criterio' +
           '\\n- Si algo falla, responde amablemente y ofrece reintentar' +
           '\\n\\nInstrucciones adicionales de la clinica:' +
@@ -591,6 +608,7 @@ const agenteZoe = node({
 
 // ──────────────────────────────────────────────────
 // 13. CALCULAR DELAY + ENVIAR RESPUESTA WhatsApp
+//  POST {EVO}/message/sendText/{instance_name}
 // ──────────────────────────────────────────────────
 const calcularDelay = node({
   type: 'n8n-nodes-base.set',
@@ -619,7 +637,7 @@ const enviarRespuesta = node({
     name: 'Enviar Respuesta WhatsApp',
     parameters: {
       method: 'POST',
-      url: expr('{{ $("Buscar Clinica por Instancia").item.json.evolution_instance }}'),
+      url: expr(`{{ "${EVO}/message/sendText/" + $("Buscar Clinica por Instancia").item.json.evolution_instance }}`),
       sendHeaders: true,
       specifyHeaders: 'keypair',
       headerParameters: {
@@ -648,17 +666,17 @@ const enviarRespuesta = node({
 // ──────────────────────────────────────────────────
 // STICKY NOTES
 // ──────────────────────────────────────────────────
-const stickyConfig = sticky('## CONFIGURAR URLs\nEdita el nodo "Buscar Clinica por Instancia" y "Obtener Info Clinica" con la URL base de tu API.\nEdita "Enviar Respuesta WhatsApp" con la URL de Evolution API.\nConfigura las credenciales: Avax Health API Key, OpenAI, Redis, PostgreSQL, Evolution API Key.', [webhookEvolution], { color: 6 });
+const stickyConfig = sticky(`## CONFIGURAR\n1. Cambiar API (linea 12) a tu URL base de Avax Health\n2. Cambiar EVO (linea 14) a tu URL base de Evolution API\n3. Configurar credenciales:\n   - "Avax Health API Key": Header Auth con x-api-key\n   - "OpenAI API Key": Header Auth con Authorization: Bearer\n   - "OpenAI": Credencial nativa de OpenAI\n   - "Redis": Conexion a Redis\n   - "PostgreSQL": Conexion a PostgreSQL`, [webhookEvolution], { color: 6 });
 const stickyEntrada = sticky('## Entrada WhatsApp\nRecibe mensajes de Evolution API y extrae datos.', [extraerDatos], { color: 4 });
-const stickyClinica = sticky('## Multi-Tenant\nIdentifica la clinica por el nombre de instancia de Evolution API.', [buscarClinica], { color: 2 });
+const stickyClinica = sticky('## Multi-Tenant\nIdentifica la clinica por el nombre de instancia de Evolution API.\nGET /api/agent/clinica/by-instance/:name', [buscarClinica], { color: 2 });
 const stickyBuffer = sticky('## Debounce\nAgrupa mensajes rapidos (5s) del mismo usuario.\nSi llegan mas mensajes durante la espera, solo el ultimo los procesa.', [bufferMensaje, esperarDebounce, leerBuffer], { color: 3 });
-const stickyAgente = sticky('## Cerebro Agente Zoe IA\nAgente multi-tenant con GPT-4.1-mini.\nUsa la API de Avax Health para gestionar turnos y pacientes.\nMemoria de conversacion persistente en PostgreSQL.', [agenteZoe], { color: 5 });
-const stickyRespuesta = sticky('## Respuesta WhatsApp\nCalcula delay de escritura y envia respuesta via Evolution API.', [enviarRespuesta], { color: 4 });
+const stickyAgente = sticky('## Cerebro Agente Zoe IA\nAgente multi-tenant con GPT-4.1-mini.\nEndpoints: /api/agent/pacientes/* y /api/agent/turnos/*\nMemoria de conversacion persistente en PostgreSQL.', [agenteZoe], { color: 5 });
+const stickyRespuesta = sticky(`## Respuesta WhatsApp\nCalcula delay de escritura natural.\nEnvia via Evolution API: POST /message/sendText/{instance}`, [enviarRespuesta], { color: 4 });
 
 // ──────────────────────────────────────────────────
 // WORKFLOW COMPOSITION
 // ──────────────────────────────────────────────────
-export default workflow('Qcli5Ruwjk3pCTNA', 'Asistente Avax Health IA Virtual')
+export default workflow('d68rLn6WSlnfkvZo', 'Asistente Avax Health IA Virtual - Zoé')
   .add(webhookEvolution)
   .to(extraerDatos)
   .to(buscarClinica)

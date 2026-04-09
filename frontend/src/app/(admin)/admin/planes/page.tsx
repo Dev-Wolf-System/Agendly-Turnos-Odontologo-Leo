@@ -394,24 +394,28 @@ export default function AdminPlanesPage() {
                 {/* Top gradient bar */}
                 <div className="h-1 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)]" />
 
-                {/* Badges */}
-                <div className="absolute top-4 right-4 flex flex-wrap gap-1.5">
-                  {!plan.is_active && (
-                    <span className="rounded-lg bg-red-500/10 px-2.5 py-1 text-[10px] font-semibold text-red-500 uppercase tracking-wider">
+                {/* Corner Ribbon Badges */}
+                {!plan.is_active && (
+                  <div className="absolute top-0 left-0 z-10">
+                    <div className="bg-red-500 text-white text-[9px] font-bold uppercase tracking-wider px-8 py-1 -rotate-45 -translate-x-6 translate-y-3 shadow-sm">
                       Inactivo
-                    </span>
-                  )}
-                  {plan.is_highlighted && (
-                    <span className="rounded-lg bg-amber-500/10 px-2.5 py-1 text-[10px] font-semibold text-amber-600 uppercase tracking-wider">
+                    </div>
+                  </div>
+                )}
+                {plan.is_highlighted && (
+                  <div className="absolute -top-1 -right-1 z-10 overflow-hidden w-24 h-24 pointer-events-none">
+                    <div className="absolute top-[12px] right-[-28px] w-[120px] bg-gradient-to-r from-amber-500 to-orange-500 text-white text-[9px] font-bold uppercase tracking-wider text-center py-1 rotate-45 shadow-md shadow-amber-500/30">
                       Destacado
-                    </span>
-                  )}
-                  {plan.is_default_trial && (
-                    <span className="rounded-lg bg-emerald-500/10 px-2.5 py-1 text-[10px] font-semibold text-emerald-600 uppercase tracking-wider">
+                    </div>
+                  </div>
+                )}
+                {plan.is_default_trial && (
+                  <div className="absolute -top-1 -right-1 z-10 overflow-hidden w-24 h-24 pointer-events-none">
+                    <div className={`absolute top-[12px] right-[-28px] w-[120px] bg-gradient-to-r from-emerald-500 to-teal-500 text-white text-[9px] font-bold uppercase tracking-wider text-center py-1 rotate-45 shadow-md shadow-emerald-500/30 ${plan.is_highlighted ? "top-[28px]" : ""}`}>
                       Trial
-                    </span>
-                  )}
-                </div>
+                    </div>
+                  </div>
+                )}
 
                 <div className="p-5 pt-4">
                   <div className="flex items-center gap-2">
