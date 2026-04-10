@@ -16,11 +16,11 @@ services:
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
-      - FRONTEND_URL=https://avax.${DOMAIN_NAME}
+      - FRONTEND_URL=https://${DOMAIN_NAME}
       - AGENT_API_KEY=${AGENT_API_KEY}
     labels:
       - traefik.enable=true
-      - traefik.http.routers.avax-api.rule=Host(`api-avax.${DOMAIN_NAME}`)
+      - traefik.http.routers.avax-api.rule=Host(`api.${DOMAIN_NAME}`)
       - traefik.http.routers.avax-api.tls=true
       - traefik.http.routers.avax-api.entrypoints=web,websecure
       - traefik.http.routers.avax-api.tls.certresolver=mytlschallenge
@@ -31,7 +31,7 @@ services:
       - traefik.http.middlewares.avax-api-headers.headers.contentTypeNosniff=true
       - traefik.http.middlewares.avax-api-cors.headers.accesscontrolallowmethods=GET,OPTIONS,PUT,POST,DELETE,PATCH
       - traefik.http.middlewares.avax-api-cors.headers.accesscontrolallowheaders=Content-Type,Authorization
-      - traefik.http.middlewares.avax-api-cors.headers.accesscontrolalloworiginlist=https://avax.${DOMAIN_NAME}
+      - traefik.http.middlewares.avax-api-cors.headers.accesscontrolalloworiginlist=https://${DOMAIN_NAME}
       - traefik.http.middlewares.avax-api-cors.headers.accesscontrolmaxage=100
       - traefik.http.routers.avax-api.middlewares=avax-api-headers@docker,avax-api-cors@docker
     networks:
@@ -42,14 +42,14 @@ services:
       context: ./frontend
       dockerfile: Dockerfile
       args:
-        - NEXT_PUBLIC_API_URL=https://api-avax.${DOMAIN_NAME}/api
+        - NEXT_PUBLIC_API_URL=https://api.${DOMAIN_NAME}/api
     container_name: avax-frontend
     restart: always
     environment:
       - NODE_ENV=production
     labels:
       - traefik.enable=true
-      - traefik.http.routers.avax-web.rule=Host(`avax.${DOMAIN_NAME}`)
+      - traefik.http.routers.avax-web.rule=Host(`${DOMAIN_NAME}`) || Host(`www.${DOMAIN_NAME}`)
       - traefik.http.routers.avax-web.tls=true
       - traefik.http.routers.avax-web.entrypoints=web,websecure
       - traefik.http.routers.avax-web.tls.certresolver=mytlschallenge
