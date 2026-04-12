@@ -1,6 +1,6 @@
 # Hoja de Ruta — Reestilizado y Mejoras UI/UX
 
-> Última actualización: 2026-04-07
+> Última actualización: 2026-04-12
 
 ## Fixes aplicados
 - [x] Select de Paciente y Odontólogo en Nuevo Turno mostraba UUID en vez del nombre — corregido con display manual
@@ -483,6 +483,49 @@
 
 ---
 
+## Fase Q: Workflow n8n Zoé + Fixes Admin ✅ COMPLETADA
+
+### Workflow n8n Zoé
+- [x] Workflow n8n funcional para agente Zoé (WhatsApp IA)
+- [x] Widget Zoé en frontend
+- [x] Configuración WhatsApp en panel clínica y admin
+- [x] URLs corregidas a endpoints reales de producción
+
+### Fixes Admin
+- [x] Fix eliminación de clínicas (cascade sin pagos)
+- [x] Fix KPIs admin — trials pendientes no contaban como activas
+- [x] Diseño cinta/ribbon para badges trial y destacado en planes
+
+---
+
+## Fase R: Simplificación + Dominio Producción ✅ COMPLETADA
+
+### Simplificación estados de suscripción (7 → 4)
+- [x] Enum reducido: `activa`, `inactiva`, `cancelada`, `vencida`
+- [x] Trial se detecta por `trial_ends_at` (no por estado separado)
+- [x] `past_due` y `gracia` eliminados (absorbidos por activa/vencida)
+- [x] `suspendida` → `inactiva`
+- [x] Subscription guard simplificado (4 casos en vez de 7)
+- [x] Feature flag service y plan limit guard actualizados
+- [x] Admin KPIs: trials calculados por `trial_ends_at` en vez de estado
+- [x] Frontend: tipos, colores, labels, filtros actualizados en todas las páginas
+- [x] Script SQL de migración para datos existentes (`scripts/migrate-subscription-states.sql`)
+
+### Config WhatsApp solo en admin
+- [x] Campos `evolution_instance` y `evolution_api_key` removidos del DTO de clínica
+- [x] Tab WhatsApp en config clínica: solo toggle agente, nombre e instrucciones
+- [x] Card "Estado WhatsApp" muestra si está conectado (sin exponer credenciales)
+- [x] Admin mantiene acceso completo a credenciales Evolution API
+
+### Dominio avaxhealth.com
+- [x] `.env.production` con `DOMAIN_NAME=avaxhealth.com`
+- [x] Frontend `.env.production` con API URL de producción
+- [x] Docker compose: routers Traefik para dominio + redirect www → sin www (301)
+- [x] Metadata OpenGraph y `metadataBase` configurados
+- [x] Landing page actualizada
+
+---
+
 ## Pendientes Planificados
 
 ### Horarios por Profesional
@@ -525,3 +568,5 @@
 | **N** | Fixes de Producción (móvil, logo, filtro profesional, soporte global) | ✅ Completada |
 | **O** | Planes Dinámicos + Registro Premium + Auto-Trial | ✅ Completada |
 | **P** | Bugs Admin + Flujo Trial + Rediseño UI HEALTH_TRUST | ✅ Completada |
+| **Q** | Workflow n8n Zoé + Fixes Admin | ✅ Completada |
+| **R** | Simplificación suscripciones + Dominio avaxhealth.com | ✅ Completada |
