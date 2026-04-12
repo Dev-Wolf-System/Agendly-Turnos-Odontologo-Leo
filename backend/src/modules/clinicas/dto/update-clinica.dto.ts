@@ -63,14 +63,6 @@ export class UpdateClinicaDto {
 
   @IsOptional()
   @IsString()
-  evolution_instance?: string;
-
-  @IsOptional()
-  @IsString()
-  evolution_api_key?: string;
-
-  @IsOptional()
-  @IsString()
   agent_nombre?: string;
 
   @IsOptional()

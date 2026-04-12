@@ -49,26 +49,9 @@ export class ClinicasController {
 
     switch (estado) {
       case EstadoSubscription.ACTIVA:
-      case EstadoSubscription.TRIAL:
         return { ...base, level: 'full' };
 
-      case EstadoSubscription.PAST_DUE:
-        return {
-          ...base,
-          level: 'full',
-          severity: 'warning',
-          mensaje: 'Tu pago está pendiente. Por favor, actualizá tu método de pago para evitar interrupciones.',
-        };
-
-      case EstadoSubscription.GRACIA:
-        return {
-          ...base,
-          level: 'read_only',
-          severity: 'error',
-          mensaje: 'Tu cuenta está en período de gracia. No se pueden crear nuevos registros hasta que regularices tu pago.',
-        };
-
-      case EstadoSubscription.SUSPENDIDA:
+      case EstadoSubscription.INACTIVA:
         return {
           ...base,
           level: 'read_only',

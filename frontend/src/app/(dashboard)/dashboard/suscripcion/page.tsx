@@ -74,27 +74,12 @@ const estadoSubColors: Record<
   EstadoSubscription,
   { badge: string; dot: string }
 > = {
-  trial: {
-    badge:
-      "bg-blue-100 text-blue-700 dark:bg-blue-900/30 dark:text-blue-400",
-    dot: "bg-blue-500",
-  },
   activa: {
     badge:
       "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
     dot: "bg-emerald-500",
   },
-  past_due: {
-    badge:
-      "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
-    dot: "bg-orange-500",
-  },
-  gracia: {
-    badge:
-      "bg-yellow-100 text-yellow-700 dark:bg-yellow-900/30 dark:text-yellow-400",
-    dot: "bg-yellow-500",
-  },
-  suspendida: {
+  inactiva: {
     badge:
       "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
     dot: "bg-red-500",
@@ -106,17 +91,14 @@ const estadoSubColors: Record<
   },
   vencida: {
     badge:
-      "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-    dot: "bg-red-500",
+      "bg-orange-100 text-orange-700 dark:bg-orange-900/30 dark:text-orange-400",
+    dot: "bg-orange-500",
   },
 };
 
 const estadoSubLabels: Record<EstadoSubscription, string> = {
-  trial: "Prueba gratuita",
   activa: "Activa",
-  past_due: "Pago pendiente",
-  gracia: "Periodo de gracia",
-  suspendida: "Suspendida",
+  inactiva: "Inactiva",
   cancelada: "Cancelada",
   vencida: "Vencida",
 };
@@ -353,22 +335,23 @@ function SuscripcionContent() {
   };
 
   // ─── KPI derived values ───
-  const estado = sub?.estado ?? "trial";
+  const estado = sub?.estado ?? "activa";
   const planName = sub?.plan?.nombre ?? "Sin plan";
   const precioMensual = sub?.plan?.precio_mensual ?? 0;
+  const isTrial = !!sub?.trial_ends_at && new Date(sub.trial_ends_at) >= new Date();
   const remaining = sub
     ? daysRemaining(
-        estado === "trial" ? sub.trial_ends_at : sub.fecha_fin
+        isTrial ? sub.trial_ends_at : sub.fecha_fin
       )
     : 0;
   const nextPayment =
-    sub && estado !== "trial" && estado !== "cancelada"
+    sub && !isTrial && estado !== "cancelada"
       ? sub.fecha_fin
       : null;
   const totalDays = sub
     ? daysBetween(
         sub.fecha_inicio,
-        estado === "trial" && sub.trial_ends_at
+        isTrial && sub.trial_ends_at
           ? sub.trial_ends_at
           : sub.fecha_fin
       )

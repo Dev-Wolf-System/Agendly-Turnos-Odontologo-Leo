@@ -38,9 +38,6 @@ export class FeatureFlagService {
 
     const estadosActivos = [
       EstadoSubscription.ACTIVA,
-      EstadoSubscription.TRIAL,
-      EstadoSubscription.PAST_DUE,
-      EstadoSubscription.GRACIA,
     ];
 
     if (!estadosActivos.includes(subscription.estado)) {

@@ -11,21 +11,15 @@ import {
 import type { Subscription, AdminClinica, Plan, EstadoSubscription } from "@/types";
 
 const ESTADO_CONFIG: Record<string, { bg: string; text: string; dot: string; label: string; tooltip: string }> = {
-  trial: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", label: "Prueba", tooltip: "Período de prueba gratuito con acceso limitado al plan seleccionado" },
-  activa: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", label: "Activa", tooltip: "Suscripción activa con pagos al día" },
-  past_due: { bg: "bg-yellow-500/10", text: "text-yellow-600 dark:text-yellow-400", dot: "bg-yellow-500", label: "Pago Pendiente", tooltip: "El pago está vencido pero el servicio sigue activo temporalmente" },
-  gracia: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500", label: "En Gracia", tooltip: "Período de gracia después del trial — acceso limitado hasta activar un plan pago" },
-  suspendida: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", dot: "bg-red-500", label: "Suspendida", tooltip: "Acceso denegado por falta de pago. Se requiere regularizar para continuar" },
-  cancelada: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Cancelada", tooltip: "La suscripción fue cancelada por el cliente o el administrador" },
-  vencida: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500", label: "Vencida", tooltip: "El período de suscripción expiró. Se debe renovar para continuar" },
+  activa: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", label: "Activa", tooltip: "Suscripción activa con acceso completo" },
+  inactiva: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", dot: "bg-red-500", label: "Inactiva", tooltip: "Suscripción suspendida por el administrador — acceso solo lectura" },
+  cancelada: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Cancelada", tooltip: "La suscripción fue cancelada — sin acceso" },
+  vencida: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500", label: "Vencida", tooltip: "El período de suscripción expiró — acceso solo lectura" },
 };
 
 const ESTADO_OPTIONS: EstadoSubscription[] = [
-  "trial",
   "activa",
-  "past_due",
-  "gracia",
-  "suspendida",
+  "inactiva",
   "cancelada",
   "vencida",
 ];
@@ -41,7 +35,7 @@ export default function AdminSuscripcionesPage() {
   const [form, setForm] = useState({
     clinica_id: "",
     plan_id: "",
-    estado: "trial" as EstadoSubscription,
+    estado: "activa" as EstadoSubscription,
     fecha_inicio: new Date().toISOString().split("T")[0],
     fecha_fin: "",
     trial_ends_at: "",

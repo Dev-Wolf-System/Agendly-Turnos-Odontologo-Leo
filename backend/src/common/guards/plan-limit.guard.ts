@@ -54,8 +54,6 @@ export class PlanLimitGuard implements CanActivate {
 
     const estadosActivos = [
       EstadoSubscription.ACTIVA,
-      EstadoSubscription.TRIAL,
-      EstadoSubscription.PAST_DUE,
     ];
     if (!estadosActivos.includes(subscription.estado)) return true;
 

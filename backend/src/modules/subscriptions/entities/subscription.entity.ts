@@ -18,7 +18,7 @@ export class Subscription extends BaseEntity {
   @Column({ name: 'plan_id', type: 'uuid' })
   plan_id: string;
 
-  @Column({ type: 'text', default: EstadoSubscription.TRIAL })
+  @Column({ type: 'text', default: EstadoSubscription.ACTIVA })
   estado: EstadoSubscription;
 
   @Column({ type: 'date' })

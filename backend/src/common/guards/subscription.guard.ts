@@ -21,15 +21,12 @@ export const IS_WRITE_OPERATION = 'isWriteOperation';
 /**
  * Niveles de acceso según estado de suscripción:
  *
- * | Estado       | Lectura | Escritura | Login |
- * |-------------|---------|-----------|-------|
- * | activa      | ✅      | ✅        | ✅    |
- * | trial       | ✅      | ✅        | ✅    |
- * | past_due    | ✅      | ✅        | ✅    | (+ banner amarillo)
- * | gracia      | ✅      | ❌        | ✅    | (+ banner naranja)
- * | suspendida  | ✅      | ❌        | ✅    | (+ banner rojo, solo read-only)
- * | vencida     | ✅      | ❌        | ✅    | (igual que suspendida)
- * | cancelada   | ❌      | ❌        | ❌    | (solo exportar datos 30 días)
+ * | Estado     | Lectura | Escritura | Login |
+ * |-----------|---------|-----------|-------|
+ * | activa    | ✅      | ✅        | ✅    |
+ * | inactiva  | ✅      | ❌        | ✅    | (read-only, suspendida por admin)
+ * | vencida   | ✅      | ❌        | ✅    | (expiró, debe renovar)
+ * | cancelada | ❌      | ❌        | ❌    | (solo exportar datos 30 días)
  */
 @Injectable()
 export class SubscriptionGuard implements CanActivate {
@@ -76,9 +73,9 @@ export class SubscriptionGuard implements CanActivate {
       return true;
     }
 
-    // Verificar si el trial expiró
+    // Verificar si el trial expiró (suscripción activa con trial_ends_at en el pasado)
     if (
-      subscription.estado === EstadoSubscription.TRIAL &&
+      subscription.estado === EstadoSubscription.ACTIVA &&
       subscription.trial_ends_at &&
       new Date(subscription.trial_ends_at) < new Date()
     ) {
@@ -96,49 +93,31 @@ export class SubscriptionGuard implements CanActivate {
 
     switch (estado) {
       case EstadoSubscription.ACTIVA:
-      case EstadoSubscription.TRIAL:
         request.subscriptionStatus = { level: 'full', estado };
         return true;
 
-      case EstadoSubscription.PAST_DUE:
-        // Acceso completo pero con aviso
-        request.subscriptionStatus = {
-          level: 'full',
-          estado,
-          mensaje: 'Tu pago está pendiente. Por favor, actualizá tu método de pago.',
-        };
-        return true;
-
-      case EstadoSubscription.GRACIA:
-        // Solo lectura — bloquear escrituras
+      case EstadoSubscription.INACTIVA:
         request.subscriptionStatus = {
           level: 'read_only',
           estado,
-          mensaje: 'Tu cuenta está en período de gracia. No se pueden crear nuevos registros hasta que regularices tu pago.',
-          grace_ends_at: subscription.grace_period_ends_at,
+          mensaje: 'Tu suscripción está suspendida. Contactá al equipo de Avax Health para reactivarla.',
         };
         if (isWriteOp) {
           throw new ForbiddenException(
-            'Tu cuenta está en período de gracia. No se pueden crear nuevos registros. Regularizá tu pago para restaurar el acceso completo.',
+            'Tu suscripción está suspendida. No se permiten modificaciones. Contactá al equipo de Avax Health.',
           );
         }
         return true;
 
-      case EstadoSubscription.SUSPENDIDA:
       case EstadoSubscription.VENCIDA:
-        // Solo lectura — dashboard read-only
         request.subscriptionStatus = {
           level: 'read_only',
           estado,
-          mensaje: estado === EstadoSubscription.SUSPENDIDA
-            ? 'Tu suscripción está suspendida. Contactá al equipo de Avax Health para reactivarla.'
-            : 'Tu suscripción ha vencido. Renová tu plan para continuar usando Avax Health.',
+          mensaje: 'Tu suscripción ha vencido. Renová tu plan para continuar usando Avax Health.',
         };
         if (isWriteOp) {
           throw new ForbiddenException(
-            estado === EstadoSubscription.SUSPENDIDA
-              ? 'Tu suscripción está suspendida. No se permiten modificaciones. Contactá al equipo de Avax Health.'
-              : 'Tu suscripción ha vencido. Renová tu plan para restaurar el acceso.',
+            'Tu suscripción ha vencido. Renová tu plan para restaurar el acceso.',
           );
         }
         return true;

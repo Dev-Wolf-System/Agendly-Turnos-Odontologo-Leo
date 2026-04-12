@@ -67,7 +67,7 @@ export class SubscriptionsService {
     return this.create({
       clinica_id: clinicaId,
       plan_id: planId,
-      estado: EstadoSubscription.TRIAL,
+      estado: EstadoSubscription.ACTIVA,
       fecha_inicio: now,
       fecha_fin: trialEnd,
       trial_ends_at: trialEnd,
@@ -105,8 +105,8 @@ export class SubscriptionsService {
       .createQueryBuilder()
       .update(Subscription)
       .set({ estado: EstadoSubscription.VENCIDA })
-      .where('estado IN (:...estados)', {
-        estados: [EstadoSubscription.ACTIVA, EstadoSubscription.TRIAL],
+      .where('estado = :estado', {
+        estado: EstadoSubscription.ACTIVA,
       })
       .andWhere('fecha_fin < :hoy', { hoy })
       .execute();

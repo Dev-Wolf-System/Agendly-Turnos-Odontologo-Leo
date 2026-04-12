@@ -24,11 +24,20 @@ const monoFont = JetBrains_Mono({
 });
 
 export const metadata: Metadata = {
+  metadataBase: new URL("https://avaxhealth.com"),
   title: "Avax Health - CRM SaaS para Clínicas Médicas",
   description: "Sistema integral de gestión para clínicas y consultorios médicos impulsado por IA",
   icons: {
     icon: "/logo.png",
     apple: "/logo.png",
+  },
+  openGraph: {
+    title: "Avax Health - CRM SaaS para Clínicas Médicas",
+    description: "Sistema integral de gestión para clínicas y consultorios médicos impulsado por IA",
+    url: "https://avaxhealth.com",
+    siteName: "Avax Health",
+    locale: "es_AR",
+    type: "website",
   },
 };
 

@@ -54,8 +54,6 @@ export interface UpdateClinicaPayload {
   duracion_turno_default?: number;
   webhooks?: Record<string, WebhookConfig>;
   recordatorio_horas_antes?: number;
-  evolution_instance?: string;
-  evolution_api_key?: string;
   agent_nombre?: string;
   agent_instrucciones?: string;
   kpi_visibility?: Record<string, Record<string, boolean>>;

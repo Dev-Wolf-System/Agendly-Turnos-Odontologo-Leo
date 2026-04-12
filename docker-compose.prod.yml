@@ -49,16 +49,26 @@ services:
       - NODE_ENV=production
     labels:
       - traefik.enable=true
-      - traefik.http.routers.avax-web.rule=Host(`${DOMAIN_NAME}`) || Host(`www.${DOMAIN_NAME}`)
+      - traefik.http.services.avax-web.loadbalancer.server.port=3000
+      # Router principal — solo dominio sin www
+      - traefik.http.routers.avax-web.rule=Host(`${DOMAIN_NAME}`)
       - traefik.http.routers.avax-web.tls=true
       - traefik.http.routers.avax-web.entrypoints=web,websecure
       - traefik.http.routers.avax-web.tls.certresolver=mytlschallenge
-      - traefik.http.services.avax-web.loadbalancer.server.port=3000
       - traefik.http.middlewares.avax-web-headers.headers.SSLRedirect=true
       - traefik.http.middlewares.avax-web-headers.headers.STSSeconds=315360000
       - traefik.http.middlewares.avax-web-headers.headers.browserXSSFilter=true
       - traefik.http.middlewares.avax-web-headers.headers.contentTypeNosniff=true
       - traefik.http.routers.avax-web.middlewares=avax-web-headers@docker
+      # Redirect www → sin www (301 permanente)
+      - traefik.http.routers.avax-www.rule=Host(`www.${DOMAIN_NAME}`)
+      - traefik.http.routers.avax-www.tls=true
+      - traefik.http.routers.avax-www.entrypoints=web,websecure
+      - traefik.http.routers.avax-www.tls.certresolver=mytlschallenge
+      - traefik.http.middlewares.avax-www-redirect.redirectregex.regex=^https?://www\.(.*)
+      - traefik.http.middlewares.avax-www-redirect.redirectregex.replacement=https://$${1}
+      - traefik.http.middlewares.avax-www-redirect.redirectregex.permanent=true
+      - traefik.http.routers.avax-www.middlewares=avax-www-redirect@docker
     networks:
       - n8n_evoapi
 

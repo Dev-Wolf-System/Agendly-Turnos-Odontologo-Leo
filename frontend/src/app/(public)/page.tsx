@@ -124,7 +124,7 @@ function DashboardMockup() {
           </div>
           <div className="flex-1 mx-8">
             <div className="mx-auto max-w-sm rounded-md bg-background/80 border border-border/30 px-3 py-1 text-xs text-muted-foreground text-center">
-              app.avaxhealth.com/dashboard
+              avaxhealth.com/dashboard
             </div>
           </div>
         </div>

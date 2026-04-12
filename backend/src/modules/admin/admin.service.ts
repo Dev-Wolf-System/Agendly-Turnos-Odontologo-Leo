@@ -234,12 +234,18 @@ export class AdminService {
       this.subscriptionRepo.count({
         where: { estado: EstadoSubscription.ACTIVA },
       }),
-      this.subscriptionRepo.count({
-        where: { estado: EstadoSubscription.TRIAL },
-      }),
+      // Trials = suscripciones activas con trial_ends_at futuro
       this.subscriptionRepo
         .createQueryBuilder('s')
-        .where('s.estado = :estado', { estado: EstadoSubscription.TRIAL })
+        .where('s.estado = :estado', { estado: EstadoSubscription.ACTIVA })
+        .andWhere('s.trial_ends_at IS NOT NULL')
+        .andWhere('s.trial_ends_at >= :hoy', { hoy: now })
+        .getCount(),
+      // Trials por vencer en 7 días
+      this.subscriptionRepo
+        .createQueryBuilder('s')
+        .where('s.estado = :estado', { estado: EstadoSubscription.ACTIVA })
+        .andWhere('s.trial_ends_at IS NOT NULL')
         .andWhere('s.trial_ends_at <= :fecha', { fecha: en7Dias })
         .andWhere('s.trial_ends_at >= :hoy', { hoy: now })
         .getCount(),
@@ -253,8 +259,8 @@ export class AdminService {
       .addSelect('p.nombre', 'plan_nombre')
       .addSelect('COUNT(s.id)', 'cantidad')
       .innerJoin('s.plan', 'p')
-      .where('s.estado IN (:...estados)', {
-        estados: [EstadoSubscription.ACTIVA, EstadoSubscription.TRIAL],
+      .where('s.estado = :estado', {
+        estado: EstadoSubscription.ACTIVA,
       })
       .groupBy('s.plan_id')
       .addGroupBy('p.nombre')
