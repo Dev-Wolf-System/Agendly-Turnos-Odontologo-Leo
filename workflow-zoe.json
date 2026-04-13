@@ -1,0 +1,813 @@
+{
+  "name": "Asistente Avax Health IA Virtual - Zoé",
+  "nodes": [
+    {
+      "parameters": {
+        "httpMethod": "POST",
+        "path": "1ba8d255-5fe4-4352-9cd2-36bf565db238",
+        "responseMode": "onReceived",
+        "options": {}
+      },
+      "id": "node-webhook",
+      "name": "Webhook Evolution API",
+      "type": "n8n-nodes-base.webhook",
+      "typeVersion": 2.1,
+      "position": [0, 0]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "a1", "name": "sender", "value": "={{ $json.body.data.key.remoteJid }}", "type": "string" },
+            { "id": "a2", "name": "sender_phone", "value": "={{ $json.body.data.key.remoteJid.split('@')[0] }}", "type": "string" },
+            { "id": "a3", "name": "message_type", "value": "={{ $json.body.data.messageType }}", "type": "string" },
+            { "id": "a4", "name": "text_message", "value": "={{ $json.body.data.message.conversation ?? '' }}", "type": "string" },
+            { "id": "a5", "name": "voice_base64", "value": "={{ $json.body.data.message.base64 ?? '' }}", "type": "string" },
+            { "id": "a6", "name": "sessionId", "value": "={{ $json.body.data.key.id }}", "type": "string" },
+            { "id": "a7", "name": "dataTime", "value": "={{ $json.body.data.messageTimestamp }}", "type": "string" },
+            { "id": "a8", "name": "instance_name", "value": "={{ $json.body.instance }}", "type": "string" },
+            { "id": "a9", "name": "push_name", "value": "={{ $json.body.data.pushName }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-extraer-datos",
+      "name": "Extraer Datos WhatsApp",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [240, 0]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "=https://api.avaxhealth.com/api/agent/clinica/by-instance/{{ $json.instance_name }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "node-buscar-clinica",
+      "name": "Buscar Clinica por Instancia",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [480, 0],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "c1",
+              "leftValue": "={{ $('Extraer Datos WhatsApp').item.json.message_type }}",
+              "rightValue": "conversation",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-es-texto",
+      "name": "Es Texto o Audio",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [720, 0]
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "t1", "name": "final_message", "value": "={{ $('Extraer Datos WhatsApp').item.json.text_message }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-msg-texto",
+      "name": "Mensaje Final Texto",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [960, -120]
+    },
+    {
+      "parameters": {
+        "operation": "toBinary",
+        "sourceProperty": "voice_base64",
+        "options": { "mimeType": "audio/ogg" }
+      },
+      "id": "node-convertir-audio",
+      "name": "Convertir Audio Base64",
+      "type": "n8n-nodes-base.convertToFile",
+      "typeVersion": 1.1,
+      "position": [960, 160]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.openai.com/v1/audio/transcriptions",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "multipart-form-data",
+        "bodyParameters": {
+          "parameters": [
+            { "parameterType": "formData", "name": "model", "value": "whisper-1" },
+            { "parameterType": "formBinaryData", "name": "file", "inputDataFieldName": "data" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-transcribir-audio",
+      "name": "Transcribir Audio Whisper",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [1200, 160],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-openai-key",
+          "name": "OpenAI API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "v1", "name": "final_message", "value": "={{ $json.text }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-msg-audio",
+      "name": "Mensaje Final Audio",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [1440, 160]
+    },
+    {
+      "parameters": {
+        "operation": "push",
+        "list": "={{ $('Extraer Datos WhatsApp').item.json.sender }}",
+        "messageData": "={{ JSON.stringify({ message: $json.final_message, sessionId: $('Extraer Datos WhatsApp').item.json.sessionId, dataTime: $('Extraer Datos WhatsApp').item.json.dataTime }) }}",
+        "tail": true
+      },
+      "id": "node-buffer-push",
+      "name": "Buffer Mensaje Redis",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [1680, 0],
+      "credentials": {
+        "redis": {
+          "id": "cred-redis",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "amount": 5,
+        "unit": "seconds"
+      },
+      "id": "node-wait",
+      "name": "Esperar 5s Debounce",
+      "type": "n8n-nodes-base.wait",
+      "typeVersion": 1.1,
+      "position": [1920, 0]
+    },
+    {
+      "parameters": {
+        "operation": "get",
+        "propertyName": "buffer_messages",
+        "key": "={{ $('Extraer Datos WhatsApp').item.json.sender }}",
+        "options": {}
+      },
+      "id": "node-buffer-get",
+      "name": "Leer Buffer Redis",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [2160, 0],
+      "credentials": {
+        "redis": {
+          "id": "cred-redis",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "conditions": {
+          "options": {
+            "caseSensitive": true,
+            "leftValue": "",
+            "typeValidation": "strict",
+            "version": 2
+          },
+          "conditions": [
+            {
+              "id": "u1",
+              "leftValue": "={{ JSON.parse($json.buffer_messages.at(-1)).sessionId }}",
+              "rightValue": "={{ $('Extraer Datos WhatsApp').item.json.sessionId }}",
+              "operator": { "type": "string", "operation": "equals" }
+            }
+          ],
+          "combinator": "and"
+        },
+        "options": {}
+      },
+      "id": "node-ultimo-mensaje",
+      "name": "Soy Ultimo Mensaje",
+      "type": "n8n-nodes-base.if",
+      "typeVersion": 2.2,
+      "position": [2400, 0]
+    },
+    {
+      "parameters": {},
+      "id": "node-ignorar",
+      "name": "Ignorar Mensaje Viejo",
+      "type": "n8n-nodes-base.noOp",
+      "typeVersion": 1,
+      "position": [2640, 200]
+    },
+    {
+      "parameters": {
+        "operation": "delete",
+        "key": "={{ $('Extraer Datos WhatsApp').item.json.sender }}"
+      },
+      "id": "node-buffer-delete",
+      "name": "Eliminar Buffer Redis",
+      "type": "n8n-nodes-base.redis",
+      "typeVersion": 1,
+      "position": [2640, -120],
+      "credentials": {
+        "redis": {
+          "id": "cred-redis",
+          "name": "Redis"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "cm1", "name": "final_message", "value": "={{ $('Leer Buffer Redis').item.json.buffer_messages.map(m => JSON.parse(m).message).join('\\n') }}", "type": "string" },
+            { "id": "cm2", "name": "sender_phone", "value": "={{ $('Extraer Datos WhatsApp').item.json.sender_phone }}", "type": "string" },
+            { "id": "cm3", "name": "push_name", "value": "={{ $('Extraer Datos WhatsApp').item.json.push_name }}", "type": "string" },
+            { "id": "cm4", "name": "clinicaId", "value": "={{ $('Buscar Clinica por Instancia').item.json.clinicaId }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-combinar-mensajes",
+      "name": "Combinar Mensajes Buffer",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [2880, -120]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.avaxhealth.com/api/agent/clinica/' + $('Buscar Clinica por Instancia').item.json.clinicaId + '/info' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "options": {}
+      },
+      "id": "node-info-clinica",
+      "name": "Obtener Info Clinica",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [3120, -120],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "promptType": "define",
+        "text": "={{ $json.final_message }}",
+        "options": {
+          "systemMessage": "=Sos {{ $('Obtener Info Clinica').item.json.agent_nombre ?? 'Zoe' }}, asistente virtual profesional de {{ $('Obtener Info Clinica').item.json.nombre }}.\n\nZona horaria: America/Argentina/Buenos_Aires (UTC-3)\nFecha y hora actuales: {{ $now }}\nEspecialidad: {{ $('Obtener Info Clinica').item.json.especialidad }}\nDireccion: {{ $('Obtener Info Clinica').item.json.direccion }}\nTelefono clinica: {{ $('Obtener Info Clinica').item.json.cel }}\nDuracion turno default: {{ $('Obtener Info Clinica').item.json.duracion_turno_default }} minutos\n\nProfesionales disponibles:\n{{ $('Obtener Info Clinica').item.json.profesionales.map(p => '- ' + p.nombre + ' (ID: ' + p.id + ')').join('\\n') }}\n\nTratamientos disponibles:\n{{ $('Obtener Info Clinica').item.json.tratamientos.map(t => '- ' + t.nombre + (t.precio ? ' ($' + t.precio + ')' : '') + (t.duracion_min ? ' ' + t.duracion_min + 'min' : '')).join('\\n') }}\n\nHorarios de la clinica:\n{{ JSON.stringify($('Obtener Info Clinica').item.json.horarios) }}\n\n--- INSTRUCCIONES ---\n1. BIENVENIDA: Saluda segun la hora (Buenos dias/tardes/noches). Presentate con tu nombre y el de la clinica.\n2. DETECTAR INTENCION: Usa Pensar para interpretar si el paciente quiere: agendar turno, cancelar, consultar info, u otra cosa.\n3. IDENTIFICAR PACIENTE: Busca primero por telefono con el numero {{ $('Extraer Datos WhatsApp').item.json.sender_phone }}. Si no existe, pedi el DNI y busca por DNI. Si no esta registrado, ofrece registrarlo pidiendo nombre, apellido y DNI.\n4. TURNOS: Usa Consultar Turnos Disponibles para mostrar horarios libres. Muestra las opciones de forma clara.\n5. VERIFICAR: Antes de agendar, verifica con Verificar Turno Existente que no tenga un turno activo.\n6. CREAR: Cuando tengas paciente_id, user_id (profesional), start_time y end_time, crea el turno. Calcula end_time sumando la duracion del turno al start_time.\n7. CANCELAR/CONFIRMAR: Usa Modificar Estado Turno con el turno_id y estado CONFIRMADO o CANCELADO.\n\n--- REGLAS ---\n- Siempre usa Pensar antes de decisiones complejas\n- No agendes sin registro previo del paciente\n- No des info personal sin validar identidad\n- No respondas fuera del contexto de la clinica\n- Usa el ID del profesional (user_id) al crear turnos, no el nombre\n- Los estados de turno son: PENDIENTE, CONFIRMADO, CANCELADO (en mayusculas)\n- Estilo: calido, profesional, WhatsApp. Emojis con criterio\n- Si algo falla, responde amablemente y ofrece reintentar\n\nInstrucciones adicionales de la clinica:\n{{ $('Obtener Info Clinica').item.json.agent_instrucciones ?? '' }}",
+          "maxIterations": 15
+        }
+      },
+      "id": "node-agente-zoe",
+      "name": "Agente Zoe IA",
+      "type": "@n8n/n8n-nodes-langchain.agent",
+      "typeVersion": 3.1,
+      "position": [3360, -120]
+    },
+    {
+      "parameters": {
+        "model": { "__rl": true, "value": "gpt-4.1-mini", "mode": "list", "cachedResultName": "gpt-4.1-mini" },
+        "options": {}
+      },
+      "id": "node-modelo-openai",
+      "name": "GPT-4.1 Mini",
+      "type": "@n8n/n8n-nodes-langchain.lmChatOpenAi",
+      "typeVersion": 1.3,
+      "position": [3120, 80],
+      "credentials": {
+        "openAiApi": {
+          "id": "cred-openai",
+          "name": "OpenAI"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "sessionIdType": "customKey",
+        "sessionKey": "={{ $('Extraer Datos WhatsApp').item.json.sender_phone }}",
+        "contextWindowLength": 30
+      },
+      "id": "node-memoria",
+      "name": "Memoria Conversacion",
+      "type": "@n8n/n8n-nodes-langchain.memoryPostgresChat",
+      "typeVersion": 1.3,
+      "position": [3280, 80],
+      "credentials": {
+        "postgres": {
+          "id": "cred-postgres",
+          "name": "PostgreSQL"
+        }
+      }
+    },
+    {
+      "parameters": {},
+      "id": "node-tool-pensar",
+      "name": "Pensar",
+      "type": "@n8n/n8n-nodes-langchain.toolThink",
+      "typeVersion": 1,
+      "position": [3440, 80]
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.avaxhealth.com/api/agent/pacientes/by-phone/' + $('Extraer Datos WhatsApp').item.json.sender_phone }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            { "name": "clinicaId", "value": "={{ $('Buscar Clinica por Instancia').item.json.clinicaId }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-tool-paciente-tel",
+      "name": "Buscar Paciente por Telefono",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [3600, 80],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.avaxhealth.com/api/agent/pacientes/by-dni/' + $fromAI('dni', 'DNI del paciente a buscar', 'string') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            { "name": "clinicaId", "value": "={{ $('Buscar Clinica por Instancia').item.json.clinicaId }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-tool-paciente-dni",
+      "name": "Buscar Paciente por DNI",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [3760, 80],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.avaxhealth.com/api/agent/pacientes",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicaId: $('Buscar Clinica por Instancia').item.json.clinicaId, nombre: $fromAI('nombre', 'Nombre del paciente', 'string'), apellido: $fromAI('apellido', 'Apellido del paciente', 'string'), dni: $fromAI('dni', 'DNI del paciente', 'string'), cel: $('Extraer Datos WhatsApp').item.json.sender_phone, email: $fromAI('email', 'Email del paciente (opcional, puede ser vacio)', 'string') }) }}",
+        "options": {}
+      },
+      "id": "node-tool-registrar-paciente",
+      "name": "Registrar Paciente",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [3920, 80],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "https://api.avaxhealth.com/api/agent/turnos/disponibles",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            { "name": "clinicaId", "value": "={{ $('Buscar Clinica por Instancia').item.json.clinicaId }}" },
+            { "name": "dias", "value": "3" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-tool-turnos-disponibles",
+      "name": "Consultar Turnos Disponibles",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [3120, 280],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "GET",
+        "url": "={{ 'https://api.avaxhealth.com/api/agent/turnos/verificar/' + $fromAI('paciente_id', 'UUID del paciente a verificar', 'string') }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendQuery": true,
+        "specifyQuery": "keypair",
+        "queryParameters": {
+          "parameters": [
+            { "name": "clinicaId", "value": "={{ $('Buscar Clinica por Instancia').item.json.clinicaId }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-tool-verificar-turno",
+      "name": "Verificar Turno Existente",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [3280, 280],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "https://api.avaxhealth.com/api/agent/turnos",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicaId: $('Buscar Clinica por Instancia').item.json.clinicaId, paciente_id: $fromAI('paciente_id', 'UUID del paciente registrado', 'string'), user_id: $fromAI('user_id', 'UUID del profesional seleccionado', 'string'), start_time: $fromAI('start_time', 'Fecha y hora de inicio en formato ISO 8601', 'string'), end_time: $fromAI('end_time', 'Fecha y hora de fin en formato ISO 8601', 'string'), tipo_tratamiento: $fromAI('tipo_tratamiento', 'Nombre del tratamiento', 'string'), notas: $fromAI('notas', 'Notas adicionales del turno', 'string') }) }}",
+        "options": {}
+      },
+      "id": "node-tool-crear-turno",
+      "name": "Crear Turno",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [3440, 280],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "method": "PATCH",
+        "url": "={{ 'https://api.avaxhealth.com/api/agent/turnos/' + $fromAI('turno_id', 'UUID del turno a modificar', 'string') + '/estado' }}",
+        "authentication": "genericCredentialType",
+        "genericAuthType": "httpHeaderAuth",
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "json",
+        "jsonBody": "={{ JSON.stringify({ clinicaId: $('Buscar Clinica por Instancia').item.json.clinicaId, estado: $fromAI('estado', 'Nuevo estado del turno: CONFIRMADO o CANCELADO', 'string') }) }}",
+        "options": {}
+      },
+      "id": "node-tool-modificar-estado",
+      "name": "Modificar Estado Turno",
+      "type": "n8n-nodes-base.httpRequestTool",
+      "typeVersion": 4.4,
+      "position": [3600, 280],
+      "credentials": {
+        "httpHeaderAuth": {
+          "id": "cred-avax",
+          "name": "Avax Health API Key"
+        }
+      }
+    },
+    {
+      "parameters": {
+        "mode": "manual",
+        "assignments": {
+          "assignments": [
+            { "id": "d1", "name": "delay", "value": "={{ Math.min(Math.max($json.output.length * 40, 1000), 8000) }}", "type": "number" },
+            { "id": "d2", "name": "response_text", "value": "={{ $json.output }}", "type": "string" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-calcular-delay",
+      "name": "Calcular Delay Escritura",
+      "type": "n8n-nodes-base.set",
+      "typeVersion": 3.4,
+      "position": [3600, -120]
+    },
+    {
+      "parameters": {
+        "method": "POST",
+        "url": "={{ 'https://evo.avaxhealth.com/message/sendText/' + $('Buscar Clinica por Instancia').item.json.evolution_instance }}",
+        "sendHeaders": true,
+        "specifyHeaders": "keypair",
+        "headerParameters": {
+          "parameters": [
+            { "name": "Content-Type", "value": "application/json" },
+            { "name": "apikey", "value": "={{ $('Buscar Clinica por Instancia').item.json.evolution_api_key }}" }
+          ]
+        },
+        "sendBody": true,
+        "contentType": "json",
+        "specifyBody": "keypair",
+        "bodyParameters": {
+          "parameters": [
+            { "name": "number", "value": "={{ $('Extraer Datos WhatsApp').item.json.sender_phone }}" },
+            { "name": "text", "value": "={{ $json.response_text }}" },
+            { "name": "delay", "value": "={{ $json.delay }}" }
+          ]
+        },
+        "options": {}
+      },
+      "id": "node-enviar-respuesta",
+      "name": "Enviar Respuesta WhatsApp",
+      "type": "n8n-nodes-base.httpRequest",
+      "typeVersion": 4.4,
+      "position": [3840, -120]
+    },
+    {
+      "parameters": {
+        "content": "## ⚙️ CONFIGURAR\n1. Cambiar URL base de Avax Health en los nodos HTTP\n2. Cambiar URL base de Evolution API en el nodo de envío\n3. Configurar credenciales:\n   - **Avax Health API Key**: Header Auth con `x-api-key`\n   - **OpenAI API Key**: Header Auth con `Authorization: Bearer`\n   - **OpenAI**: Credencial nativa de OpenAI\n   - **Redis**: Conexion a Redis\n   - **PostgreSQL**: Conexion a PostgreSQL",
+        "height": 200,
+        "width": 400,
+        "color": 6
+      },
+      "id": "sticky-config",
+      "name": "Sticky Note - Config",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [-60, -220]
+    },
+    {
+      "parameters": {
+        "content": "## 📥 Entrada WhatsApp\nRecibe mensajes de Evolution API y extrae datos.",
+        "height": 120,
+        "width": 200,
+        "color": 4
+      },
+      "id": "sticky-entrada",
+      "name": "Sticky Note - Entrada",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [220, -160]
+    },
+    {
+      "parameters": {
+        "content": "## 🏥 Multi-Tenant\nIdentifica la clinica por el nombre de instancia de Evolution API.\n`GET /api/agent/clinica/by-instance/:name`",
+        "height": 140,
+        "width": 220,
+        "color": 2
+      },
+      "id": "sticky-clinica",
+      "name": "Sticky Note - Clinica",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [460, -160]
+    },
+    {
+      "parameters": {
+        "content": "## ⏱️ Debounce\nAgrupa mensajes rapidos (5s) del mismo usuario.\nSi llegan mas mensajes durante la espera, solo el ultimo los procesa.",
+        "height": 160,
+        "width": 260,
+        "color": 3
+      },
+      "id": "sticky-buffer",
+      "name": "Sticky Note - Buffer",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [1660, -160]
+    },
+    {
+      "parameters": {
+        "content": "## 🧠 Cerebro Agente Zoe IA\nAgente multi-tenant con GPT-4.1-mini.\nEndpoints: `/api/agent/pacientes/*` y `/api/agent/turnos/*`\nMemoria de conversacion persistente en PostgreSQL.",
+        "height": 160,
+        "width": 280,
+        "color": 5
+      },
+      "id": "sticky-agente",
+      "name": "Sticky Note - Agente",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [3340, -280]
+    },
+    {
+      "parameters": {
+        "content": "## 📤 Respuesta WhatsApp\nCalcula delay de escritura natural.\nEnvia via Evolution API:\n`POST /message/sendText/{instance}`",
+        "height": 140,
+        "width": 220,
+        "color": 4
+      },
+      "id": "sticky-respuesta",
+      "name": "Sticky Note - Respuesta",
+      "type": "n8n-nodes-base.stickyNote",
+      "typeVersion": 1,
+      "position": [3820, -280]
+    }
+  ],
+  "connections": {
+    "Webhook Evolution API": {
+      "main": [
+        [{ "node": "Extraer Datos WhatsApp", "type": "main", "index": 0 }]
+      ]
+    },
+    "Extraer Datos WhatsApp": {
+      "main": [
+        [{ "node": "Buscar Clinica por Instancia", "type": "main", "index": 0 }]
+      ]
+    },
+    "Buscar Clinica por Instancia": {
+      "main": [
+        [{ "node": "Es Texto o Audio", "type": "main", "index": 0 }]
+      ]
+    },
+    "Es Texto o Audio": {
+      "main": [
+        [{ "node": "Mensaje Final Texto", "type": "main", "index": 0 }],
+        [{ "node": "Convertir Audio Base64", "type": "main", "index": 0 }]
+      ]
+    },
+    "Mensaje Final Texto": {
+      "main": [
+        [{ "node": "Buffer Mensaje Redis", "type": "main", "index": 0 }]
+      ]
+    },
+    "Convertir Audio Base64": {
+      "main": [
+        [{ "node": "Transcribir Audio Whisper", "type": "main", "index": 0 }]
+      ]
+    },
+    "Transcribir Audio Whisper": {
+      "main": [
+        [{ "node": "Mensaje Final Audio", "type": "main", "index": 0 }]
+      ]
+    },
+    "Mensaje Final Audio": {
+      "main": [
+        [{ "node": "Buffer Mensaje Redis", "type": "main", "index": 0 }]
+      ]
+    },
+    "Buffer Mensaje Redis": {
+      "main": [
+        [{ "node": "Esperar 5s Debounce", "type": "main", "index": 0 }]
+      ]
+    },
+    "Esperar 5s Debounce": {
+      "main": [
+        [{ "node": "Leer Buffer Redis", "type": "main", "index": 0 }]
+      ]
+    },
+    "Leer Buffer Redis": {
+      "main": [
+        [{ "node": "Soy Ultimo Mensaje", "type": "main", "index": 0 }]
+      ]
+    },
+    "Soy Ultimo Mensaje": {
+      "main": [
+        [{ "node": "Eliminar Buffer Redis", "type": "main", "index": 0 }],
+        [{ "node": "Ignorar Mensaje Viejo", "type": "main", "index": 0 }]
+      ]
+    },
+    "Eliminar Buffer Redis": {
+      "main": [
+        [{ "node": "Combinar Mensajes Buffer", "type": "main", "index": 0 }]
+      ]
+    },
+    "Combinar Mensajes Buffer": {
+      "main": [
+        [{ "node": "Obtener Info Clinica", "type": "main", "index": 0 }]
+      ]
+    },
+    "Obtener Info Clinica": {
+      "main": [
+        [{ "node": "Agente Zoe IA", "type": "main", "index": 0 }]
+      ]
+    },
+    "Agente Zoe IA": {
+      "main": [
+        [{ "node": "Calcular Delay Escritura", "type": "main", "index": 0 }]
+      ]
+    },
+    "Calcular Delay Escritura": {
+      "main": [
+        [{ "node": "Enviar Respuesta WhatsApp", "type": "main", "index": 0 }]
+      ]
+    },
+    "GPT-4.1 Mini": {
+      "ai_languageModel": [
+        [{ "node": "Agente Zoe IA", "type": "ai_languageModel", "index": 0 }]
+      ]
+    },
+    "Memoria Conversacion": {
+      "ai_memory": [
+        [{ "node": "Agente Zoe IA", "type": "ai_memory", "index": 0 }]
+      ]
+    },
+    "Pensar": {
+      "ai_tool": [
+        [{ "node": "Agente Zoe IA", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Buscar Paciente por Telefono": {
+      "ai_tool": [
+        [{ "node": "Agente Zoe IA", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Buscar Paciente por DNI": {
+      "ai_tool": [
+        [{ "node": "Agente Zoe IA", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Registrar Paciente": {
+      "ai_tool": [
+        [{ "node": "Agente Zoe IA", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Consultar Turnos Disponibles": {
+      "ai_tool": [
+        [{ "node": "Agente Zoe IA", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Verificar Turno Existente": {
+      "ai_tool": [
+        [{ "node": "Agente Zoe IA", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Crear Turno": {
+      "ai_tool": [
+        [{ "node": "Agente Zoe IA", "type": "ai_tool", "index": 0 }]
+      ]
+    },
+    "Modificar Estado Turno": {
+      "ai_tool": [
+        [{ "node": "Agente Zoe IA", "type": "ai_tool", "index": 0 }]
+      ]
+    }
+  },
+  "pinData": {},
+  "settings": {
+    "executionOrder": "v1"
+  },
+  "staticData": null,
+  "tags": [],
+  "triggerCount": 1,
+  "updatedAt": "2026-04-12T00:00:00.000Z",
+  "versionId": "d68rLn6WSlnfkvZo"
+}

@@ -8,11 +8,13 @@ services:
     environment:
       - NODE_ENV=production
       - PORT=3001
-      - DB_HOST=postgres
+      - DB_HOST=supabase-db
       - DB_PORT=5432
       - DB_USERNAME=${DB_USERNAME}
       - DB_PASSWORD=${DB_PASSWORD}
       - DB_DATABASE=${DB_DATABASE}
+      - SUPABASE_URL=${SUPABASE_URL}
+      - SUPABASE_SERVICE_ROLE_KEY=${SUPABASE_SERVICE_ROLE_KEY}
       - JWT_SECRET=${JWT_SECRET}
       - JWT_EXPIRATION=${JWT_EXPIRATION}
       - JWT_REFRESH_EXPIRATION=${JWT_REFRESH_EXPIRATION}
@@ -36,6 +38,7 @@ services:
       - traefik.http.routers.avax-api.middlewares=avax-api-headers@docker,avax-api-cors@docker
     networks:
       - n8n_evoapi
+      - supabase_network
 
   avax-frontend:
     build:
@@ -74,4 +77,6 @@ services:
 
 networks:
   n8n_evoapi:
+    external: true
+  supabase_network:
     external: true
