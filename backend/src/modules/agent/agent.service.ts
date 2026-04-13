@@ -11,7 +11,8 @@ import { Turno } from '../turnos/entities/turno.entity';
 import { User } from '../users/entities/user.entity';
 import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
-import { EstadoTurno, SourceTurno } from '../../common/enums';
+import { HorarioProfesional } from '../horarios-profesional/entities/horario-profesional.entity';
+import { EstadoTurno, SourceTurno, UserRole } from '../../common/enums';
 import { WebhookService } from '../../common/services/webhook.service';
 
 @Injectable()
@@ -31,6 +32,8 @@ export class AgentService {
     private readonly tratamientoRepo: Repository<Tratamiento>,
     @InjectRepository(Subscription)
     private readonly subscriptionRepo: Repository<Subscription>,
+    @InjectRepository(HorarioProfesional)
+    private readonly horarioProfesionalRepo: Repository<HorarioProfesional>,
     private readonly webhookService: WebhookService,
   ) {}
 
@@ -77,11 +80,24 @@ export class AgentService {
       throw new NotFoundException('Clínica no encontrada');
     }
 
-    // Obtener profesionales activos
+    // Obtener profesionales (solo médicos, no admin/assistant)
     const profesionales = await this.userRepo.find({
-      where: { clinica_id: clinicaId },
+      where: { clinica_id: clinicaId, role: UserRole.PROFESSIONAL },
       select: ['id', 'nombre', 'apellido', 'role'],
     });
+
+    // Traer horarios individuales de cada profesional
+    const horariosProfesionales = profesionales.length
+      ? await this.horarioProfesionalRepo.find({
+          where: {
+            clinica_id: clinicaId,
+            user_id: In(profesionales.map((p) => p.id)),
+          },
+        })
+      : [];
+    const horariosByUser = new Map(
+      horariosProfesionales.map((h) => [h.user_id, h.horarios]),
+    );
 
     // Obtener tratamientos activos
     const tratamientos = await this.tratamientoRepo.find({
@@ -106,6 +122,7 @@ export class AgentService {
         id: p.id,
         nombre: `${p.nombre} ${p.apellido}`,
         role: p.role,
+        horarios: horariosByUser.get(p.id) ?? null,
       })),
       tratamientos: tratamientos.map((t) => ({
         id: t.id,
@@ -188,22 +205,27 @@ export class AgentService {
     }
 
     const duracion = clinica.duracion_turno_default || 30;
-    const horarios = clinica.horarios;
-    if (!horarios) {
-      return { disponibles: [], mensaje: 'La clínica no tiene horarios configurados' };
-    }
 
-    // Obtener profesional (si no se especifica, usar el primero disponible)
+    // Obtener profesional (solo médicos; si no se especifica, usar el primero disponible)
     let userId = profesionalId;
     if (!userId) {
       const prof = await this.userRepo.findOne({
-        where: { clinica_id: clinicaId },
+        where: { clinica_id: clinicaId, role: UserRole.PROFESSIONAL },
         select: ['id'],
       });
       if (!prof) {
         return { disponibles: [], mensaje: 'No hay profesionales registrados' };
       }
       userId = prof.id;
+    }
+
+    // Preferir horarios del profesional si están configurados; si no, usar los de la clínica
+    const horarioProf = await this.horarioProfesionalRepo.findOne({
+      where: { clinica_id: clinicaId, user_id: userId },
+    });
+    const horarios = horarioProf?.horarios ?? clinica.horarios;
+    if (!horarios) {
+      return { disponibles: [], mensaje: 'No hay horarios configurados' };
     }
 
     // Calcular rango de fechas

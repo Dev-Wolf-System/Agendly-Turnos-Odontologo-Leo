@@ -25,6 +25,18 @@ import { Badge } from "@/components/ui/badge";
 import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import archivosMedicosService, {
+  ArchivoMedico,
+} from "@/services/archivos-medicos.service";
+import { Input } from "@/components/ui/input";
+import { Label } from "@/components/ui/label";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   ArrowLeft,
   Calendar,
@@ -40,6 +52,12 @@ import {
   Stethoscope,
   User,
   FileText,
+  Upload,
+  Download,
+  Trash2,
+  FileImage,
+  File,
+  Paperclip,
 } from "lucide-react";
 
 function calcularEdad(fechaNacimiento: string | null): string {
@@ -127,16 +145,79 @@ export default function FichaPacientePage() {
 
   const [ficha, setFicha] = useState<FichaPaciente | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [archivos, setArchivos] = useState<ArchivoMedico[]>([]);
+  const [uploadingFile, setUploadingFile] = useState(false);
+  const [archivoCategoria, setArchivoCategoria] = useState("");
+  const [archivoNotas, setArchivoNotas] = useState("");
 
   useEffect(() => {
     if (!id) return;
     setIsLoading(true);
-    pacientesService
-      .getFicha(id)
-      .then(setFicha)
+    Promise.all([
+      pacientesService.getFicha(id),
+      archivosMedicosService.getByPaciente(id).catch(() => []),
+    ])
+      .then(([fichaData, archivosData]) => {
+        setFicha(fichaData);
+        setArchivos(archivosData);
+      })
       .catch(() => toast.error("Error al cargar la ficha del paciente"))
       .finally(() => setIsLoading(false));
   }, [id]);
+
+  const handleUploadArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0];
+    if (!file) return;
+    setUploadingFile(true);
+    try {
+      const formData = new FormData();
+      formData.append("archivo", file);
+      formData.append("paciente_id", id);
+      if (archivoCategoria) formData.append("categoria", archivoCategoria);
+      if (archivoNotas) formData.append("notas", archivoNotas);
+      const nuevo = await archivosMedicosService.upload(formData);
+      setArchivos((prev) => [nuevo, ...prev]);
+      setArchivoCategoria("");
+      setArchivoNotas("");
+      toast.success("Archivo subido correctamente");
+    } catch {
+      toast.error("Error al subir el archivo");
+    } finally {
+      setUploadingFile(false);
+      e.target.value = "";
+    }
+  };
+
+  const handleDescargarArchivo = async (archivo: ArchivoMedico) => {
+    try {
+      const url = await archivosMedicosService.getSignedUrl(archivo.id);
+      window.open(url, "_blank");
+    } catch {
+      toast.error("Error al obtener el archivo");
+    }
+  };
+
+  const handleEliminarArchivo = async (archivoId: string) => {
+    try {
+      await archivosMedicosService.delete(archivoId);
+      setArchivos((prev) => prev.filter((a) => a.id !== archivoId));
+      toast.success("Archivo eliminado");
+    } catch {
+      toast.error("Error al eliminar el archivo");
+    }
+  };
+
+  function formatFileSize(bytes: number): string {
+    if (bytes < 1024) return `${bytes} B`;
+    if (bytes < 1024 * 1024) return `${(bytes / 1024).toFixed(1)} KB`;
+    return `${(bytes / (1024 * 1024)).toFixed(1)} MB`;
+  }
+
+  function getFileIcon(mime: string | null) {
+    if (mime?.startsWith("image/")) return <FileImage className="h-5 w-5 text-blue-500" />;
+    if (mime === "application/pdf") return <FileText className="h-5 w-5 text-red-500" />;
+    return <File className="h-5 w-5 text-muted-foreground" />;
+  }
 
   if (isLoading) {
     return (
@@ -406,6 +487,10 @@ export default function FichaPacientePage() {
             <CreditCard className="h-3.5 w-3.5 hidden sm:block" />
             Pagos ({pagos.length})
           </TabsTrigger>
+          <TabsTrigger value="documentos" className="rounded-lg data-[state=active]:shadow-sm gap-1.5 text-xs sm:text-sm">
+            <Paperclip className="h-3.5 w-3.5 hidden sm:block" />
+            Documentos ({archivos.length})
+          </TabsTrigger>
         </TabsList>
 
         {/* Próximos Turnos */}
@@ -586,6 +671,129 @@ export default function FichaPacientePage() {
                       ))}
                     </TableBody>
                   </Table>
+                </div>
+              )}
+            </CardContent>
+          </Card>
+        </TabsContent>
+
+        {/* Documentos */}
+        <TabsContent value="documentos">
+          <Card className="rounded-xl">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Paperclip className="h-4 w-4 text-primary" />
+                  </div>
+                  <CardTitle className="text-base">Documentos Médicos</CardTitle>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Upload */}
+              <div className="rounded-xl border-2 border-dashed border-muted-foreground/20 p-4 space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Categoría</Label>
+                    <Select value={archivoCategoria} onValueChange={setArchivoCategoria}>
+                      <SelectTrigger className="rounded-lg h-9">
+                        <SelectValue placeholder="Seleccionar..." />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="radiografia">Radiografía</SelectItem>
+                        <SelectItem value="estudio">Estudio</SelectItem>
+                        <SelectItem value="receta">Receta</SelectItem>
+                        <SelectItem value="consentimiento">Consentimiento</SelectItem>
+                        <SelectItem value="otro">Otro</SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Notas</Label>
+                    <Input
+                      className="rounded-lg h-9"
+                      placeholder="Descripción breve..."
+                      value={archivoNotas}
+                      onChange={(e) => setArchivoNotas(e.target.value)}
+                    />
+                  </div>
+                  <div className="space-y-1.5">
+                    <Label className="text-xs">Archivo</Label>
+                    <div className="relative">
+                      <Input
+                        type="file"
+                        className="rounded-lg h-9"
+                        accept="image/*,.pdf,.dicom"
+                        onChange={handleUploadArchivo}
+                        disabled={uploadingFile}
+                      />
+                    </div>
+                  </div>
+                </div>
+                {uploadingFile && (
+                  <p className="text-xs text-muted-foreground animate-pulse">Subiendo archivo...</p>
+                )}
+              </div>
+
+              {/* Lista */}
+              {archivos.length === 0 ? (
+                <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                  <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
+                    <Upload className="h-6 w-6" />
+                  </div>
+                  <p className="font-medium">Sin documentos</p>
+                  <p className="text-sm mt-0.5">Subí archivos para este paciente</p>
+                </div>
+              ) : (
+                <div className="space-y-2">
+                  {archivos.map((archivo) => (
+                    <div
+                      key={archivo.id}
+                      className="flex items-center gap-3 p-3 rounded-xl border bg-card hover:bg-muted/30 transition-colors group"
+                    >
+                      <div className="w-10 h-10 rounded-lg bg-muted/50 flex items-center justify-center shrink-0">
+                        {getFileIcon(archivo.tipo_mime)}
+                      </div>
+                      <div className="flex-1 min-w-0">
+                        <p className="text-sm font-medium truncate">{archivo.nombre_archivo}</p>
+                        <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                          <span>{formatFileSize(archivo.tamano_bytes)}</span>
+                          {archivo.categoria && (
+                            <>
+                              <span>·</span>
+                              <Badge variant="secondary" className="text-[10px] px-1.5 py-0 capitalize">
+                                {archivo.categoria}
+                              </Badge>
+                            </>
+                          )}
+                          <span>·</span>
+                          <span>{formatFecha(archivo.created_at)}</span>
+                        </div>
+                        {archivo.notas && (
+                          <p className="text-xs text-muted-foreground/80 mt-0.5 truncate">{archivo.notas}</p>
+                        )}
+                      </div>
+                      <div className="flex gap-1 opacity-0 group-hover:opacity-100 transition-opacity">
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg"
+                          onClick={() => handleDescargarArchivo(archivo)}
+                        >
+                          <Download className="h-4 w-4" />
+                        </Button>
+                        <Button
+                          variant="ghost"
+                          size="icon"
+                          className="h-8 w-8 rounded-lg text-destructive hover:text-destructive"
+                          onClick={() => handleEliminarArchivo(archivo.id)}
+                        >
+                          <Trash2 className="h-4 w-4" />
+                        </Button>
+                      </div>
+                    </div>
+                  ))}
                 </div>
               )}
             </CardContent>

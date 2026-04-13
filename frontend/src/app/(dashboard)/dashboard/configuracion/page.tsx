@@ -12,6 +12,7 @@ import tratamientosService, {
   Tratamiento,
   CreateTratamientoPayload,
 } from "@/services/tratamientos.service";
+import archivosMedicosService from "@/services/archivos-medicos.service";
 import usersService from "@/services/users.service";
 import horariosProfesionalService, {
   HorarioProfesional,
@@ -367,7 +368,7 @@ function TabClinica({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => v
     }
   };
 
-  const handleFileSelect = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileSelect = async (e: React.ChangeEvent<HTMLInputElement>) => {
     const file = e.target.files?.[0];
     if (!file) return;
     if (!file.type.startsWith("image/")) {
@@ -378,12 +379,14 @@ function TabClinica({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => v
       toast.error("El archivo no debe superar 2MB");
       return;
     }
-    const reader = new FileReader();
-    reader.onload = () => {
-      setForm({ ...form, logo_url: reader.result as string });
+    try {
+      const url = await archivosMedicosService.uploadLogo(file);
+      setForm({ ...form, logo_url: url });
       setLogoMode("custom");
-    };
-    reader.readAsDataURL(file);
+      toast.success("Logo subido correctamente");
+    } catch {
+      toast.error("Error al subir el logo");
+    }
   };
 
   return (

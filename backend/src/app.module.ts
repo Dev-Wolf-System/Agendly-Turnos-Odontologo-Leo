@@ -31,6 +31,7 @@ import { TicketsModule } from './modules/tickets/tickets.module';
 import { HorariosProfesionalModule } from './modules/horarios-profesional/horarios-profesional.module';
 import { LeadsModule } from './modules/leads/leads.module';
 import { SucursalesModule } from './modules/sucursales/sucursales.module';
+import { ArchivosMedicosModule } from './modules/archivos-medicos/archivos-medicos.module';
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { FeatureFlagGuard } from './common/guards/feature-flag.guard';
 import { CommonModule } from './common/common.module';
@@ -63,6 +64,7 @@ import { CommonModule } from './common/common.module';
     HorariosProfesionalModule,
     LeadsModule,
     SucursalesModule,
+    ArchivosMedicosModule,
   ],
   providers: [
     {

@@ -34,3 +34,4 @@ Commits:
 
 Retomar sesion:
 claude --resume (se retoma automaticamente)
+claude --resume 52d9803c-53c0-4887-961f-3b35d817c74a

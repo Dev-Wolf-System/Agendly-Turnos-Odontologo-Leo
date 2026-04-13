@@ -1,11 +1,12 @@
 {
   "mcpServers": {
     "supabase": {
-      "type": "http",
-      "url": "https://supabase.srv878399.hstgr.cloud/mcp?features=docs%2Cdatabase%2Cdebugging%2Cdevelopment",
-      "headers": {
-        "Authorization": "Bearer eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJyb2xlIjoic2VydmljZV9yb2xlIiwiaXNzIjoic3VwYWJhc2UtZGVtbyIsImlhdCI6MTY0MDk5NTIwMCwiZXhwIjoxNzk4NzYxNjAwfQ.DaYlNEoUrrEn2Ig7tqibS-PHK5vgusbcbo7X36XVt4Q"
-      }
+      "command": "npx",
+      "args": [
+        "-y",
+        "@modelcontextprotocol/server-postgres",
+        "postgresql://postgres:2105.Lucifer98%24@supabase.srv878399.hstgr.cloud/postgres"
+      ]
     }
   }
 }

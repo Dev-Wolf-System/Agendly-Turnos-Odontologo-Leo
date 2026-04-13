@@ -1,6 +1,6 @@
 # Pendientes Planificados — Avax Health
 
-> Actualizado: 2026-04-09
+> Actualizado: 2026-04-13
 
 ---
 
@@ -56,19 +56,21 @@
 
 ---
 
-## 4. Archivos Medicos
+## 4. Archivos Medicos — FASE S2 Supabase Storage ✅ code-complete
 
-**Prioridad:** Media — solicitado por clinicas
+**Prioridad:** Media — code-complete 2026-04-13, pendiente despliegue
 
-- [ ] Entidad `ArchivoMedico` (id, paciente_id, clinica_id, nombre, tipo, url, uploaded_by, created_at)
-- [ ] Storage: S3 o disco local configurable
-- [ ] Endpoints: POST upload, GET listar, DELETE eliminar
-- [ ] Tab "Documentos" en ficha del paciente (`/dashboard/pacientes/[id]`)
-- [ ] Upload drag-and-drop con preview de imagenes
-- [ ] Soporte: imagenes (JPG, PNG), PDFs, documentos
-- [ ] Limite de tamanio por plan (configurable en feature flags)
-
-**Dependencias:** Configuracion de storage (S3 bucket o path local)
+- [x] Entidad `ArchivoMedico` (paciente_id, clinica_id, storage_path, tipo_mime, tamano_bytes, categoria, notas, subido_por)
+- [x] Storage: Supabase Storage (buckets `archivos-medicos` privado + `clinica-logos` publico)
+- [x] Endpoints: POST upload, GET listar, GET signed-url, DELETE eliminar, POST logo
+- [x] Tab "Documentos" en ficha del paciente (`/dashboard/pacientes/[id]`)
+- [x] Upload de logo en configuracion de clinica
+- [x] Soporte: imagenes (JPG, PNG, WebP), PDFs, DICOM — limite 10MB (logos 2MB)
+- [x] `ensureBuckets()` en `onModuleInit` crea buckets automaticamente
+- [ ] Configurar env vars `SUPABASE_URL` y `SUPABASE_SERVICE_ROLE_KEY` en VPS
+- [ ] Crear migration SQL para tabla `archivos_medicos` (no hay carpeta migrations/, en dev usa synchronize)
+- [ ] Limite de tamanio por plan (feature flag)
+- [ ] Drag-and-drop + preview de imagenes
 
 ---
 
@@ -105,6 +107,32 @@
 5. Archivos Medicos                  → feature solicitada
 6. Mejoras Menores                   → polish continuo
 ```
+
+---
+
+## Migración a Supabase — Estado actual (2026-04-13)
+
+Plan completo: ver `/home/nlobo/.claude/plans/iterative-forging-abelson.md`
+
+| Fase | Descripcion | Estado |
+|------|-------------|--------|
+| **S1** | DB en Supabase Postgres | ⚠️ DB migrada, bloqueado por `.env.production` en VPS con credenciales viejas |
+| **S2** | Storage (archivos medicos + logos) | ✅ Code-complete 2026-04-13, compila limpio. Pendiente env vars en VPS |
+| **S3** | Auth (reemplazar JWT custom) | ⏳ Siguiente — reforzar login con Supabase Auth |
+| **S4** | Realtime (chat + notificaciones) | ⏳ Pendiente — elimina 3 setInterval de chat + polling notif |
+| **S5** | Row Level Security | ⏳ Requiere S3 completa |
+| **S6** | Optimizaciones frontend (PostgREST directo) | ⏳ Incremental |
+
+### Fixes recientes (2026-04-13)
+
+- [x] Agent `getClinicaInfo`: filtra `role = PROFESSIONAL` (no devuelve admin/secretaria)
+- [x] Agent devuelve horarios individuales de cada profesional (tabla `horarios_profesional`)
+- [x] Agent `getTurnosDisponibles`: prefiere horarios del profesional, fallback a clinica
+- [x] `@types/multer` agregado como devDependency
+
+### Bloqueos
+
+- **S1/S2 despliegue:** `.env.production` en VPS tiene credenciales Postgres viejas. Sin acceso al VPS no se puede desbloquear.
 
 ---
 

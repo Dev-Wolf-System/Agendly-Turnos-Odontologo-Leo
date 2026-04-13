@@ -8,6 +8,7 @@ import { Turno } from '../turnos/entities/turno.entity';
 import { User } from '../users/entities/user.entity';
 import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
+import { HorarioProfesional } from '../horarios-profesional/entities/horario-profesional.entity';
 import { WebhookService } from '../../common/services/webhook.service';
 
 @Module({
@@ -19,6 +20,7 @@ import { WebhookService } from '../../common/services/webhook.service';
       User,
       Tratamiento,
       Subscription,
+      HorarioProfesional,
     ]),
   ],
   controllers: [AgentController],
