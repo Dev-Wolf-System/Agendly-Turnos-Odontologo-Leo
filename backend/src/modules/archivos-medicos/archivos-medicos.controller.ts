@@ -14,7 +14,7 @@ import { FileInterceptor } from '@nestjs/platform-express';
 import { ArchivosMedicosService } from './archivos-medicos.service';
 import { CreateArchivoMedicoDto } from './dto/create-archivo-medico.dto';
 
-@Controller('api/archivos-medicos')
+@Controller('archivos-medicos')
 export class ArchivosMedicosController {
   constructor(private readonly archivosMedicosService: ArchivosMedicosService) {}
 
