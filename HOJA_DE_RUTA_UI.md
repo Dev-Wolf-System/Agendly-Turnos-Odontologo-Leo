@@ -1,6 +1,6 @@
 # Hoja de Ruta — Reestilizado y Mejoras UI/UX
 
-> Última actualización: 2026-04-12
+> Última actualización: 2026-04-13
 
 ## Fixes aplicados
 - [x] Select de Paciente y Odontólogo en Nuevo Turno mostraba UUID en vez del nombre — corregido con display manual
@@ -543,7 +543,13 @@
 - [ ] Admin vía WhatsApp: resumen turnos, finanzas, alertas
 
 ### Migración a Supabase (6 fases)
-- [ ] **S1 — DB Managed:** Migrar PostgreSQL self-hosted a Supabase Postgres (pg_dump/restore, cambiar env vars)
+- [~] **S1 — DB Managed:** Migrar PostgreSQL self-hosted a Supabase Postgres — EN PROGRESO
+  - [x] Supabase self-hosted instalado en VPS (docker-compose con Kong, Auth, Realtime, Storage, etc.)
+  - [x] docker-compose.prod.yml actualizado: `DB_HOST=supabase-db`, red `supabase_network` agregada al backend
+  - [x] .env.production actualizado: credenciales Supabase (user=postgres, db=postgres)
+  - [x] Script `scripts/migrate-to-supabase.sh` creado (pg_dump → pg_restore automatizado)
+  - [x] Migración de datos ejecutada en VPS (pg_dump del contenedor postgreSQL → supabase-db)
+  - [ ] **BLOQUEADO:** Backend no conecta — .env.production en VPS tiene credenciales viejas (user=avax_health). Actualizar env y reiniciar.
 - [ ] **S2 — Storage:** Archivos médicos (bucket privado, signed URLs) + logos clínica (bucket público) con `@supabase/supabase-js`
 - [ ] **S3 — Auth:** Reemplazar JWT custom/bcrypt por Supabase Auth (import masivo de hashes, `app_metadata` con clinica_id/role)
 - [ ] **S4 — Realtime:** Chat push vía WebSocket (eliminar 3 setInterval de polling) + notificaciones instantáneas + Presence para estado online
@@ -577,7 +583,7 @@
 | **P** | Bugs Admin + Flujo Trial + Rediseño UI HEALTH_TRUST | ✅ Completada |
 | **Q** | Workflow n8n Zoé + Fixes Admin | ✅ Completada |
 | **R** | Simplificación suscripciones + Dominio avaxhealth.com | ✅ Completada |
-| **S1** | Supabase — Migrar DB Managed | ⏳ Pendiente |
+| **S1** | Supabase — Migrar DB Managed | 🔄 En progreso (bloqueado: env VPS) |
 | **S2** | Supabase — Storage (archivos médicos + logos) | ⏳ Pendiente |
 | **S3** | Supabase — Auth (reemplazar JWT custom) | ⏳ Pendiente |
 | **S4** | Supabase — Realtime (chat + notificaciones push) | ⏳ Pendiente |

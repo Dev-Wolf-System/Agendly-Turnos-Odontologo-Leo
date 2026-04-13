@@ -22,6 +22,7 @@ services:
       - AGENT_API_KEY=${AGENT_API_KEY}
     labels:
       - traefik.enable=true
+      - traefik.docker.network=n8n_evoapi
       - traefik.http.routers.avax-api.rule=Host(`api.${DOMAIN_NAME}`)
       - traefik.http.routers.avax-api.tls=true
       - traefik.http.routers.avax-api.entrypoints=web,websecure
