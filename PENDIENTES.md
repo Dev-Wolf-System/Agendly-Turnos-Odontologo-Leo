@@ -110,6 +110,19 @@
 
 ---
 
+## Rediseño UX/UI — Plan guardado
+
+**Prioridad:** Alta — solicitado 2026-04-13
+**Plan detallado:** [`PLAN_UX_UI_REDISENO.md`](./PLAN_UX_UI_REDISENO.md)
+
+4 fases: auditoría → componentes base (Dropzone, EmptyState, PageHeader, StatCard) → rediseño por sección (landing, dashboard, ficha paciente, turnos, etc.) → polish.
+
+**Caso disparador:** el upload de documentos en ficha del paciente no cumple estándar UX (sin drag&drop, sin preview, sin progress).
+
+**Pendiente antes de ejecutar:** definir referencia visual (Linear, Stripe, Vercel…) y si se intercala con Fase S3.
+
+---
+
 ## Migración a Supabase — Estado actual (2026-04-13)
 
 Plan completo: ver `/home/nlobo/.claude/plans/iterative-forging-abelson.md`
