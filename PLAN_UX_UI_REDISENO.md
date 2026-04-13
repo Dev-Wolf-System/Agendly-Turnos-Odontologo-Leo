@@ -42,13 +42,16 @@ El sistema funciona pero la experiencia de usuario y el diseño visual no están
 
 ### 2.1 `<Dropzone>` — crítico
 Reemplaza todos los `<Input type="file">` del sistema, incluido el de Documentos.
-- Drag & drop con estado visual (hover, dragging, dropping)
+- **Drag & drop nativo** (HTML5 Drag and Drop API) con estado visual (hover, dragging, dropping)
+- **Botón "Seleccionar archivo" también disponible** — UX dual: el usuario puede arrastrar O clickear, ambos caminos soportados en el mismo componente
 - Preview de imágenes
 - Progress bar durante upload
 - Validación visual de tipo y tamaño
 - Mensajes de error inline
 - Soporte multi-archivo
 - Accesible (keyboard nav, aria-labels)
+
+**Nota UX explícita:** el componente debe exponer ambas interacciones simultáneamente — no un modo "solo drop" ni "solo click". Esto aplica al upload de documentos del paciente y al upload de logo de clínica.
 
 **Ubicación:** `frontend/src/components/ui/dropzone.tsx`
 
