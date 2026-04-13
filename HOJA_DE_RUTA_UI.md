@@ -537,14 +537,21 @@
 - [ ] Productividad, pacientes, financiero, ocupación, tratamientos
 - [ ] Export PDF + Excel con branding clínica
 
-### Archivos Médicos
-- [ ] Entidad ArchivoMedico + storage S3/disco
-- [ ] Tab Documentos en ficha paciente (upload drag-and-drop, preview imágenes)
-
 ### Agente Zoe IA (Multi-tenant)
 - [ ] 1 flujo n8n para todas las clínicas, router por clinica_id
 - [ ] Paciente vía WhatsApp: ver turnos, registrarse, agendar, info clínica
 - [ ] Admin vía WhatsApp: resumen turnos, finanzas, alertas
+
+### Migración a Supabase (6 fases)
+- [ ] **S1 — DB Managed:** Migrar PostgreSQL self-hosted a Supabase Postgres (pg_dump/restore, cambiar env vars)
+- [ ] **S2 — Storage:** Archivos médicos (bucket privado, signed URLs) + logos clínica (bucket público) con `@supabase/supabase-js`
+- [ ] **S3 — Auth:** Reemplazar JWT custom/bcrypt por Supabase Auth (import masivo de hashes, `app_metadata` con clinica_id/role)
+- [ ] **S4 — Realtime:** Chat push vía WebSocket (eliminar 3 setInterval de polling) + notificaciones instantáneas + Presence para estado online
+- [ ] **S5 — RLS:** Row Level Security multi-tenant (policies por clinica_id, denormalizar pagos, subquery para historial_medico)
+- [ ] **S6 — Frontend:** Queries directas con anon key (turnos, pacientes read-only) + suscripciones Realtime al calendario
+
+**Dependencias:** S1 → S2 (paralelo), S3, S4 → S5 (requiere S3) → S6
+**Secuencia:** S1 → S2 + S4 (paralelo) → S3 → S5 → S6
 
 ---
 
@@ -570,3 +577,9 @@
 | **P** | Bugs Admin + Flujo Trial + Rediseño UI HEALTH_TRUST | ✅ Completada |
 | **Q** | Workflow n8n Zoé + Fixes Admin | ✅ Completada |
 | **R** | Simplificación suscripciones + Dominio avaxhealth.com | ✅ Completada |
+| **S1** | Supabase — Migrar DB Managed | ⏳ Pendiente |
+| **S2** | Supabase — Storage (archivos médicos + logos) | ⏳ Pendiente |
+| **S3** | Supabase — Auth (reemplazar JWT custom) | ⏳ Pendiente |
+| **S4** | Supabase — Realtime (chat + notificaciones push) | ⏳ Pendiente |
+| **S5** | Supabase — RLS (multi-tenancy a nivel DB) | ⏳ Pendiente |
+| **S6** | Supabase — Optimizaciones frontend | ⏳ Pendiente |
