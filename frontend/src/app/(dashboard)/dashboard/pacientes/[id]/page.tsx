@@ -696,7 +696,7 @@ export default function FichaPacientePage() {
                 <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs">Categoría</Label>
-                    <Select value={archivoCategoria} onValueChange={setArchivoCategoria}>
+                    <Select value={archivoCategoria} onValueChange={(v) => setArchivoCategoria(v ?? "")}>
                       <SelectTrigger className="rounded-lg h-9">
                         <SelectValue placeholder="Seleccionar..." />
                       </SelectTrigger>
