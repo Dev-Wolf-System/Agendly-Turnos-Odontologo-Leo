@@ -47,6 +47,8 @@ services:
       dockerfile: Dockerfile
       args:
         - NEXT_PUBLIC_API_URL=https://api.${DOMAIN_NAME}/api
+        - NEXT_PUBLIC_SUPABASE_URL=${NEXT_PUBLIC_SUPABASE_URL}
+        - NEXT_PUBLIC_SUPABASE_ANON_KEY=${NEXT_PUBLIC_SUPABASE_ANON_KEY}
     container_name: avax-frontend
     restart: always
     environment:
