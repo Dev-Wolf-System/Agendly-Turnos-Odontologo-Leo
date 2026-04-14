@@ -19,6 +19,7 @@ import notificacionesService, {
   Notificacion,
 } from "@/services/notificaciones.service";
 import { useAuth } from "@/components/providers/auth-provider";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 const TIPO_CONFIG: Record<
   string,
@@ -105,12 +106,33 @@ export function NotificationBell() {
     }
   }, [user]);
 
-  // Poll count every 60 seconds
+  // Carga inicial + Realtime: push instantáneo en INSERT de notificaciones
   useEffect(() => {
     fetchCount();
-    const interval = setInterval(fetchCount, 60000);
-    return () => clearInterval(interval);
-  }, [fetchCount]);
+    if (!user?.id) return;
+    const supabase = getSupabaseClient();
+    const channel = supabase
+      .channel(`notificaciones-${user.id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "notificaciones",
+          filter: `user_id=eq.${user.id}`,
+        },
+        (payload) => {
+          const nueva = payload.new as Notificacion;
+          setUnreadCount((c) => c + 1);
+          setNotificaciones((prev) => [nueva, ...prev]);
+        },
+      )
+      .subscribe();
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
+  }, [fetchCount, user?.id]);
 
   // Load full list when dropdown opens
   useEffect(() => {

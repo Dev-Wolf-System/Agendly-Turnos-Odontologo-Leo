@@ -60,15 +60,6 @@ export const chatService = {
     return data;
   },
 
-  async heartbeat(): Promise<void> {
-    await api.post("/chat/heartbeat");
-  },
-
-  async getOnlineUsers(): Promise<string[]> {
-    const { data } = await api.get("/chat/online");
-    return data;
-  },
-
   async clearChat(otherUserId?: string): Promise<{ deleted: number }> {
     const params = otherUserId ? `?with=${otherUserId}` : "";
     const { data } = await api.delete(`/chat/messages${params}`);

@@ -5,10 +5,6 @@ import { ChatMessage } from './entities/message.entity';
 import { CreateMessageDto } from './dto/create-message.dto';
 import { User } from '../users/entities/user.entity';
 
-// In-memory online tracking (per clinic)
-const onlineUsers = new Map<string, Map<string, Date>>();
-const ONLINE_THRESHOLD_MS = 30_000; // 30 seconds
-
 @Injectable()
 export class ChatService {
   constructor(
@@ -133,29 +129,6 @@ export class ChatService {
       select: ['id', 'nombre', 'apellido', 'role', 'email'],
       order: { nombre: 'ASC' },
     });
-  }
-
-  heartbeat(clinicaId: string, userId: string): { ok: true } {
-    if (!onlineUsers.has(clinicaId)) {
-      onlineUsers.set(clinicaId, new Map());
-    }
-    onlineUsers.get(clinicaId)!.set(userId, new Date());
-    return { ok: true };
-  }
-
-  getOnlineUsers(clinicaId: string): string[] {
-    const clinicMap = onlineUsers.get(clinicaId);
-    if (!clinicMap) return [];
-    const now = Date.now();
-    const online: string[] = [];
-    for (const [uid, lastSeen] of clinicMap) {
-      if (now - lastSeen.getTime() < ONLINE_THRESHOLD_MS) {
-        online.push(uid);
-      } else {
-        clinicMap.delete(uid);
-      }
-    }
-    return online;
   }
 
   async clearChat(clinicaId: string, otherUserId?: string): Promise<{ deleted: number }> {

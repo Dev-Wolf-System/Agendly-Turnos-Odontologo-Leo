@@ -64,19 +64,6 @@ export class ChatController {
     return this.chatService.getClinicUsers(clinicaId);
   }
 
-  @Post('heartbeat')
-  heartbeat(
-    @CurrentClinica() clinicaId: string,
-    @CurrentUser() user: { userId: string },
-  ) {
-    return this.chatService.heartbeat(clinicaId, user.userId);
-  }
-
-  @Get('online')
-  getOnlineUsers(@CurrentClinica() clinicaId: string) {
-    return this.chatService.getOnlineUsers(clinicaId);
-  }
-
   @Get('unread-per-user')
   getUnreadPerUser(
     @CurrentClinica() clinicaId: string,

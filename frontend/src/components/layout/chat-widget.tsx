@@ -3,6 +3,7 @@
 import { useState, useEffect, useRef, useCallback } from "react";
 import { useAuth } from "@/components/providers/auth-provider";
 import { chatService, ChatMessage, ChatUser } from "@/services/chat.service";
+import { getSupabaseClient } from "@/lib/supabase-client";
 import { MessageCircle, Send, X, ChevronLeft, Users, Trash2, Check, CheckCheck, Bell } from "lucide-react";
 
 export function ChatWidget() {
@@ -29,16 +30,28 @@ export function ChatWidget() {
     messagesEndRef.current?.scrollIntoView({ behavior: "smooth" });
   }, []);
 
-  // Heartbeat + online users polling
+  // Presence: tracks online users per clínica vía Supabase Realtime
   useEffect(() => {
-    const pulse = () => {
-      chatService.heartbeat().catch(() => {});
-      chatService.getOnlineUsers().then((ids) => setOnlineUserIds(new Set(ids))).catch(() => {});
+    if (!user?.id || !user?.clinica_id) return;
+    const supabase = getSupabaseClient();
+    const channel = supabase.channel(`chat-presence-${user.clinica_id}`, {
+      config: { presence: { key: user.id } },
+    });
+    channel
+      .on("presence", { event: "sync" }, () => {
+        const state = channel.presenceState();
+        setOnlineUserIds(new Set(Object.keys(state)));
+      })
+      .subscribe(async (status) => {
+        if (status === "SUBSCRIBED") {
+          await channel.track({ online_at: new Date().toISOString() });
+        }
+      });
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
     };
-    pulse();
-    const interval = setInterval(pulse, 15000);
-    return () => clearInterval(interval);
-  }, []);
+  }, [user?.id, user?.clinica_id]);
 
   // Load users
   useEffect(() => {
@@ -46,10 +59,11 @@ export function ChatWidget() {
     chatService.getClinicUsers().then(setUsers).catch(() => {});
   }, [open]);
 
-  // Load messages when chat is open
+  // Initial loads + Realtime: chat_messages INSERT refresca mensajes y contadores
+  const loadMessagesRef = useRef<(() => void) | null>(null);
   useEffect(() => {
-    if (!open || view !== "chat") return;
     const loadMessages = () => {
+      if (!open || view !== "chat") return;
       chatService
         .getMessages(selectedUser?.id)
         .then((msgs) => {
@@ -79,14 +93,12 @@ export function ChatWidget() {
         })
         .catch(() => {});
     };
+    loadMessagesRef.current = loadMessages;
     loadMessages();
-    const interval = setInterval(loadMessages, 4000);
-    return () => clearInterval(interval);
   }, [open, view, selectedUser, user?.id]);
 
-  // Unread polling
   useEffect(() => {
-    const poll = () => {
+    const loadUnread = () => {
       chatService.getUnreadCount().then((count) => {
         setUnreadCount(count);
         if (count > prevUnreadRef.current && !open) setHasNewNotification(true);
@@ -94,10 +106,31 @@ export function ChatWidget() {
       }).catch(() => {});
       chatService.getUnreadPerUser().then(setUnreadPerUser).catch(() => {});
     };
-    poll();
-    const interval = setInterval(poll, 10000);
-    return () => clearInterval(interval);
-  }, [open]);
+    loadUnread();
+
+    if (!user?.clinica_id) return;
+    const supabase = getSupabaseClient();
+    const channel = supabase
+      .channel(`chat-messages-${user.clinica_id}`)
+      .on(
+        "postgres_changes",
+        {
+          event: "INSERT",
+          schema: "public",
+          table: "chat_messages",
+          filter: `clinica_id=eq.${user.clinica_id}`,
+        },
+        () => {
+          loadMessagesRef.current?.();
+          loadUnread();
+        },
+      )
+      .subscribe();
+    return () => {
+      channel.unsubscribe();
+      supabase.removeChannel(channel);
+    };
+  }, [open, user?.clinica_id]);
 
   // Auto-scroll
   useEffect(() => {
