@@ -12,7 +12,9 @@ import { User } from '../users/entities/user.entity';
 import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { HorarioProfesional } from '../horarios-profesional/entities/horario-profesional.entity';
-import { EstadoTurno, SourceTurno, UserRole } from '../../common/enums';
+import { Pago } from '../pagos/entities/pago.entity';
+import { Inventario } from '../inventario/entities/inventario.entity';
+import { EstadoTurno, EstadoPago, SourceTurno, UserRole } from '../../common/enums';
 import { WebhookService } from '../../common/services/webhook.service';
 
 @Injectable()
@@ -34,6 +36,10 @@ export class AgentService {
     private readonly subscriptionRepo: Repository<Subscription>,
     @InjectRepository(HorarioProfesional)
     private readonly horarioProfesionalRepo: Repository<HorarioProfesional>,
+    @InjectRepository(Pago)
+    private readonly pagoRepo: Repository<Pago>,
+    @InjectRepository(Inventario)
+    private readonly inventarioRepo: Repository<Inventario>,
     private readonly webhookService: WebhookService,
   ) {}
 
@@ -639,6 +645,349 @@ export class AgentService {
     });
 
     return { success: true, event };
+  }
+
+  /* ─────────────────────────────────────────────
+   * 12. Routing por teléfono: identificar quién escribe
+   * ───────────────────────────────────────────── */
+  async quienEscribe(clinicaId: string, phone: string) {
+    const normalized = phone.replace(/\D/g, '');
+
+    const user = await this.userRepo.findOne({
+      where: { clinica_id: clinicaId, cel: normalized },
+      select: ['id', 'nombre', 'apellido', 'role'],
+    });
+    if (user) {
+      return {
+        tipo: user.role === UserRole.PROFESSIONAL ? 'profesional' : 'admin',
+        userId: user.id,
+        role: user.role,
+        nombre: `${user.nombre} ${user.apellido}`,
+      };
+    }
+
+    const paciente = await this.pacienteRepo.findOne({
+      where: { clinica_id: clinicaId, cel: normalized },
+      select: ['id', 'nombre', 'apellido'],
+    });
+    if (paciente) {
+      return {
+        tipo: 'paciente',
+        pacienteId: paciente.id,
+        nombre: `${paciente.nombre} ${paciente.apellido}`,
+      };
+    }
+
+    return { tipo: 'desconocido' };
+  }
+
+  /* ─────────────────────────────────────────────
+   * 13. Resumen de clínica (para admin vía WhatsApp)
+   * ───────────────────────────────────────────── */
+  async resumenClinica(clinicaId: string) {
+    const hoy = new Date();
+    const inicioHoy = new Date(hoy);
+    inicioHoy.setHours(0, 0, 0, 0);
+    const finHoy = new Date(hoy);
+    finHoy.setHours(23, 59, 59, 999);
+
+    const inicioMes = new Date(hoy.getFullYear(), hoy.getMonth(), 1);
+
+    const [
+      turnosHoyTotal,
+      turnosHoyPendientes,
+      turnosHoyConfirmados,
+      turnosHoyCompletados,
+      ingresosMes,
+      stockBajo,
+      totalPacientes,
+      pacientesNuevosMes,
+      proximosTurnos,
+    ] = await Promise.all([
+      this.turnoRepo.count({
+        where: {
+          clinica_id: clinicaId,
+          start_time: Between(inicioHoy, finHoy),
+          estado: Not(In([EstadoTurno.CANCELADO, EstadoTurno.PERDIDO])),
+        },
+      }),
+      this.turnoRepo.count({
+        where: {
+          clinica_id: clinicaId,
+          start_time: Between(inicioHoy, finHoy),
+          estado: EstadoTurno.PENDIENTE,
+        },
+      }),
+      this.turnoRepo.count({
+        where: {
+          clinica_id: clinicaId,
+          start_time: Between(inicioHoy, finHoy),
+          estado: EstadoTurno.CONFIRMADO,
+        },
+      }),
+      this.turnoRepo.count({
+        where: {
+          clinica_id: clinicaId,
+          start_time: Between(inicioHoy, finHoy),
+          estado: EstadoTurno.COMPLETADO,
+        },
+      }),
+      this.pagoRepo
+        .createQueryBuilder('p')
+        .innerJoin('p.turno', 't')
+        .where('t.clinica_id = :clinicaId', { clinicaId })
+        .andWhere('p.estado = :estado', { estado: EstadoPago.APROBADO })
+        .andWhere('p.created_at BETWEEN :inicio AND :fin', {
+          inicio: inicioMes,
+          fin: finHoy,
+        })
+        .select('COALESCE(SUM(p.total), 0)', 'total')
+        .getRawOne<{ total: string }>(),
+      this.inventarioRepo
+        .createQueryBuilder('i')
+        .where('i.clinica_id = :clinicaId', { clinicaId })
+        .andWhere('i.cantidad <= i.stock_min')
+        .getCount(),
+      this.pacienteRepo.count({ where: { clinica_id: clinicaId } }),
+      this.pacienteRepo.count({
+        where: {
+          clinica_id: clinicaId,
+          created_at: MoreThanOrEqual(inicioMes),
+        },
+      }),
+      this.turnoRepo.find({
+        where: {
+          clinica_id: clinicaId,
+          start_time: MoreThanOrEqual(new Date()),
+          estado: Not(In([EstadoTurno.CANCELADO, EstadoTurno.PERDIDO])),
+        },
+        relations: ['paciente', 'user'],
+        order: { start_time: 'ASC' },
+        take: 5,
+      }),
+    ]);
+
+    return {
+      turnos_hoy: {
+        total: turnosHoyTotal,
+        pendientes: turnosHoyPendientes,
+        confirmados: turnosHoyConfirmados,
+        completados: turnosHoyCompletados,
+      },
+      ingresos_mes: Number(ingresosMes?.total ?? 0),
+      alertas_stock: stockBajo,
+      pacientes: {
+        total: totalPacientes,
+        nuevos_mes: pacientesNuevosMes,
+      },
+      proximos_turnos: proximosTurnos.map((t) => ({
+        id: t.id,
+        start_time: t.start_time,
+        paciente: t.paciente
+          ? `${t.paciente.nombre} ${t.paciente.apellido}`
+          : null,
+        profesional: t.user
+          ? `${t.user.nombre} ${t.user.apellido}`
+          : null,
+        estado: t.estado,
+      })),
+    };
+  }
+
+  /* ─────────────────────────────────────────────
+   * 14. Finanzas por periodo
+   * ───────────────────────────────────────────── */
+  async finanzas(
+    clinicaId: string,
+    periodo: 'hoy' | 'semana' | 'mes' = 'mes',
+  ) {
+    const ahora = new Date();
+    let inicio: Date;
+    if (periodo === 'hoy') {
+      inicio = new Date(ahora);
+      inicio.setHours(0, 0, 0, 0);
+    } else if (periodo === 'semana') {
+      inicio = new Date(ahora);
+      inicio.setDate(inicio.getDate() - 7);
+    } else {
+      inicio = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+    }
+
+    const qb = this.pagoRepo
+      .createQueryBuilder('p')
+      .innerJoin('p.turno', 't')
+      .where('t.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('p.created_at >= :inicio', { inicio });
+
+    const [ingresosAprobados, ingresosPendientes, porMetodo] =
+      await Promise.all([
+        qb
+          .clone()
+          .andWhere('p.estado = :estado', { estado: EstadoPago.APROBADO })
+          .select('COALESCE(SUM(p.total), 0)', 'total')
+          .addSelect('COUNT(p.id)', 'cantidad')
+          .getRawOne<{ total: string; cantidad: string }>(),
+        qb
+          .clone()
+          .andWhere('p.estado = :estado', { estado: EstadoPago.PENDIENTE })
+          .select('COALESCE(SUM(p.total), 0)', 'total')
+          .addSelect('COUNT(p.id)', 'cantidad')
+          .getRawOne<{ total: string; cantidad: string }>(),
+        qb
+          .clone()
+          .andWhere('p.estado = :estado', { estado: EstadoPago.APROBADO })
+          .groupBy('p.method')
+          .select('p.method', 'method')
+          .addSelect('COALESCE(SUM(p.total), 0)', 'total')
+          .addSelect('COUNT(p.id)', 'cantidad')
+          .getRawMany<{ method: string; total: string; cantidad: string }>(),
+      ]);
+
+    return {
+      periodo,
+      desde: inicio.toISOString(),
+      hasta: ahora.toISOString(),
+      aprobados: {
+        total: Number(ingresosAprobados?.total ?? 0),
+        cantidad: Number(ingresosAprobados?.cantidad ?? 0),
+      },
+      pendientes: {
+        total: Number(ingresosPendientes?.total ?? 0),
+        cantidad: Number(ingresosPendientes?.cantidad ?? 0),
+      },
+      por_metodo: porMetodo.map((m) => ({
+        method: m.method || 'sin_especificar',
+        total: Number(m.total),
+        cantidad: Number(m.cantidad),
+      })),
+    };
+  }
+
+  /* ─────────────────────────────────────────────
+   * 15. Alertas de inventario (stock bajo)
+   * ───────────────────────────────────────────── */
+  async inventarioAlertas(clinicaId: string) {
+    const items = await this.inventarioRepo
+      .createQueryBuilder('i')
+      .where('i.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('i.cantidad <= i.stock_min')
+      .orderBy('i.cantidad', 'ASC')
+      .getMany();
+
+    return {
+      total: items.length,
+      items: items.map((i) => ({
+        id: i.id,
+        nombre: i.nombre,
+        cantidad: i.cantidad,
+        stock_min: i.stock_min,
+      })),
+    };
+  }
+
+  /* ─────────────────────────────────────────────
+   * 16. Stats de pacientes
+   * ───────────────────────────────────────────── */
+  async pacientesStats(clinicaId: string) {
+    const ahora = new Date();
+    const inicioMes = new Date(ahora.getFullYear(), ahora.getMonth(), 1);
+
+    const [total, nuevosMes] = await Promise.all([
+      this.pacienteRepo.count({ where: { clinica_id: clinicaId } }),
+      this.pacienteRepo.count({
+        where: {
+          clinica_id: clinicaId,
+          created_at: MoreThanOrEqual(inicioMes),
+        },
+      }),
+    ]);
+
+    return { total, nuevos_mes: nuevosMes };
+  }
+
+  /* ─────────────────────────────────────────────
+   * 17. Equipo de la clínica
+   * ───────────────────────────────────────────── */
+  async equipo(clinicaId: string) {
+    const miembros = await this.userRepo.find({
+      where: { clinica_id: clinicaId },
+      select: ['id', 'nombre', 'apellido', 'email', 'role'],
+      order: { role: 'ASC', apellido: 'ASC' },
+    });
+
+    return {
+      total: miembros.length,
+      miembros: miembros.map((u) => ({
+        id: u.id,
+        nombre: `${u.nombre} ${u.apellido}`,
+        email: u.email,
+        role: u.role,
+      })),
+    };
+  }
+
+  /* ─────────────────────────────────────────────
+   * 18. Turnos del profesional (mis turnos)
+   * ───────────────────────────────────────────── */
+  async misTurnos(
+    clinicaId: string,
+    userId: string,
+    periodo: 'hoy' | 'semana' | 'pendientes' = 'hoy',
+  ) {
+    const ahora = new Date();
+    let inicio: Date;
+    let fin: Date;
+
+    if (periodo === 'hoy') {
+      inicio = new Date(ahora);
+      inicio.setHours(0, 0, 0, 0);
+      fin = new Date(ahora);
+      fin.setHours(23, 59, 59, 999);
+    } else if (periodo === 'semana') {
+      inicio = new Date(ahora);
+      inicio.setHours(0, 0, 0, 0);
+      fin = new Date(ahora);
+      fin.setDate(fin.getDate() + 7);
+      fin.setHours(23, 59, 59, 999);
+    } else {
+      inicio = ahora;
+      fin = new Date(ahora);
+      fin.setFullYear(fin.getFullYear() + 1);
+    }
+
+    const where: Parameters<typeof this.turnoRepo.find>[0] = {
+      where: {
+        clinica_id: clinicaId,
+        user_id: userId,
+        start_time: Between(inicio, fin),
+        estado:
+          periodo === 'pendientes'
+            ? In([EstadoTurno.PENDIENTE, EstadoTurno.CONFIRMADO])
+            : Not(In([EstadoTurno.CANCELADO, EstadoTurno.PERDIDO])),
+      },
+      relations: ['paciente'],
+      order: { start_time: 'ASC' },
+    };
+
+    const turnos = await this.turnoRepo.find(where);
+
+    return {
+      periodo,
+      total: turnos.length,
+      turnos: turnos.map((t) => ({
+        id: t.id,
+        start_time: t.start_time,
+        end_time: t.end_time,
+        estado: t.estado,
+        tipo_tratamiento: t.tipo_tratamiento,
+        paciente: t.paciente
+          ? {
+              nombre: `${t.paciente.nombre} ${t.paciente.apellido}`,
+              cel: t.paciente.cel,
+            }
+          : null,
+      })),
+    };
   }
 
   /* ─── Helpers ─── */

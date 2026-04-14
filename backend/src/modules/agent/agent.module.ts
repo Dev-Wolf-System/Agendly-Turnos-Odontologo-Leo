@@ -9,6 +9,8 @@ import { User } from '../users/entities/user.entity';
 import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
 import { Subscription } from '../subscriptions/entities/subscription.entity';
 import { HorarioProfesional } from '../horarios-profesional/entities/horario-profesional.entity';
+import { Pago } from '../pagos/entities/pago.entity';
+import { Inventario } from '../inventario/entities/inventario.entity';
 import { WebhookService } from '../../common/services/webhook.service';
 
 @Module({
@@ -21,6 +23,8 @@ import { WebhookService } from '../../common/services/webhook.service';
       Tratamiento,
       Subscription,
       HorarioProfesional,
+      Pago,
+      Inventario,
     ]),
   ],
   controllers: [AgentController],

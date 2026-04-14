@@ -179,3 +179,6 @@ Antes de empezar, definir qué benchmarks visuales queremos imitar:
 | **Total** | **10-15 días** | **Medio** |
 
 Si el usuario quiere una muestra rápida antes de comprometer todo esto, se puede ejecutar **solo UI-2.1 (Dropzone) + aplicar al tab Documentos** como prueba del nivel esperado. ~4 horas.
+
+
+## UTILIZALAS SKILLS QUE SE ENCUENTRAN EN LA CARPETA SKILL TEN EN CUENTA LAS PAUTAS IMPORTANTES QUE ESTAN EN EL ARCHIVO PLAN_REDISENO_UI_AVAX_HEALTH.MD, RECUERDA QUE EL DISEÑO, SEO Y EXPERIENCIA DEL USUARIO DEBE SER DE PRIMER NIVEL.
