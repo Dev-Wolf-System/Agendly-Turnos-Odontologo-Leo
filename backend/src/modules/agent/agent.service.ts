@@ -653,19 +653,6 @@ export class AgentService {
   async quienEscribe(clinicaId: string, phone: string) {
     const normalized = phone.replace(/\D/g, '');
 
-    const user = await this.userRepo.findOne({
-      where: { clinica_id: clinicaId, cel: normalized },
-      select: ['id', 'nombre', 'apellido', 'role'],
-    });
-    if (user) {
-      return {
-        tipo: user.role === UserRole.PROFESSIONAL ? 'profesional' : 'admin',
-        userId: user.id,
-        role: user.role,
-        nombre: `${user.nombre} ${user.apellido}`,
-      };
-    }
-
     const paciente = await this.pacienteRepo.findOne({
       where: { clinica_id: clinicaId, cel: normalized },
       select: ['id', 'nombre', 'apellido'],
