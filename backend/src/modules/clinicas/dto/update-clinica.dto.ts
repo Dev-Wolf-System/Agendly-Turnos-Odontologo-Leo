@@ -62,6 +62,10 @@ export class UpdateClinicaDto {
   recordatorio_horas_antes?: number;
 
   @IsOptional()
+  @IsBoolean()
+  agent_habilitado?: boolean;
+
+  @IsOptional()
   @IsString()
   agent_nombre?: string;
 

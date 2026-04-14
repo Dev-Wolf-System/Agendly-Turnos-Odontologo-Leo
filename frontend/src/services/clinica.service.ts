@@ -33,6 +33,7 @@ export interface Clinica {
   recordatorio_horas_antes: number | null;
   evolution_instance: string | null;
   evolution_api_key: string | null;
+  agent_habilitado: boolean;
   agent_nombre: string | null;
   agent_instrucciones: string | null;
   kpi_visibility: Record<string, Record<string, boolean>> | null;
@@ -54,6 +55,7 @@ export interface UpdateClinicaPayload {
   duracion_turno_default?: number;
   webhooks?: Record<string, WebhookConfig>;
   recordatorio_horas_antes?: number;
+  agent_habilitado?: boolean;
   agent_nombre?: string;
   agent_instrucciones?: string;
   kpi_visibility?: Record<string, Record<string, boolean>>;

@@ -1818,7 +1818,7 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
 // TAB: WHATSAPP / IA
 // ═══════════════════════════════════════════════════════════
 function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => void }) {
-  const [agentActivo, setAgentActivo] = useState(!!clinica.agent_nombre && clinica.agent_nombre !== "");
+  const [agentActivo, setAgentActivo] = useState<boolean>(!!clinica.agent_habilitado);
   const [agentNombre, setAgentNombre] = useState(clinica.agent_nombre || "Zoe");
   const [agentInstrucciones, setAgentInstrucciones] = useState(clinica.agent_instrucciones || "");
   const [isSaving, setIsSaving] = useState(false);
@@ -1829,7 +1829,8 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
     try {
       setIsSaving(true);
       await clinicaService.updateMe({
-        agent_nombre: agentActivo ? agentNombre : "",
+        agent_habilitado: agentActivo,
+        agent_nombre: agentNombre,
         agent_instrucciones: agentInstrucciones,
       });
       toast.success("Configuración del agente guardada");

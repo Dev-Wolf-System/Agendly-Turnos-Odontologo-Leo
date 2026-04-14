@@ -57,6 +57,9 @@ export class Clinica extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   evolution_api_key: string;
 
+  @Column({ type: 'boolean', default: false })
+  agent_habilitado: boolean;
+
   @Column({ type: 'text', nullable: true, default: 'Zoe' })
   agent_nombre: string;
 

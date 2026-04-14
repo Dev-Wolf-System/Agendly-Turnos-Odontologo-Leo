@@ -50,6 +50,15 @@ export class AgentService {
       );
     }
 
+    // Gate: si el agente no está habilitado por la clínica, cortar el flujo en n8n
+    if (!clinica.agent_habilitado) {
+      return {
+        disabled: true,
+        clinicaId: clinica.id,
+        nombre: clinica.nombre,
+      };
+    }
+
     // Verificar suscripción
     const subscription = await this.subscriptionRepo.findOne({
       where: { clinica_id: clinica.id },
@@ -58,6 +67,7 @@ export class AgentService {
     });
 
     return {
+      disabled: false,
       clinicaId: clinica.id,
       nombre: clinica.nombre,
       especialidad: clinica.especialidad,
