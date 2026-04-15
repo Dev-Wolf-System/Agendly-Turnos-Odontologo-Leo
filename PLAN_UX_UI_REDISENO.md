@@ -67,10 +67,17 @@ Al auditar `frontend/src/app/globals.css` y `frontend/src/app/layout.tsx` se det
 
 | # | Paso | Archivo | Estado |
 |---|------|---------|--------|
-| 8 | Formularios (inputs primarios/secundarios) | `frontend/src/components/ui/{button,input,select,textarea}.tsx` | Auditar — probablemente ya alineado |
-| 9 | Módulo Agente Zoé (header gradient, burbujas chat) | `frontend/src/app/(dashboard)/dashboard/agente-zoe/*` | Por aplicar |
-| 10 | Panel admin (clinicas, planes, suscripciones) | `frontend/src/app/(admin)/admin/*` | Por aplicar |
+| 8 | Formularios (inputs primarios/secundarios) | `frontend/src/components/ui/{button,input,select,textarea}.tsx` | ✅ Auditado — ya alineado (text-base md:text-sm para evitar autozoom iOS) |
+| 9 | Módulo Agente Zoé (header gradient, iconografía, textarea) | `frontend/src/app/(dashboard)/dashboard/configuracion/page.tsx` (sección Zoé) | ✅ Commit `9b6eefe` |
+| 10 | Panel admin — dashboard | `frontend/src/app/(admin)/admin/page.tsx` | ✅ Commit `df0867f` |
+| 10b | Panel admin — clínicas / planes / suscripciones / prospectos / soporte | `frontend/src/app/(admin)/admin/{clinicas,planes,suscripciones,prospectos,soporte}/*` | Por aplicar |
 | 11 | Polish final (skeletons, micro-interacciones, toast) | global | Por aplicar |
+
+## Commits del pipeline
+
+- `d10d736` — rediseño base HEALTH_TRUST (dropzone, sidebar, header, kpi, dialog)
+- `9b6eefe` — Agente Zoé (header gradient, Lucide icons, Textarea, tokens semánticos)
+- `df0867f` — dashboard admin (KpiCard, Lucide, charts con paleta HEALTH_TRUST)
 
 ---
 
