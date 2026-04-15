@@ -7,12 +7,7 @@ import pacientesService, {
   FichaPaciente,
 } from "@/services/pacientes.service";
 import { Button } from "@/components/ui/button";
-import {
-  Card,
-  CardContent,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { KpiCard } from "@/components/ui/kpi-card";
 import {
   Table,
   TableBody,
@@ -344,81 +339,44 @@ export default function FichaPacientePage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider">Total Turnos</p>
-                <p className="text-3xl font-bold text-blue-700 dark:text-blue-300 mt-1">{kpis.totalTurnos}</p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center">
-                <Calendar className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-purple-50 to-teal-100/50 dark:from-teal-950/40 dark:to-teal-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-[var(--ht-accent)]/70 dark:text-accent/70 uppercase tracking-wider">Último Turno</p>
-                <p className="text-xl font-bold text-teal-700 dark:text-purple-300 mt-1">
-                  {kpis.ultimoTurno ? formatFecha(kpis.ultimoTurno) : "—"}
-                </p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent-dark)]/10 dark:bg-[var(--ht-accent)]/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-[var(--ht-accent)] dark:text-accent" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wider">Total Pagado</p>
-                <p className="text-xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">
-                  {formatMonto(kpis.totalPagado)}
-                </p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10 flex items-center justify-center">
-                <DollarSign className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Saldo Pendiente</p>
-                <p className="text-xl font-bold text-amber-700 dark:text-amber-300 mt-1">
-                  {formatMonto(kpis.saldoPendiente)}
-                </p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 flex items-center justify-center">
-                <AlertCircle className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <KpiCard
+          label="Total Turnos"
+          value={kpis.totalTurnos}
+          icon={<Calendar className="h-5 w-5" />}
+          variant="primary"
+        />
+        <KpiCard
+          label="Último Turno"
+          value={kpis.ultimoTurno ? formatFecha(kpis.ultimoTurno) : "—"}
+          icon={<Clock className="h-5 w-5" />}
+          variant="accent"
+        />
+        <KpiCard
+          label="Total Pagado"
+          value={formatMonto(kpis.totalPagado)}
+          icon={<DollarSign className="h-5 w-5" />}
+          variant="warm"
+        />
+        <KpiCard
+          label="Saldo Pendiente"
+          value={formatMonto(kpis.saldoPendiente)}
+          icon={<AlertCircle className="h-5 w-5" />}
+          variant={kpis.saldoPendiente > 0 ? "danger" : "accent"}
+        />
       </div>
 
       {/* Últimos Procedimientos - Timeline */}
       {historialMedico.length > 0 && (
-        <Card className="rounded-xl overflow-hidden">
-          <CardHeader className="pb-3">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] overflow-hidden">
+          <div className="px-5 pt-5 pb-3">
             <div className="flex items-center gap-2">
-              <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Stethoscope className="h-4 w-4 text-primary" />
+              <div className="w-8 h-8 rounded-lg bg-[var(--ht-primary)]/10 flex items-center justify-center">
+                <Stethoscope className="h-4 w-4 text-[var(--ht-primary)]" />
               </div>
-              <CardTitle className="text-base">Últimos Procedimientos</CardTitle>
+              <h2 className="text-base font-semibold">Últimos Procedimientos</h2>
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="px-5 pb-5">
             <div className="relative">
               {/* Timeline line */}
               <div className="absolute left-[15px] top-2 bottom-2 w-px bg-border" />
@@ -462,8 +420,8 @@ export default function FichaPacientePage() {
                 ))}
               </div>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Tabs */}
@@ -493,8 +451,8 @@ export default function FichaPacientePage() {
 
         {/* Próximos Turnos */}
         <TabsContent value="proximos">
-          <Card className="rounded-xl">
-            <CardContent className="p-0">
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] overflow-hidden">
+            <div className="p-0">
               {proximosTurnos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
@@ -535,14 +493,14 @@ export default function FichaPacientePage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Historial de Turnos */}
         <TabsContent value="historial-turnos">
-          <Card className="rounded-xl">
-            <CardContent className="p-0">
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] overflow-hidden">
+            <div className="p-0">
               {historialTurnos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
@@ -583,14 +541,14 @@ export default function FichaPacientePage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Historial Médico */}
         <TabsContent value="historial-medico">
-          <Card className="rounded-xl">
-            <CardContent className="p-0">
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] overflow-hidden">
+            <div className="p-0">
               {historialMedico.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
@@ -629,14 +587,14 @@ export default function FichaPacientePage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Pagos */}
         <TabsContent value="pagos">
-          <Card className="rounded-xl">
-            <CardContent className="p-0">
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] overflow-hidden">
+            <div className="p-0">
               {pagos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
                   <div className="w-12 h-12 rounded-xl bg-muted/50 flex items-center justify-center mb-3">
@@ -671,24 +629,22 @@ export default function FichaPacientePage() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
 
         {/* Documentos */}
         <TabsContent value="documentos">
-          <Card className="rounded-xl">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div className="flex items-center gap-2">
-                  <div className="w-8 h-8 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Paperclip className="h-4 w-4 text-primary" />
-                  </div>
-                  <CardTitle className="text-base">Documentos Médicos</CardTitle>
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] overflow-hidden">
+            <div className="px-5 pt-5 pb-3">
+              <div className="flex items-center gap-2">
+                <div className="w-8 h-8 rounded-lg bg-[var(--ht-primary)]/10 flex items-center justify-center">
+                  <Paperclip className="h-4 w-4 text-[var(--ht-primary)]" />
                 </div>
+                <h2 className="text-base font-semibold">Documentos Médicos</h2>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-4">
+            </div>
+            <div className="px-5 pb-5 space-y-4">
               {/* Upload */}
               <div className="space-y-3">
                 <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
@@ -786,8 +742,8 @@ export default function FichaPacientePage() {
                   ))}
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </TabsContent>
       </Tabs>
     </div>

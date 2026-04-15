@@ -22,13 +22,6 @@ import { Input } from "@/components/ui/input";
 import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -395,15 +388,15 @@ function TabClinica({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => v
 
   return (
     <div className="grid gap-6 lg:grid-cols-2">
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
             <Building2 className="h-5 w-5" />
             Datos de la Clínica
-          </CardTitle>
-          <CardDescription>Información general de tu establecimiento</CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Información general de tu establecimiento</p>
+        </div>
+        <div className="px-6 pb-6 space-y-4">
           {/* Logo */}
           <div className="space-y-3">
             <Label>Logo de la clínica</Label>
@@ -541,20 +534,18 @@ function TabClinica({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => v
               placeholder="Av. Corrientes 1234, CABA"
             />
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
             <Stethoscope className="h-5 w-5" />
             Especialidad y Personalización
-          </CardTitle>
-          <CardDescription>
-            Adaptá la plataforma a tu rama de salud
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">Adaptá la plataforma a tu rama de salud</p>
+        </div>
+        <div className="px-6 pb-6 space-y-4">
           <div className="space-y-2">
             <Label>Especialidad</Label>
             <Select
@@ -610,8 +601,8 @@ function TabClinica({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => v
             <Save className="h-4 w-4" />
             {isSaving ? "Guardando..." : "Guardar Cambios"}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -752,23 +743,23 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
   return (
     <div className="space-y-6">
       {/* ── Horarios de la clínica ── */}
-      <Card>
-        <CardHeader>
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-base font-semibold">
                 <Clock className="h-5 w-5" />
                 Horarios de Atención
-              </CardTitle>
-              <CardDescription>Configurá turnos de mañana y tarde para cada día</CardDescription>
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">Configurá turnos de mañana y tarde para cada día</p>
             </div>
             <Button onClick={handleSave} disabled={isSaving} className="gap-2">
               <Save className="h-4 w-4" />
               {isSaving ? "Guardando..." : "Guardar Horarios"}
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="px-6 pb-6">
           <div className="space-y-3">
             {DIAS_SEMANA.map(({ key, label }) => {
               const dia = horarios[key] || DEFAULT_HORARIOS[key];
@@ -845,22 +836,22 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* ── Horarios por Profesional ── */}
       {professionals.length > 0 && (
-        <Card>
-          <CardHeader>
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+          <div className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <div>
-                <CardTitle className="flex items-center gap-2">
+                <h2 className="flex items-center gap-2 text-base font-semibold">
                   <Users className="h-5 w-5" />
                   Horarios por Profesional
-                </CardTitle>
-                <CardDescription>
+                </h2>
+                <p className="text-sm text-muted-foreground mt-0.5">
                   Asigná horarios personalizados a cada profesional. Si no tiene horario propio, usará el de la clínica.
-                </CardDescription>
+                </p>
               </div>
               {selectedProfId && profHorarios && (
                 <div className="flex gap-2">
@@ -877,8 +868,8 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
                 </div>
               )}
             </div>
-          </CardHeader>
-          <CardContent className="space-y-4">
+          </div>
+          <div className="px-6 pb-6 space-y-4">
             {/* Selector de profesional */}
             <div className="flex flex-wrap gap-2">
               {professionals.map((prof) => (
@@ -961,8 +952,8 @@ function TabHorarios({ clinica, users, onUpdate }: { clinica: Clinica; users: Us
                 Seleccioná un profesional para ver o editar sus horarios
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
     </div>
   );
@@ -1088,17 +1079,17 @@ function TabTratamientos({
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-base font-semibold">
                 <Stethoscope className="h-5 w-5" />
                 Tratamientos / Servicios
-              </CardTitle>
-              <CardDescription>
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Definí los servicios que ofrece tu clínica — se usan al crear turnos
-              </CardDescription>
+              </p>
             </div>
             <div className="flex gap-2">
               {tratamientos.length === 0 && (
@@ -1107,14 +1098,14 @@ function TabTratamientos({
                   {isSeeding ? "Cargando..." : "Cargar plantilla"}
                 </Button>
               )}
-              <Button onClick={openCreate} className="gap-2">
+              <Button onClick={openCreate} className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] transition-all">
                 <Plus className="h-4 w-4" />
                 Nuevo Tratamiento
               </Button>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="px-6 pb-6">
           {tratamientos.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
@@ -1190,8 +1181,8 @@ function TabTratamientos({
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Dialog Crear/Editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -1404,35 +1395,35 @@ function TabEquipo({
 
   return (
     <>
-      <Card>
-        <CardHeader>
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-base font-semibold">
                 <Users className="h-5 w-5" />
                 Equipo de Trabajo
-              </CardTitle>
-              <CardDescription>
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Gestión de {clinica.label_profesional?.toLowerCase() || "profesional"}es y asistentes
                 {maxUsuarios > 0 && (
                   <span className={`ml-2 font-medium ${!canAddUsuario ? "text-red-500" : ""}`}>
                     ({currentUsuarios} de {maxUsuarios})
                   </span>
                 )}
-              </CardDescription>
+              </p>
             </div>
             <Button
               onClick={openCreate}
               disabled={!canAddUsuario}
               title={!canAddUsuario ? `Límite de ${maxUsuarios} usuarios alcanzado. Actualiza tu plan.` : undefined}
-              className="gap-2"
+              className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] transition-all"
             >
               <UserPlus className="h-4 w-4" />
               Nuevo Miembro
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="px-6 pb-6">
           {users.length === 0 ? (
             <div className="flex flex-col items-center justify-center py-12 text-center">
               <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
@@ -1488,8 +1479,8 @@ function TabEquipo({
               ))}
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Dialog Crear/Editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
@@ -1698,25 +1689,25 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
       </div>
 
       {/* Webhooks por estado */}
-      <Card>
-        <CardHeader>
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
           <div className="flex items-center justify-between">
             <div>
-              <CardTitle className="flex items-center gap-2">
+              <h2 className="flex items-center gap-2 text-base font-semibold">
                 <Webhook className="h-5 w-5" />
                 Notificaciones Automáticas
-              </CardTitle>
-              <CardDescription>
+              </h2>
+              <p className="text-sm text-muted-foreground mt-0.5">
                 Elegí qué eventos activan notificaciones automáticas para tus pacientes
-              </CardDescription>
+              </p>
             </div>
             <Button onClick={handleSave} disabled={isSaving} className="gap-2">
               <Save className="h-4 w-4" />
               {isSaving ? "Guardando..." : "Guardar"}
             </Button>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="px-6 pb-6">
           <div className="space-y-3">
             {WEBHOOK_ESTADOS.map(({ key, label, description, color }) => {
               const wh = webhooks[key] || { url: "", activo: false };
@@ -1746,21 +1737,21 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
               );
             })}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Recordatorio automático */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
             <Bell className="h-5 w-5" />
             Recordatorio Automático de Turno
-          </CardTitle>
-          <CardDescription>
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Se envía automáticamente un recordatorio antes de cada turno confirmado
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-4">
+          </p>
+        </div>
+        <div className="px-6 pb-6 space-y-4">
           <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 p-4">
             <div className="flex gap-3">
               <Info className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
@@ -1812,8 +1803,8 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
             <Save className="h-4 w-4" />
             {isSaving ? "Guardando..." : "Guardar Configuración"}
           </Button>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
@@ -1849,7 +1840,7 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
   return (
     <div className="space-y-6">
       {/* Agente IA — Activar/Desactivar + Nombre */}
-      <Card className="overflow-hidden">
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] overflow-hidden">
         <div
           className="relative overflow-hidden border-b border-[var(--border-light)] bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] px-6 py-5 text-white"
         >
@@ -1894,7 +1885,7 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
             </div>
           </div>
         </div>
-        <CardContent className="space-y-4">
+        <div className="px-6 py-6 space-y-4">
           {agentActivo ? (
             <>
               <div className="space-y-2">
@@ -1928,14 +1919,14 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
               </p>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Estado conexión WhatsApp */}
       {agentActivo && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+          <div className="px-6 pt-6 pb-4">
+            <h2 className="flex items-center gap-2 text-base font-semibold">
               <MessageSquare className="h-5 w-5 text-[var(--status-success-fg)]" aria-hidden="true" />
               Estado WhatsApp
               {isConnected ? (
@@ -1953,12 +1944,12 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
                   No configurado
                 </Badge>
               )}
-            </CardTitle>
-            <CardDescription>
+            </h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
               La conexión de WhatsApp es administrada por el equipo de Avax Health
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
+            </p>
+          </div>
+          <div className="px-6 pb-6">
             <div className="rounded-lg border bg-muted/30 p-4 text-center">
               <p className="text-sm text-muted-foreground">
                 {isConnected
@@ -1966,23 +1957,23 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
                   : "Tu WhatsApp aún no está conectado. Contactá al equipo de soporte para configurarlo."}
               </p>
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Instrucciones personalizadas */}
       {agentActivo && (
-        <Card>
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+          <div className="px-6 pt-6 pb-4">
+            <h2 className="flex items-center gap-2 text-base font-semibold">
               <Sparkles className="h-5 w-5 text-[var(--ht-accent)]" aria-hidden="true" />
               Instrucciones Personalizadas
-            </CardTitle>
-            <CardDescription>
+            </h2>
+            <p className="text-sm text-muted-foreground mt-0.5">
               Indicaciones adicionales para que el agente se adapte a tu clínica
-            </CardDescription>
-          </CardHeader>
-          <CardContent className="space-y-3">
+            </p>
+          </div>
+          <div className="px-6 pb-6 space-y-3">
             <Textarea
               value={agentInstrucciones}
               onChange={(e) => setAgentInstrucciones(e.target.value)}
@@ -1994,22 +1985,22 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
             <p className="text-xs text-muted-foreground">
               Estas instrucciones se agregan al contexto del agente. Usá lenguaje natural para indicar reglas específicas de tu clínica, preferencias de atención, o información adicional.
             </p>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Funcionalidades del Agente */}
-      <Card>
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
             <Sparkles className="h-5 w-5 text-[var(--ht-accent)]" aria-hidden="true" />
             Funcionalidades del Agente
-          </CardTitle>
-          <CardDescription>
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Lo que el asistente virtual puede hacer por tu clínica
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
+          </p>
+        </div>
+        <div className="px-6 pb-6">
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
               { Icon: Calendar, title: "Agendar turnos", desc: "Consulta disponibilidad y agenda turnos directamente desde WhatsApp" },
@@ -2040,8 +2031,8 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
               </div>
             ))}
           </div>
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* WhatsApp info */}
       <div className="rounded-lg border border-[var(--status-success-fg)]/20 bg-[var(--status-success-bg)]/40 p-4">
@@ -2154,17 +2145,17 @@ function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () =>
 
   return (
     <div className="space-y-6">
-      <Card className="rounded-xl">
-        <CardHeader>
-          <CardTitle className="flex items-center gap-2">
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-4">
+          <h2 className="flex items-center gap-2 text-base font-semibold">
             <LayoutDashboard className="h-5 w-5" />
             Visibilidad del Dashboard por Rol
-          </CardTitle>
-          <CardDescription>
+          </h2>
+          <p className="text-sm text-muted-foreground mt-0.5">
             Configurá qué KPIs y secciones puede ver cada rol en su dashboard. El admin siempre tiene acceso completo.
-          </CardDescription>
-        </CardHeader>
-        <CardContent className="space-y-8">
+          </p>
+        </div>
+        <div className="px-6 pb-6 space-y-8">
           {ROLES.map((role) => (
             <div key={role.id} className="space-y-4">
               <div className="flex items-center gap-2">
@@ -2245,8 +2236,8 @@ function TabDashboard({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () =>
               {role.id !== ROLES[ROLES.length - 1].id && <hr className="border-border" />}
             </div>
           ))}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       <Button onClick={handleSave} disabled={isSaving} className="gap-2">
         <Save className="h-4 w-4" />
