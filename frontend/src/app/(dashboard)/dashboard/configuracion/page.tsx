@@ -19,6 +19,7 @@ import horariosProfesionalService, {
 } from "@/services/horarios-profesional.service";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { Textarea } from "@/components/ui/textarea";
 import { Label } from "@/components/ui/label";
 import {
   Card,
@@ -66,6 +67,9 @@ import {
   Bot,
   MessageSquare,
   LayoutDashboard,
+  Calendar,
+  Search,
+  CheckCircle2,
 } from "lucide-react";
 
 // ─── Tipos ───
@@ -1845,26 +1849,51 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
   return (
     <div className="space-y-6">
       {/* Agente IA — Activar/Desactivar + Nombre */}
-      <Card>
-        <CardHeader>
-          <div className="flex items-center justify-between">
-            <div>
-              <CardTitle className="flex items-center gap-2">
-                <Bot className="h-5 w-5 text-accent" />
-                Agente IA — Asistente Virtual
-              </CardTitle>
-              <CardDescription>
-                Un asistente inteligente que atiende a tus pacientes por WhatsApp las 24 horas
-              </CardDescription>
+      <Card className="overflow-hidden">
+        <div
+          className="relative overflow-hidden border-b border-[var(--border-light)] bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] px-6 py-5 text-white"
+        >
+          <div
+            className="pointer-events-none absolute -top-10 -right-10 h-40 w-40 rounded-full bg-white/10 blur-2xl"
+            aria-hidden="true"
+          />
+          <div className="pointer-events-none absolute -bottom-16 -left-6 h-32 w-32 rounded-full bg-white/5 blur-2xl" aria-hidden="true" />
+          <div className="relative flex items-center justify-between gap-4">
+            <div className="flex items-start gap-3 min-w-0">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg bg-white/15 backdrop-blur-sm ring-1 ring-white/20">
+                <Bot className="h-5 w-5" aria-hidden="true" />
+              </div>
+              <div className="min-w-0">
+                <h3 className="font-[family-name:var(--font-display)] text-lg font-semibold tracking-tight">
+                  Agente IA — Asistente Virtual
+                </h3>
+                <p className="text-xs text-white/80 mt-0.5">
+                  Un asistente inteligente que atiende a tus pacientes por WhatsApp las 24 horas
+                </p>
+              </div>
             </div>
-            <div className="flex items-center gap-3">
-              <span className={`text-xs font-semibold ${agentActivo ? "text-emerald-500" : "text-muted-foreground"}`}>
+            <div className="flex items-center gap-3 shrink-0">
+              <span
+                className={`inline-flex items-center gap-1.5 rounded-full px-2.5 py-1 text-[11px] font-semibold ${
+                  agentActivo
+                    ? "bg-white/20 text-white ring-1 ring-white/30"
+                    : "bg-white/10 text-white/70 ring-1 ring-white/15"
+                }`}
+              >
+                <span
+                  className={`h-1.5 w-1.5 rounded-full ${agentActivo ? "bg-white animate-pulse" : "bg-white/50"}`}
+                  aria-hidden="true"
+                />
                 {agentActivo ? "Activo" : "Inactivo"}
               </span>
-              <Switch checked={agentActivo} onCheckedChange={setAgentActivo} />
+              <Switch
+                checked={agentActivo}
+                onCheckedChange={setAgentActivo}
+                aria-label={agentActivo ? "Desactivar agente IA" : "Activar agente IA"}
+              />
             </div>
           </div>
-        </CardHeader>
+        </div>
         <CardContent className="space-y-4">
           {agentActivo ? (
             <>
@@ -1881,9 +1910,9 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
                 </p>
               </div>
 
-              <div className="rounded-lg border border-emerald-200 dark:border-emerald-700 bg-emerald-50/50 dark:bg-emerald-900/20 p-3">
-                <p className="text-xs text-emerald-600 dark:text-emerald-300 flex items-center gap-2">
-                  <Sparkles className="h-3.5 w-3.5 flex-shrink-0" />
+              <div className="rounded-lg border border-[var(--status-success-bg)] bg-[var(--status-success-bg)]/40 p-3">
+                <p className="text-xs text-[var(--status-success-fg)] flex items-center gap-2">
+                  <Sparkles className="h-3.5 w-3.5 flex-shrink-0" aria-hidden="true" />
                   <span>
                     El agente usa inteligencia artificial para entender las consultas de tus pacientes
                     y responder de forma natural y profesional.
@@ -1907,14 +1936,20 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <MessageSquare className="h-5 w-5 text-green-500" />
+              <MessageSquare className="h-5 w-5 text-[var(--status-success-fg)]" aria-hidden="true" />
               Estado WhatsApp
               {isConnected ? (
-                <Badge variant="outline" className="ml-2 border-emerald-300 text-emerald-600 text-[10px]">
+                <Badge
+                  variant="outline"
+                  className="ml-2 border-[var(--status-success-fg)]/30 bg-[var(--status-success-bg)] text-[var(--status-success-fg)] text-[10px]"
+                >
                   Conectado
                 </Badge>
               ) : (
-                <Badge variant="outline" className="ml-2 border-orange-300 text-orange-600 text-[10px]">
+                <Badge
+                  variant="outline"
+                  className="ml-2 border-[var(--status-warning-fg)]/30 bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)] text-[10px]"
+                >
                   No configurado
                 </Badge>
               )}
@@ -1940,7 +1975,7 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
         <Card>
           <CardHeader>
             <CardTitle className="flex items-center gap-2">
-              <Sparkles className="h-5 w-5 text-purple-500" />
+              <Sparkles className="h-5 w-5 text-[var(--ht-accent)]" aria-hidden="true" />
               Instrucciones Personalizadas
             </CardTitle>
             <CardDescription>
@@ -1948,12 +1983,13 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
             </CardDescription>
           </CardHeader>
           <CardContent className="space-y-3">
-            <textarea
+            <Textarea
               value={agentInstrucciones}
               onChange={(e) => setAgentInstrucciones(e.target.value)}
               placeholder={"Ej: Siempre preguntá si el paciente tiene obra social.\nNo agendes turnos los feriados.\nSi preguntan por ortodoncia, derivá al Dr. Pérez."}
               rows={5}
-              className="w-full rounded-lg border bg-background px-3 py-2 text-sm placeholder:text-muted-foreground focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring resize-y min-h-[100px]"
+              className="min-h-[120px] resize-y"
+              aria-label="Instrucciones personalizadas para el agente"
             />
             <p className="text-xs text-muted-foreground">
               Estas instrucciones se agregan al contexto del agente. Usá lenguaje natural para indicar reglas específicas de tu clínica, preferencias de atención, o información adicional.
@@ -1966,7 +2002,7 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
       <Card>
         <CardHeader>
           <CardTitle className="flex items-center gap-2">
-            <MessageSquare className="h-5 w-5 text-green-500" />
+            <Sparkles className="h-5 w-5 text-[var(--ht-accent)]" aria-hidden="true" />
             Funcionalidades del Agente
           </CardTitle>
           <CardDescription>
@@ -1976,21 +2012,30 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
         <CardContent>
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             {[
-              { icon: "📅", title: "Agendar turnos", desc: "Consulta disponibilidad y agenda turnos directamente desde WhatsApp" },
-              { icon: "🔍", title: "Buscar pacientes", desc: "Busca por teléfono o DNI para identificar pacientes existentes" },
-              { icon: "📋", title: "Registrar pacientes", desc: "Registra nuevos pacientes que contactan por primera vez" },
-              { icon: "🔔", title: "Recordatorios", desc: "Envía recordatorios automáticos antes de cada turno" },
-              { icon: "✅", title: "Confirmar turnos", desc: "Los pacientes pueden confirmar su asistencia por chat" },
-              { icon: "🏥", title: "Info de la clínica", desc: "Responde consultas sobre horarios, dirección y servicios" },
-            ].map((item) => (
+              { Icon: Calendar, title: "Agendar turnos", desc: "Consulta disponibilidad y agenda turnos directamente desde WhatsApp" },
+              { Icon: Search, title: "Buscar pacientes", desc: "Busca por teléfono o DNI para identificar pacientes existentes" },
+              { Icon: UserPlus, title: "Registrar pacientes", desc: "Registra nuevos pacientes que contactan por primera vez" },
+              { Icon: Bell, title: "Recordatorios", desc: "Envía recordatorios automáticos antes de cada turno" },
+              { Icon: CheckCircle2, title: "Confirmar turnos", desc: "Los pacientes pueden confirmar su asistencia por chat" },
+              { Icon: Building2, title: "Info de la clínica", desc: "Responde consultas sobre horarios, dirección y servicios" },
+            ].map(({ Icon, title, desc }) => (
               <div
-                key={item.title}
-                className={`flex gap-3 rounded-lg border p-3 transition-colors ${agentActivo ? "hover:bg-muted/50" : "opacity-50"}`}
+                key={title}
+                className={`group relative flex gap-3 rounded-lg border border-[var(--border-light)] bg-card p-3 transition-all duration-200 ${
+                  agentActivo
+                    ? "hover:border-[var(--ht-primary)]/30 hover:shadow-[var(--shadow-card)] hover:-translate-y-0.5"
+                    : "opacity-50"
+                }`}
               >
-                <span className="text-2xl">{item.icon}</span>
-                <div>
-                  <p className="text-sm font-medium">{item.title}</p>
-                  <p className="text-xs text-muted-foreground">{item.desc}</p>
+                <div
+                  className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary)]/10 to-[var(--ht-accent)]/10 text-[var(--ht-primary)] ring-1 ring-[var(--ht-primary)]/15"
+                  aria-hidden="true"
+                >
+                  <Icon className="h-4 w-4" />
+                </div>
+                <div className="min-w-0">
+                  <p className="text-sm font-medium text-[var(--text-primary)]">{title}</p>
+                  <p className="text-xs text-[var(--text-muted)] leading-relaxed">{desc}</p>
                 </div>
               </div>
             ))}
@@ -1999,14 +2044,14 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
       </Card>
 
       {/* WhatsApp info */}
-      <div className="rounded-lg border border-green-200 dark:border-green-800 bg-green-50/50 dark:bg-green-950/20 p-4">
+      <div className="rounded-lg border border-[var(--status-success-fg)]/20 bg-[var(--status-success-bg)]/40 p-4">
         <div className="flex gap-3">
-          <Info className="h-5 w-5 text-green-500 shrink-0 mt-0.5" />
+          <Info className="h-5 w-5 text-[var(--status-success-fg)] shrink-0 mt-0.5" aria-hidden="true" />
           <div className="text-sm">
-            <p className="font-medium text-green-800 dark:text-green-200 mb-1">
+            <p className="font-medium text-[var(--status-success-fg)] mb-1">
               Conexión WhatsApp
             </p>
-            <p className="text-xs text-green-700 dark:text-green-300">
+            <p className="text-xs text-[var(--status-success-fg)]/85">
               La conexión de WhatsApp y la configuración técnica del agente son administradas por el equipo de Avax Health.
               Si necesitás conectar o cambiar tu número de WhatsApp, contactá al equipo de soporte.
             </p>
