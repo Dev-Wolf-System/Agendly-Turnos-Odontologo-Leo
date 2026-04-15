@@ -29,6 +29,7 @@ import archivosMedicosService, {
   ArchivoMedico,
 } from "@/services/archivos-medicos.service";
 import { Input } from "@/components/ui/input";
+import { Dropzone } from "@/components/ui/dropzone";
 import { Label } from "@/components/ui/label";
 import {
   Select,
@@ -165,9 +166,7 @@ export default function FichaPacientePage() {
       .finally(() => setIsLoading(false));
   }, [id]);
 
-  const handleUploadArchivo = async (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files?.[0];
-    if (!file) return;
+  const handleUploadArchivo = async (file: File) => {
     setUploadingFile(true);
     try {
       const formData = new FormData();
@@ -184,7 +183,6 @@ export default function FichaPacientePage() {
       toast.error("Error al subir el archivo");
     } finally {
       setUploadingFile(false);
-      e.target.value = "";
     }
   };
 
@@ -692,8 +690,8 @@ export default function FichaPacientePage() {
             </CardHeader>
             <CardContent className="space-y-4">
               {/* Upload */}
-              <div className="rounded-xl border-2 border-dashed border-muted-foreground/20 p-4 space-y-3">
-                <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+              <div className="space-y-3">
+                <div className="grid grid-cols-1 sm:grid-cols-2 gap-3">
                   <div className="space-y-1.5">
                     <Label className="text-xs">Categoría</Label>
                     <Select value={archivoCategoria} onValueChange={(v) => setArchivoCategoria(v ?? "")}>
@@ -718,22 +716,14 @@ export default function FichaPacientePage() {
                       onChange={(e) => setArchivoNotas(e.target.value)}
                     />
                   </div>
-                  <div className="space-y-1.5">
-                    <Label className="text-xs">Archivo</Label>
-                    <div className="relative">
-                      <Input
-                        type="file"
-                        className="rounded-lg h-9"
-                        accept="image/*,.pdf,.dicom"
-                        onChange={handleUploadArchivo}
-                        disabled={uploadingFile}
-                      />
-                    </div>
-                  </div>
                 </div>
-                {uploadingFile && (
-                  <p className="text-xs text-muted-foreground animate-pulse">Subiendo archivo...</p>
-                )}
+                <Dropzone
+                  onFileSelected={handleUploadArchivo}
+                  accept="image/*,.pdf,.dicom"
+                  maxSizeMB={20}
+                  isUploading={uploadingFile}
+                  title="Arrastrá el archivo acá o hacé clic para seleccionar"
+                />
               </div>
 
               {/* Lista */}
