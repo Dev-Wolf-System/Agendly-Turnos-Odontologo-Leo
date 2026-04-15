@@ -17,13 +17,7 @@ import turnosService, { Turno, TRATAMIENTOS_LABELS } from "@/services/turnos.ser
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { KpiCard } from "@/components/ui/kpi-card";
 import {
   Table,
   TableBody,
@@ -403,93 +397,47 @@ function PagosContent() {
             <Download className="h-4 w-4 mr-1.5" />
             Exportar CSV
           </Button>
-          <Button onClick={openCreate}>+ Nuevo Pago</Button>
+          <Button
+          onClick={openCreate}
+          className="bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] hover:shadow-md transition-all"
+        >
+          + Nuevo Pago
+        </Button>
         </div>
       </div>
 
       {/* KPIs Row */}
       {resumen && (
         <div className={`grid gap-4 grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
-          {/* Aprobados */}
-          <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wider">{isAdmin ? "Ingresos Aprobados" : "Pagos Aprobados"}</p>
-                  <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">
-                    {isAdmin ? formatCurrency(totalAprobados) : resumen.cantidad}
-                  </p>
-                  <p className="text-xs text-emerald-600/50 dark:text-emerald-400/50 mt-0.5">
-                    {resumen.cantidad} pago{resumen.cantidad !== 1 ? "s" : ""} aprobado{resumen.cantidad !== 1 ? "s" : ""}
-                  </p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10 flex items-center justify-center">
-                  <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Pendientes */}
-          <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Pendientes</p>
-                  <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-1">
-                    {isAdmin ? formatCurrency(totalPendientes) : cantPendientes}
-                  </p>
-                  <p className="text-xs text-amber-600/50 dark:text-amber-400/50 mt-0.5">
-                    {cantPendientes} pago{cantPendientes !== 1 ? "s" : ""} por aprobar
-                  </p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 flex items-center justify-center">
-                  <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Rechazados */}
-          <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div>
-                  <p className="text-xs font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-wider">Rechazados</p>
-                  <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">
-                    {isAdmin ? formatCurrency(totalRechazados) : cantRechazados}
-                  </p>
-                  <p className="text-xs text-red-600/50 dark:text-red-400/50 mt-0.5">
-                    {cantRechazados} pago{cantRechazados !== 1 ? "s" : ""} rechazado{cantRechazados !== 1 ? "s" : ""}
-                  </p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-red-500/10 dark:bg-red-400/10 flex items-center justify-center">
-                  <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-                </div>
-              </div>
-            </CardContent>
-          </Card>
-
-          {/* Ticket Promedio — solo admin */}
+          <KpiCard
+            label={isAdmin ? "Ingresos Aprobados" : "Pagos Aprobados"}
+            value={isAdmin ? formatCurrency(totalAprobados) : resumen.cantidad}
+            sub={`${resumen.cantidad} pago${resumen.cantidad !== 1 ? "s" : ""} aprobado${resumen.cantidad !== 1 ? "s" : ""}`}
+            icon={<CheckCircle2 className="h-5 w-5" />}
+            variant="accent"
+          />
+          <KpiCard
+            label="Pendientes"
+            value={isAdmin ? formatCurrency(totalPendientes) : cantPendientes}
+            sub={`${cantPendientes} pago${cantPendientes !== 1 ? "s" : ""} por aprobar`}
+            icon={<Clock className="h-5 w-5" />}
+            variant="warm"
+          />
+          <KpiCard
+            label="Rechazados"
+            value={isAdmin ? formatCurrency(totalRechazados) : cantRechazados}
+            sub={`${cantRechazados} pago${cantRechazados !== 1 ? "s" : ""} rechazado${cantRechazados !== 1 ? "s" : ""}`}
+            icon={<XCircle className="h-5 w-5" />}
+            variant="danger"
+          />
           {isAdmin && (
-            <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
-              <CardContent className="p-5">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-xs font-medium text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider">Ticket Promedio</p>
-                    <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">
-                      {formatCurrency(ticketPromedio)}
-                    </p>
-                    <p className="text-xs text-blue-600/50 dark:text-blue-400/50 mt-0.5">
-                      Promedio por pago aprobado
-                    </p>
-                  </div>
-                  <div className="w-11 h-11 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center">
-                    <TrendingUp className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-                  </div>
-                </div>
-              </CardContent>
-            </Card>
+            <KpiCard
+              label="Ticket Promedio"
+              value={formatCurrency(ticketPromedio)}
+              sub="promedio por pago aprobado"
+              icon={<TrendingUp className="h-5 w-5" />}
+              variant="primary"
+            />
           )}
         </div>
       )}
@@ -497,15 +445,13 @@ function PagosContent() {
       {/* Desglose por método + Gráfico — solo admin */}
       {isAdmin && resumen && resumen.por_metodo.length > 0 && (
         <div className="grid gap-4 lg:grid-cols-3">
-          {/* Distribución por método — Cards */}
-          <Card className="lg:col-span-2">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">
-                Desglose por Método de Pago
-              </CardTitle>
-              <CardDescription>Solo pagos aprobados</CardDescription>
-            </CardHeader>
-            <CardContent>
+          {/* Distribución por método */}
+          <div className="lg:col-span-2 rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+            <div className="px-6 pt-6 pb-3">
+              <h2 className="text-base font-semibold">Desglose por Método de Pago</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Solo pagos aprobados</p>
+            </div>
+            <div className="px-6 pb-6">
               <div className="grid gap-3 sm:grid-cols-2">
                 {resumen.por_metodo.map((m) => {
                   const config = METHOD_CONFIG[m.method];
@@ -517,7 +463,7 @@ function PagosContent() {
                   return (
                     <div
                       key={m.method}
-                      className="flex items-center gap-3 rounded-lg border p-3 transition-colors hover:bg-muted/50"
+                      className="flex items-center gap-3 rounded-xl border border-[var(--border-light)] p-3 transition-colors hover:bg-muted/40"
                     >
                       <div
                         className="flex h-10 w-10 shrink-0 items-center justify-center rounded-lg"
@@ -562,16 +508,16 @@ function PagosContent() {
                   );
                 })}
               </div>
-            </CardContent>
-          </Card>
+            </div>
+          </div>
 
           {/* Gráfico Donut */}
-          <Card>
-            <CardHeader className="pb-3">
-              <CardTitle className="text-base">Distribución</CardTitle>
-              <CardDescription>Por método de pago</CardDescription>
-            </CardHeader>
-            <CardContent className="flex flex-col items-center justify-center">
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+            <div className="px-6 pt-6 pb-3">
+              <h2 className="text-base font-semibold">Distribución</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Por método de pago</p>
+            </div>
+            <div className="px-6 pb-6 flex flex-col items-center justify-center">
               {chartData.length > 0 ? (
                 <>
                   <ResponsiveContainer width="100%" height={180}>
@@ -622,22 +568,22 @@ function PagosContent() {
                   <span className="text-sm">Sin datos</span>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         </div>
       )}
 
       {/* Tabla de Pagos */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Lista de Pagos</CardTitle>
-          <CardDescription>
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-0">
+          <h2 className="text-base font-semibold">Lista de Pagos</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
             {meta.total} pago{meta.total !== 1 ? "s" : ""} registrado
             {meta.total !== 1 ? "s" : ""}
-          </CardDescription>
+          </p>
 
           {/* Filtros */}
-          <div className="flex flex-wrap items-end gap-3 pt-2">
+          <div className="flex flex-wrap items-end gap-3 py-4">
             <div className="flex flex-col gap-1">
               <span className="text-xs font-medium text-muted-foreground">
                 Buscar paciente
@@ -759,8 +705,8 @@ function PagosContent() {
               </Button>
             )}
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="px-6 pb-6">
           {isLoading ? (
             <TableSkeleton rows={5} cols={9} />
           ) : pagosFiltrados.length === 0 ? (
@@ -939,8 +885,8 @@ function PagosContent() {
               }}
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Dialog Crear/Editar Pago */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

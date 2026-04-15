@@ -14,13 +14,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import {
   Dialog,
   DialogContent,
@@ -243,12 +237,15 @@ function HistorialMedicoContent() {
           <h1 className="text-2xl font-bold tracking-tight">
             Historial Médico
           </h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-1">
             Consultá y gestioná el historial clínico de cada paciente
           </p>
         </div>
         {selectedPaciente && (
-          <Button onClick={openCreate} className="gap-2">
+          <Button
+            onClick={openCreate}
+            className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] hover:shadow-md transition-all"
+          >
             <Plus className="h-4 w-4" />
             Nuevo Registro
           </Button>
@@ -256,8 +253,8 @@ function HistorialMedicoContent() {
       </div>
 
       {/* Buscador de pacientes */}
-      <Card className="overflow-visible">
-        <CardContent className="pt-6">
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] overflow-visible">
+        <div className="p-6">
           {!selectedPaciente ? (
             <div className="space-y-4">
               <div className="relative">
@@ -369,8 +366,8 @@ function HistorialMedicoContent() {
               </div>
             </div>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Timeline del historial */}
       {selectedPaciente && (
@@ -381,11 +378,11 @@ function HistorialMedicoContent() {
               <p className="text-sm">Cargando historial clínico...</p>
             </div>
           ) : historial.length === 0 ? (
-            <Card>
-              <CardContent className="pt-6">
+            <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+              <div className="p-6">
                 <div className="flex flex-col items-center justify-center py-12 text-center">
-                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
-                    <ClipboardList className="h-8 w-8 text-muted-foreground" />
+                  <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[var(--ht-primary)]/10 mb-4">
+                    <ClipboardList className="h-8 w-8 text-[var(--ht-primary)]" />
                   </div>
                   <h3 className="text-lg font-semibold">Sin registros clínicos</h3>
                   <p className="text-sm text-muted-foreground mt-1 max-w-sm">
@@ -397,8 +394,8 @@ function HistorialMedicoContent() {
                     Crear primer registro
                   </Button>
                 </div>
-              </CardContent>
-            </Card>
+              </div>
+            </div>
           ) : (
             <div className="relative space-y-4">
               {/* Línea vertical de timeline */}
@@ -420,8 +417,8 @@ function HistorialMedicoContent() {
                   </div>
 
                   {/* Card del registro */}
-                  <Card className="flex-1 group hover:shadow-md transition-shadow duration-200">
-                    <CardHeader className="pb-3">
+                  <div className="flex-1 group rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-md)] transition-all duration-200">
+                    <div className="px-5 pt-5 pb-3">
                       <div className="flex items-start justify-between gap-4">
                         <div className="space-y-1">
                           <div className="flex items-center gap-2">
@@ -465,8 +462,8 @@ function HistorialMedicoContent() {
                           </Button>
                         </div>
                       </div>
-                    </CardHeader>
-                    <CardContent className="pt-0 pb-4">
+                    </div>
+                    <div className="px-5 pb-5">
                       <div className="grid gap-3 sm:grid-cols-3">
                         {/* Diagnóstico */}
                         <div className="rounded-lg border bg-red-50/50 dark:bg-red-950/20 p-3 space-y-1.5">
@@ -519,8 +516,8 @@ function HistorialMedicoContent() {
                           </p>
                         </div>
                       </div>
-                    </CardContent>
-                  </Card>
+                    </div>
+                  </div>
                 </div>
               ))}
             </div>

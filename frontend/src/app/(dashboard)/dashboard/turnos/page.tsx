@@ -19,13 +19,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Textarea } from "@/components/ui/textarea";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { KpiCard } from "@/components/ui/kpi-card";
 import {
   Table,
   TableBody,
@@ -512,11 +506,14 @@ export default function TurnosPage() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Turnos</h1>
-          <p className="text-muted-foreground">
+          <p className="text-sm text-muted-foreground mt-1">
             Gestiona la agenda de turnos de tu clínica
           </p>
         </div>
-        <Button onClick={openCreate} className="gap-2">
+        <Button
+          onClick={openCreate}
+          className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] hover:shadow-md transition-all"
+        >
           <CalendarDays className="h-4 w-4" />
           Nuevo Turno
         </Button>
@@ -524,71 +521,41 @@ export default function TurnosPage() {
 
       {/* KPI Cards */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-5">
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-amber-50 to-amber-100/50 dark:from-amber-950/40 dark:to-amber-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-amber-600/70 dark:text-amber-400/70 uppercase tracking-wider">Pendientes</p>
-                <p className="text-2xl font-bold text-amber-700 dark:text-amber-300 mt-1">{kpiStats.pendientes}</p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-amber-500/10 dark:bg-amber-400/10 flex items-center justify-center">
-                <Clock className="h-5 w-5 text-amber-600 dark:text-amber-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider">Confirmados</p>
-                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">{kpiStats.confirmados}</p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center">
-                <CalendarDays className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wider">Completados</p>
-                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">{kpiStats.completados}</p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10 flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-wider">Cancelados</p>
-                <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">{kpiStats.cancelados}</p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-red-500/10 dark:bg-red-400/10 flex items-center justify-center">
-                <XCircle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-orange-50 to-orange-100/50 dark:from-orange-950/40 dark:to-orange-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-orange-600/70 dark:text-orange-400/70 uppercase tracking-wider">Perdidos</p>
-                <p className="text-2xl font-bold text-orange-700 dark:text-orange-300 mt-1">{kpiStats.perdidos}</p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-orange-500/10 dark:bg-orange-400/10 flex items-center justify-center">
-                <UserX className="h-5 w-5 text-orange-600 dark:text-orange-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <KpiCard
+          label="Pendientes"
+          value={kpiStats.pendientes}
+          sub="por atender"
+          icon={<Clock className="h-5 w-5" />}
+          variant="warm"
+        />
+        <KpiCard
+          label="Confirmados"
+          value={kpiStats.confirmados}
+          sub="con confirmación"
+          icon={<CalendarDays className="h-5 w-5" />}
+          variant="primary"
+        />
+        <KpiCard
+          label="Completados"
+          value={kpiStats.completados}
+          sub="finalizados"
+          icon={<CheckCircle2 className="h-5 w-5" />}
+          variant="accent"
+        />
+        <KpiCard
+          label="Cancelados"
+          value={kpiStats.cancelados}
+          sub="no realizados"
+          icon={<XCircle className="h-5 w-5" />}
+          variant="danger"
+        />
+        <KpiCard
+          label="Perdidos"
+          value={kpiStats.perdidos}
+          sub="sin reprogramar"
+          icon={<UserX className="h-5 w-5" />}
+          gradient="from-orange-500 to-amber-600"
+        />
       </div>
 
       {/* Calendar / Table toggle */}
@@ -615,88 +582,89 @@ export default function TurnosPage() {
       )}
 
       {activeView === "tabla" && (
-        <Card>
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle>Agenda del Dia</CardTitle>
-                <CardDescription>Filtra por fecha y estado</CardDescription>
-              </div>
-              <button
-                type="button"
-                onClick={() => setActiveView("semana")}
-                className="rounded-md border border-gray-300 dark:border-gray-700 bg-background px-3 py-1.5 text-sm font-medium text-foreground shadow-sm hover:bg-muted transition-colors"
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between px-6 pt-6 pb-0">
+            <div>
+              <h2 className="text-base font-semibold">Agenda del Día</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Filtra por fecha y estado</p>
+            </div>
+            <button
+              type="button"
+              onClick={() => setActiveView("semana")}
+              className="flex items-center gap-2 rounded-xl border border-[var(--border-light)] px-3 py-2 text-xs font-medium text-muted-foreground hover:text-foreground hover:bg-muted/50 transition-all"
+            >
+              Ver Calendario
+            </button>
+          </div>
+          <div className="flex flex-wrap items-end gap-4 px-6 py-4">
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">Fecha</span>
+              <Input
+                type="date"
+                value={fecha}
+                onChange={(e) => setFecha(e.target.value)}
+                className="w-44"
+              />
+            </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">Estado</span>
+              <Select
+                value={filtroEstado}
+                onValueChange={(v: string | null) => v && setFiltroEstado(v)}
               >
-                Ver Calendario
-              </button>
+                <SelectTrigger className="w-44">
+                  <span>
+                    {{ all: "Todos los estados", pendiente: "Pendiente", confirmado: "Confirmado", completado: "Completado", cancelado: "Cancelado", perdido: "Perdido" }[filtroEstado]}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los estados</SelectItem>
+                  <SelectItem value="pendiente">Pendiente</SelectItem>
+                  <SelectItem value="confirmado">Confirmado</SelectItem>
+                  <SelectItem value="completado">Completado</SelectItem>
+                  <SelectItem value="cancelado">Cancelado</SelectItem>
+                  <SelectItem value="perdido">Perdido</SelectItem>
+                </SelectContent>
+              </Select>
             </div>
-            <div className="flex flex-wrap items-end gap-4 pt-2">
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-muted-foreground">Fecha</span>
-                <Input
-                  type="date"
-                  value={fecha}
-                  onChange={(e) => setFecha(e.target.value)}
-                  className="w-44"
-                />
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-muted-foreground">Estado</span>
-                <Select
-                  value={filtroEstado}
-                  onValueChange={(v: string | null) => v && setFiltroEstado(v)}
-                >
-                  <SelectTrigger className="w-44">
-                    <span>
-                      {{ all: "Todos los estados", pendiente: "Pendiente", confirmado: "Confirmado", completado: "Completado", cancelado: "Cancelado", perdido: "Perdido" }[filtroEstado]}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los estados</SelectItem>
-                    <SelectItem value="pendiente">Pendiente</SelectItem>
-                    <SelectItem value="confirmado">Confirmado</SelectItem>
-                    <SelectItem value="completado">Completado</SelectItem>
-                    <SelectItem value="cancelado">Cancelado</SelectItem>
-                    <SelectItem value="perdido">Perdido</SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-              <div className="flex flex-col gap-1">
-                <span className="text-xs font-medium text-muted-foreground">Profesional</span>
-                <Select
-                  value={filtroProfesional}
-                  onValueChange={(v: string | null) => v && setFiltroOdontologo(v)}
-                >
-                  <SelectTrigger className="w-52">
-                    <span className="flex flex-1 text-left truncate text-sm">
-                      {filtroProfesional !== "all" ? (
-                        (() => {
-                          const u = profesionales.find((o) => o.id === filtroProfesional);
-                          return u ? `${u.nombre} ${u.apellido}` : "Profesional";
-                        })()
-                      ) : (
-                        "Todos los profesionales"
-                      )}
-                    </span>
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="all">Todos los profesionales</SelectItem>
-                    {profesionales.map((u) => (
-                      <SelectItem key={u.id} value={u.id}>
-                        {u.nombre} {u.apellido}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
+            <div className="flex flex-col gap-1">
+              <span className="text-xs font-medium text-muted-foreground">Profesional</span>
+              <Select
+                value={filtroProfesional}
+                onValueChange={(v: string | null) => v && setFiltroOdontologo(v)}
+              >
+                <SelectTrigger className="w-52">
+                  <span className="flex flex-1 text-left truncate text-sm">
+                    {filtroProfesional !== "all" ? (
+                      (() => {
+                        const u = profesionales.find((o) => o.id === filtroProfesional);
+                        return u ? `${u.nombre} ${u.apellido}` : "Profesional";
+                      })()
+                    ) : (
+                      "Todos los profesionales"
+                    )}
+                  </span>
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="all">Todos los profesionales</SelectItem>
+                  {profesionales.map((u) => (
+                    <SelectItem key={u.id} value={u.id}>
+                      {u.nombre} {u.apellido}
+                    </SelectItem>
+                  ))}
+                </SelectContent>
+              </Select>
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="px-6 pb-6">
             {isLoading ? (
               <TableSkeleton rows={5} cols={8} />
             ) : turnos.length === 0 ? (
-              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                <p>No hay turnos para esta fecha</p>
+              <div className="flex flex-col items-center justify-center py-12 text-muted-foreground">
+                <svg className="h-12 w-12 mb-3 opacity-30" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5">
+                  <path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" />
+                </svg>
+                <p className="text-sm font-medium">No hay turnos para esta fecha</p>
               </div>
             ) : (
               <Table>
@@ -819,8 +787,8 @@ export default function TurnosPage() {
                 </TableBody>
               </Table>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Dialog Crear/Editar Turno */}

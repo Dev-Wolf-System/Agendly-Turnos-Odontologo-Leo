@@ -9,13 +9,7 @@ import { SortableHeader } from "@/components/ui/sortable-header";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+import { KpiCard } from "@/components/ui/kpi-card";
 import {
   Table,
   TableBody,
@@ -275,7 +269,10 @@ function InventarioContent() {
             Controla el stock de materiales de tu clínica
           </p>
         </div>
-        <Button onClick={openCreate} className="gap-2">
+        <Button
+          onClick={openCreate}
+          className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] hover:shadow-md transition-all"
+        >
           <Plus className="h-4 w-4" />
           Nuevo Ítem
         </Button>
@@ -283,62 +280,38 @@ function InventarioContent() {
 
       {/* KPIs */}
       <div className="grid gap-4 grid-cols-2 lg:grid-cols-3">
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-blue-50 to-blue-100/50 dark:from-blue-950/40 dark:to-blue-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-blue-600/70 dark:text-blue-400/70 uppercase tracking-wider">Total Materiales</p>
-                <p className="text-2xl font-bold text-blue-700 dark:text-blue-300 mt-1">{stats.total}</p>
-                <p className="text-xs text-blue-600/50 dark:text-blue-400/50 mt-0.5">ítems en inventario</p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-blue-500/10 dark:bg-blue-400/10 flex items-center justify-center">
-                <Boxes className="h-5 w-5 text-blue-600 dark:text-blue-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-50 to-emerald-100/50 dark:from-emerald-950/40 dark:to-emerald-900/20">
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-emerald-600/70 dark:text-emerald-400/70 uppercase tracking-wider">Stock Normal</p>
-                <p className="text-2xl font-bold text-emerald-700 dark:text-emerald-300 mt-1">{stats.ok}</p>
-                <p className="text-xs text-emerald-600/50 dark:text-emerald-400/50 mt-0.5">ítems con stock suficiente</p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-emerald-500/10 dark:bg-emerald-400/10 flex items-center justify-center">
-                <CheckCircle2 className="h-5 w-5 text-emerald-600 dark:text-emerald-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className={`relative overflow-hidden rounded-xl border-0 shadow-sm bg-gradient-to-br from-red-50 to-red-100/50 dark:from-red-950/40 dark:to-red-900/20 ${stats.low > 0 ? "ring-2 ring-red-200 dark:ring-red-800" : ""}`}>
-          <CardContent className="p-5">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-xs font-medium text-red-600/70 dark:text-red-400/70 uppercase tracking-wider">Stock Bajo</p>
-                <p className="text-2xl font-bold text-red-700 dark:text-red-300 mt-1">{stats.low}</p>
-                <p className="text-xs text-red-600/50 dark:text-red-400/50 mt-0.5">
-                  {stats.low > 0 ? "necesitan reposición" : "todo en orden"}
-                </p>
-              </div>
-              <div className="w-11 h-11 rounded-xl bg-red-500/10 dark:bg-red-400/10 flex items-center justify-center">
-                <AlertTriangle className="h-5 w-5 text-red-600 dark:text-red-400" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+        <KpiCard
+          label="Total Materiales"
+          value={stats.total}
+          sub="ítems en inventario"
+          icon={<Boxes className="h-5 w-5" />}
+          variant="primary"
+        />
+        <KpiCard
+          label="Stock Normal"
+          value={stats.ok}
+          sub="ítems con stock suficiente"
+          icon={<CheckCircle2 className="h-5 w-5" />}
+          variant="accent"
+        />
+        <KpiCard
+          label="Stock Bajo"
+          value={stats.low}
+          sub={stats.low > 0 ? "necesitan reposición" : "todo en orden"}
+          icon={<AlertTriangle className="h-5 w-5" />}
+          variant="danger"
+          className={stats.low > 0 ? "ring-2 ring-[var(--ht-danger)]/30" : ""}
+        />
       </div>
 
       {/* Tabla */}
-      <Card>
-        <CardHeader>
-          <CardTitle>Stock de Materiales</CardTitle>
-          <CardDescription>
+      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        <div className="px-6 pt-6 pb-0">
+          <h2 className="text-base font-semibold">Stock de Materiales</h2>
+          <p className="text-xs text-muted-foreground mt-0.5">
             Gestiona cantidades y alertas de stock mínimo
-          </CardDescription>
-          <div className="flex flex-wrap items-end gap-3 pt-2">
+          </p>
+          <div className="flex flex-wrap items-end gap-3 py-4">
             <div className="space-y-1 flex-1 max-w-sm">
               <span className="text-xs font-medium text-muted-foreground">Buscar</span>
               <div className="relative">
@@ -396,8 +369,8 @@ function InventarioContent() {
               </Select>
             </div>
           </div>
-        </CardHeader>
-        <CardContent>
+        </div>
+        <div className="px-6 pb-6">
           {isLoading ? (
             <TableSkeleton rows={5} cols={7} />
           ) : filteredItems.length === 0 ? (
@@ -537,8 +510,8 @@ function InventarioContent() {
               onLimitChange={(l) => { setLimit(l); setPage(1); }}
             />
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
 
       {/* Dialog Crear/Editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

@@ -8,13 +8,7 @@ import { Pagination } from "@/components/ui/pagination";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
+
 import {
   Dialog,
   DialogContent,
@@ -234,7 +228,10 @@ function ProveedoresContent() {
             Directorio de proveedores de materiales dentales
           </p>
         </div>
-        <Button onClick={openCreate} className="gap-2">
+        <Button
+          onClick={openCreate}
+          className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] hover:shadow-md transition-all"
+        >
           <Plus className="h-4 w-4" />
           Nuevo Proveedor
         </Button>
@@ -242,17 +239,15 @@ function ProveedoresContent() {
 
       {/* KPI + Search */}
       <div className="flex flex-wrap items-end gap-4">
-        <Card className="shrink-0">
-          <CardContent className="flex items-center gap-3 py-3 px-4">
-            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-emerald-100 dark:bg-emerald-900/40">
-              <Building2 className="h-5 w-5 text-[var(--ht-accent)] dark:text-emerald-300" />
-            </div>
-            <div>
-              <p className="text-2xl font-bold leading-none">{meta.total}</p>
-              <p className="text-xs text-muted-foreground mt-0.5">proveedores activos</p>
-            </div>
-          </CardContent>
-        </Card>
+        <div className="shrink-0 flex items-center gap-3 rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] px-4 py-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-accent)] to-[var(--ht-accent-dark)] text-white shadow-sm">
+            <Building2 className="h-5 w-5" />
+          </div>
+          <div>
+            <p className="text-2xl font-bold leading-none">{meta.total}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">proveedores activos</p>
+          </div>
+        </div>
         <div className="space-y-1 flex-1 max-w-md">
           <span className="text-xs font-medium text-muted-foreground">Buscar</span>
           <div className="relative">
@@ -297,29 +292,27 @@ function ProveedoresContent() {
       {isLoading ? (
         <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
           {[...Array(6)].map((_, i) => (
-            <Card key={i}>
-              <CardContent className="py-6">
-                <div className="space-y-3 animate-pulse">
-                  <div className="flex items-center gap-3">
-                    <div className="h-11 w-11 rounded-full bg-muted" />
-                    <div className="space-y-2 flex-1">
-                      <div className="h-4 w-3/4 bg-muted rounded" />
-                      <div className="h-3 w-1/2 bg-muted rounded" />
-                    </div>
+            <div key={i} className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] p-5">
+              <div className="space-y-3 animate-pulse">
+                <div className="flex items-center gap-3">
+                  <div className="h-11 w-11 rounded-full bg-muted" />
+                  <div className="space-y-2 flex-1">
+                    <div className="h-4 w-3/4 bg-muted rounded" />
+                    <div className="h-3 w-1/2 bg-muted rounded" />
                   </div>
-                  <div className="h-3 w-full bg-muted rounded" />
-                  <div className="h-3 w-2/3 bg-muted rounded" />
                 </div>
-              </CardContent>
-            </Card>
+                <div className="h-3 w-full bg-muted rounded" />
+                <div className="h-3 w-2/3 bg-muted rounded" />
+              </div>
+            </div>
           ))}
         </div>
       ) : filtered.length === 0 ? (
-        <Card>
-          <CardContent className="pt-6">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+          <div className="p-6">
             <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
-                <Building2 className="h-8 w-8 text-muted-foreground" />
+              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-[var(--ht-accent)]/10 mb-4">
+                <Building2 className="h-8 w-8 text-[var(--ht-accent)]" />
               </div>
               <h3 className="text-lg font-semibold">
                 {proveedores.length === 0
@@ -338,14 +331,14 @@ function ProveedoresContent() {
                 </Button>
               )}
             </div>
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       ) : (
         <>
           <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
             {filtered.map((prov) => (
-              <Card key={prov.id} className="group hover:shadow-md transition-shadow duration-200">
-                <CardContent className="py-5">
+              <div key={prov.id} className="group rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] hover:shadow-[var(--shadow-md)] transition-all duration-200">
+                <div className="p-5">
                   <div className="flex items-start gap-3">
                     {/* Avatar */}
                     <div className="flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] text-white text-sm font-bold shrink-0">
@@ -429,8 +422,8 @@ function ProveedoresContent() {
                     </p>
                     <Badge variant="secondary" className="text-xs">Activo</Badge>
                   </div>
-                </CardContent>
-              </Card>
+                </div>
+              </div>
             ))}
           </div>
           {meta.total > 0 && (

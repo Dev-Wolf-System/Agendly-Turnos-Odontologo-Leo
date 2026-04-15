@@ -14,13 +14,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -395,104 +388,96 @@ function SuscripcionContent() {
       ) : (
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
           {/* Estado */}
-          <Card className="rounded-xl border-0 shadow-sm bg-gradient-to-br from-[var(--ht-primary-light)]/10 to-[var(--ht-accent)]/5 dark:from-[var(--ht-primary-light)]/20 dark:to-[var(--ht-accent)]/5">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Estado
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] p-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Estado
+                </p>
+                {sub ? (
+                  <Badge
+                    className={`${estadoSubColors[estado].badge} border-0 text-xs font-semibold px-2.5 py-0.5`}
+                  >
+                    <span
+                      className={`w-1.5 h-1.5 rounded-full mr-1.5 inline-block ${estadoSubColors[estado].dot}`}
+                    />
+                    {estadoSubLabels[estado]}
+                  </Badge>
+                ) : (
+                  <p className="text-sm text-muted-foreground">
+                    Sin suscripcion
                   </p>
-                  {sub ? (
-                    <Badge
-                      className={`${estadoSubColors[estado].badge} border-0 text-xs font-semibold px-2.5 py-0.5`}
-                    >
-                      <span
-                        className={`w-1.5 h-1.5 rounded-full mr-1.5 inline-block ${estadoSubColors[estado].dot}`}
-                      />
-                      {estadoSubLabels[estado]}
-                    </Badge>
-                  ) : (
-                    <p className="text-sm text-muted-foreground">
-                      Sin suscripcion
-                    </p>
-                  )}
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent)]/15 flex items-center justify-center">
-                  <ShieldCheck className="w-5 h-5 text-[var(--ht-accent)] dark:text-emerald-300" />
-                </div>
+                )}
               </div>
-            </CardContent>
-          </Card>
+              <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent)]/15 flex items-center justify-center">
+                <ShieldCheck className="w-5 h-5 text-[var(--ht-accent)] dark:text-emerald-300" />
+              </div>
+            </div>
+          </div>
 
           {/* Plan Actual */}
-          <Card className="rounded-xl border-0 shadow-sm bg-gradient-to-br from-amber-500/10 to-amber-500/5 dark:from-amber-500/20 dark:to-amber-500/5">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Plan Actual
-                  </p>
-                  <p className="text-lg font-bold">{planName}</p>
-                  <p className="text-xs text-muted-foreground">
-                    {formatCurrency(precioMensual)}/mes
-                  </p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-amber-500/15 flex items-center justify-center">
-                  <Crown className="w-5 h-5 text-amber-600 dark:text-amber-400" />
-                </div>
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] p-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Plan Actual
+                </p>
+                <p className="text-lg font-bold">{planName}</p>
+                <p className="text-xs text-muted-foreground">
+                  {formatCurrency(precioMensual)}/mes
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent-warm)]/15 flex items-center justify-center">
+                <Crown className="w-5 h-5 text-[var(--ht-accent-warm)] dark:text-amber-400" />
+              </div>
+            </div>
+          </div>
 
           {/* Dias Restantes */}
-          <Card className="rounded-xl border-0 shadow-sm bg-gradient-to-br from-sky-500/10 to-sky-500/5 dark:from-sky-500/20 dark:to-sky-500/5">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Dias Restantes
-                  </p>
-                  <p className="text-2xl font-bold">
-                    {sub ? remaining : "—"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {remaining <= 7 && remaining > 0 && sub
-                      ? "Renueva pronto"
-                      : remaining === 0 && sub
-                        ? "Vence hoy"
-                        : ""}
-                  </p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-sky-500/15 flex items-center justify-center">
-                  <Clock className="w-5 h-5 text-sky-600 dark:text-sky-400" />
-                </div>
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] p-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Días Restantes
+                </p>
+                <p className="text-2xl font-bold">
+                  {sub ? remaining : "—"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {remaining <= 7 && remaining > 0 && sub
+                    ? "Renueva pronto"
+                    : remaining === 0 && sub
+                      ? "Vence hoy"
+                      : ""}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="w-11 h-11 rounded-xl bg-[var(--ht-primary)]/15 flex items-center justify-center">
+                <Clock className="w-5 h-5 text-[var(--ht-primary)]" />
+              </div>
+            </div>
+          </div>
 
           {/* Proximo Pago */}
-          <Card className="rounded-xl border-0 shadow-sm bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/5">
-            <CardContent className="p-5">
-              <div className="flex items-center justify-between">
-                <div className="space-y-2">
-                  <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                    Proximo Pago
-                  </p>
-                  <p className="text-lg font-bold">
-                    {nextPayment ? formatDate(nextPayment) : "—"}
-                  </p>
-                  <p className="text-xs text-muted-foreground">
-                    {sub?.auto_renew
-                      ? "Renovacion automatica"
-                      : "Renovacion manual"}
-                  </p>
-                </div>
-                <div className="w-11 h-11 rounded-xl bg-emerald-500/15 flex items-center justify-center">
-                  <CalendarDays className="w-5 h-5 text-emerald-600 dark:text-emerald-400" />
-                </div>
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)] p-5">
+            <div className="flex items-center justify-between">
+              <div className="space-y-2">
+                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                  Próximo Pago
+                </p>
+                <p className="text-lg font-bold">
+                  {nextPayment ? formatDate(nextPayment) : "—"}
+                </p>
+                <p className="text-xs text-muted-foreground">
+                  {sub?.auto_renew
+                    ? "Renovación automática"
+                    : "Renovación manual"}
+                </p>
               </div>
-            </CardContent>
-          </Card>
+              <div className="w-11 h-11 rounded-xl bg-[var(--ht-accent)]/15 flex items-center justify-center">
+                <CalendarDays className="w-5 h-5 text-[var(--ht-accent)]" />
+              </div>
+            </div>
+          </div>
         </div>
       )}
 
@@ -502,23 +487,23 @@ function SuscripcionContent() {
         {subLoading ? (
           <CardSkeleton height="h-[380px]" />
         ) : (
-          <Card className="rounded-xl border shadow-sm">
-            <CardHeader className="pb-4">
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+            <div className="px-6 pt-6 pb-4">
               <div className="flex items-center gap-3">
                 <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] flex items-center justify-center">
                   <Sparkles className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">
-                    Detalles de Suscripcion
-                  </CardTitle>
-                  <CardDescription>
-                    Informacion de tu plan actual
-                  </CardDescription>
+                  <h2 className="text-lg font-semibold">
+                    Detalles de Suscripción
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Información de tu plan actual
+                  </p>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent className="space-y-5">
+            </div>
+            <div className="px-6 pb-6 space-y-5">
               {subError || !sub ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
@@ -682,31 +667,31 @@ function SuscripcionContent() {
                     )}
                 </>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
 
         {/* Historial de Pagos */}
         {pagosLoading ? (
           <CardSkeleton height="h-[380px]" />
         ) : (
-          <Card className="rounded-xl border shadow-sm">
-            <CardHeader className="pb-4">
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+            <div className="px-6 pt-6 pb-4">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-emerald-500 to-teal-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ht-accent)] to-[var(--ht-accent-dark)] flex items-center justify-center">
                   <ReceiptText className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">
+                  <h2 className="text-lg font-semibold">
                     Historial de Pagos
-                  </CardTitle>
-                  <CardDescription>
-                    Ultimos pagos registrados
-                  </CardDescription>
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Últimos pagos registrados
+                  </p>
                 </div>
               </div>
-            </CardHeader>
-            <CardContent>
+            </div>
+            <div className="px-6 pb-6">
               {pagos.length === 0 ? (
                 <div className="flex flex-col items-center justify-center py-10 text-center">
                   <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
@@ -762,8 +747,8 @@ function SuscripcionContent() {
                   </Table>
                 </div>
               )}
-            </CardContent>
-          </Card>
+            </div>
+          </div>
         )}
       </div>
 
@@ -771,31 +756,31 @@ function SuscripcionContent() {
       {ticketsLoading ? (
         <CardSkeleton height="h-[350px]" />
       ) : (
-        <Card className="rounded-xl border shadow-sm">
-          <CardHeader className="pb-4">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+          <div className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] flex items-center justify-center">
                   <LifeBuoy className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Soporte Tecnico</CardTitle>
-                  <CardDescription>
+                  <h2 className="text-lg font-semibold">Soporte Técnico</h2>
+                  <p className="text-sm text-muted-foreground">
                     Tickets de soporte y consultas
-                  </CardDescription>
+                  </p>
                 </div>
               </div>
               <Button
                 size="sm"
                 onClick={() => setDialogOpen(true)}
-                className="gap-1.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border-0"
+                className="gap-1.5 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] transition-all"
               >
                 <Plus className="w-4 h-4" />
                 Nuevo ticket
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="px-6 pb-6">
             {tickets.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
@@ -911,8 +896,8 @@ function SuscripcionContent() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* ── Dialog: Nuevo Ticket ── */}

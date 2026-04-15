@@ -7,13 +7,6 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import {
   Dialog,
   DialogContent,
   DialogDescription,
@@ -171,29 +164,29 @@ export default function SoportePage() {
       {loading ? (
         <div className="rounded-xl bg-muted/50 animate-pulse h-[350px]" />
       ) : (
-        <Card className="rounded-xl border shadow-sm">
-          <CardHeader className="pb-4">
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+          <div className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-sky-500 to-blue-600 flex items-center justify-center">
+                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] flex items-center justify-center">
                   <LifeBuoy className="w-5 h-5 text-white" />
                 </div>
                 <div>
-                  <CardTitle className="text-lg">Soporte Tecnico</CardTitle>
-                  <CardDescription>Tickets de soporte y consultas</CardDescription>
+                  <h2 className="text-lg font-semibold">Soporte Técnico</h2>
+                  <p className="text-sm text-muted-foreground">Tickets de soporte y consultas</p>
                 </div>
               </div>
               <Button
                 size="sm"
                 onClick={() => setDialogOpen(true)}
-                className="gap-1.5 bg-gradient-to-r from-sky-500 to-blue-600 hover:from-sky-600 hover:to-blue-700 text-white border-0"
+                className="gap-1.5 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] transition-all"
               >
                 <Plus className="w-4 h-4" />
                 Nuevo ticket
               </Button>
             </div>
-          </CardHeader>
-          <CardContent>
+          </div>
+          <div className="px-6 pb-6">
             {tickets.length === 0 ? (
               <div className="flex flex-col items-center justify-center py-10 text-center">
                 <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
@@ -281,8 +274,8 @@ export default function SoportePage() {
                 ))}
               </div>
             )}
-          </CardContent>
-        </Card>
+          </div>
+        </div>
       )}
 
       {/* Dialog: Nuevo Ticket */}
