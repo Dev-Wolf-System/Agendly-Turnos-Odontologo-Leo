@@ -73,23 +73,34 @@ export class SubscriptionGuard implements CanActivate {
       return true;
     }
 
+    // Determinar si es operación de escritura (se necesita antes de los switch/if)
+    const isWriteOp = this.reflector.getAllAndOverride<boolean>(IS_WRITE_OPERATION, [
+      context.getHandler(),
+      context.getClass(),
+    ]) ?? this.isWriteMethod(request.method);
+
     // Verificar si el trial expiró (suscripción activa con trial_ends_at en el pasado)
+    // Tratamos como modo lectura para que el frontend pueda mostrar el aviso
     if (
       subscription.estado === EstadoSubscription.ACTIVA &&
       subscription.trial_ends_at &&
       new Date(subscription.trial_ends_at) < new Date()
     ) {
-      throw new ForbiddenException(
-        'Tu periodo de prueba ha finalizado. Elegí un plan para continuar usando Avax Health.',
-      );
+      request.subscriptionStatus = {
+        level: 'read_only',
+        estado: 'trial_expired',
+        mensaje: 'Tu periodo de prueba ha finalizado. Elegí un plan para continuar usando Avax Health.',
+      };
+      if (isWriteOp) {
+        throw new ForbiddenException(
+          'Tu periodo de prueba ha finalizado. Elegí un plan para continuar usando Avax Health.',
+        );
+      }
+      return true;
     }
 
     // Determinar nivel de acceso según estado
     const estado = subscription.estado;
-    const isWriteOp = this.reflector.getAllAndOverride<boolean>(IS_WRITE_OPERATION, [
-      context.getHandler(),
-      context.getClass(),
-    ]) ?? this.isWriteMethod(request.method);
 
     switch (estado) {
       case EstadoSubscription.ACTIVA:
@@ -123,9 +134,18 @@ export class SubscriptionGuard implements CanActivate {
         return true;
 
       case EstadoSubscription.CANCELADA:
-        throw new ForbiddenException(
-          'Tu suscripción fue cancelada. Contactá al equipo de Avax Health para recuperar tu cuenta.',
-        );
+        // Permitir lecturas para que el frontend muestre el estado al usuario
+        request.subscriptionStatus = {
+          level: 'blocked',
+          estado,
+          mensaje: 'Tu suscripción fue cancelada. Contactá al equipo de Avax Health para recuperar tu cuenta.',
+        };
+        if (isWriteOp) {
+          throw new ForbiddenException(
+            'Tu suscripción fue cancelada. Contactá al equipo de Avax Health para recuperar tu cuenta.',
+          );
+        }
+        return true;
 
       default:
         request.subscriptionStatus = { level: 'full', estado };

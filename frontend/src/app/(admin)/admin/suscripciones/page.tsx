@@ -1,6 +1,7 @@
 "use client";
 
 import { useState, useEffect } from "react";
+import Link from "next/link";
 import { Repeat, Plus, Crown } from "lucide-react";
 import {
   getAdminSubscriptions,
@@ -347,14 +348,17 @@ export default function AdminSuscripcionesPage() {
                       className="group transition-colors hover:bg-[var(--muted)]/30"
                     >
                       <td className="px-5 py-3.5">
-                        <div className="flex items-center gap-3">
-                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary)]/10 to-[var(--ht-accent)]/10 text-xs font-bold text-[var(--ht-primary)] ring-1 ring-[var(--ht-primary)]/15">
+                        <Link
+                          href={`/admin/clinicas/${sub.clinica_id}`}
+                          className="flex items-center gap-3 group/clinica-link"
+                        >
+                          <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-primary)]/10 to-[var(--ht-accent)]/10 text-xs font-bold text-[var(--ht-primary)] ring-1 ring-[var(--ht-primary)]/15 transition-colors group-hover/clinica-link:from-[var(--ht-primary)]/20 group-hover/clinica-link:to-[var(--ht-accent)]/20">
                             {sub.clinica?.nombre?.charAt(0)?.toUpperCase() ?? "C"}
                           </div>
-                          <span className="text-sm font-semibold text-[var(--text-primary)]">
+                          <span className="text-sm font-semibold text-[var(--text-primary)] group-hover/clinica-link:text-[var(--ht-primary)] transition-colors">
                             {sub.clinica?.nombre ?? sub.clinica_id.slice(0, 8)}
                           </span>
-                        </div>
+                        </Link>
                       </td>
                       <td className="px-5 py-3.5">
                         <span className="inline-flex items-center gap-1 rounded-lg bg-[var(--ht-primary)]/10 px-2.5 py-1 text-[11px] font-semibold text-[var(--ht-primary)]">

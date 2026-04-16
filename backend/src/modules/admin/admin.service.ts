@@ -169,6 +169,7 @@ export class AdminService {
       // 2. Eliminar entidades hoja (sin dependencias propias)
       await qr.query(`DELETE FROM historial_medico WHERE turno_id IN (SELECT id FROM turnos WHERE clinica_id = $1)`, [id]);
       await qr.query(`DELETE FROM historial_medico WHERE paciente_id IN (SELECT id FROM pacientes WHERE clinica_id = $1)`, [id]);
+      await qr.query(`DELETE FROM archivos_medicos WHERE clinica_id = $1`, [id]);
       await qr.query(`DELETE FROM notificaciones WHERE clinica_id = $1`, [id]);
       await qr.query(`DELETE FROM chat_messages WHERE clinica_id = $1`, [id]);
       await qr.query(`DELETE FROM tickets WHERE clinica_id = $1`, [id]);
