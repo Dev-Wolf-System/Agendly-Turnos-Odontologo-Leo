@@ -12,7 +12,7 @@ import type { AdminClinica } from "@/types";
 import { formatPhone } from "@/lib/utils";
 
 const ESTADO_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
-  activa: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500" },
+  activa: { bg: "bg-[var(--ht-accent)]/10", text: "text-[var(--status-success-fg)]", dot: "bg-[var(--ht-accent)]" },
   inactiva: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", dot: "bg-red-500" },
   cancelada: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500" },
   vencida: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500" },
@@ -20,7 +20,7 @@ const ESTADO_COLORS: Record<string, { bg: string; text: string; dot: string }> =
 
 const WEBHOOK_ESTADOS = [
   { key: "confirmado", label: "Turno Confirmado", color: "bg-blue-500" },
-  { key: "completado", label: "Turno Completado", color: "bg-emerald-500" },
+  { key: "completado", label: "Turno Completado", color: "bg-[var(--ht-accent)]" },
   { key: "cancelado", label: "Turno Cancelado", color: "bg-red-500" },
   { key: "perdido", label: "Turno Perdido", color: "bg-orange-500" },
   { key: "pendiente", label: "Turno Creado", color: "bg-amber-500" },
@@ -206,7 +206,7 @@ export default function AdminClinicaDetailPage() {
     { label: "Usuarios", value: stats?.usuarios ?? 0, icon: UsersIcon, gradient: "from-blue-500 to-cyan-500", glow: "shadow-blue-500/20" },
     { label: "Pacientes", value: stats?.pacientes ?? 0, icon: HeartIcon, gradient: "from-pink-500 to-rose-500", glow: "shadow-pink-500/20" },
     { label: "Turnos", value: stats?.turnos ?? 0, icon: CalendarIcon, gradient: "from-[var(--ht-primary)] to-[var(--ht-accent)]", glow: "shadow-[var(--ht-primary)]/20" },
-    { label: "Registrada", value: new Date(clinica.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }), icon: ClockIcon, gradient: "from-emerald-500 to-teal-500", glow: "shadow-emerald-500/20" },
+    { label: "Registrada", value: new Date(clinica.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }), icon: ClockIcon, gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", glow: "shadow-[var(--ht-accent)]/20" },
   ];
 
   return (
@@ -230,11 +230,11 @@ export default function AdminClinicaDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2.5">
-          <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${clinica.is_active ? "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${clinica.is_active ? "bg-emerald-500" : "bg-red-500"}`} />
+          <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${clinica.is_active ? "bg-[var(--ht-accent)]/10 text-[var(--status-success-fg)]" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${clinica.is_active ? "bg-[var(--ht-accent)]" : "bg-red-500"}`} />
             {clinica.is_active ? "Activa" : "Inactiva"}
           </span>
-          <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${clinica.is_active ? "bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20" : "bg-emerald-500/10 text-emerald-600 dark:text-emerald-400 hover:bg-emerald-500/20"}`}>
+          <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${clinica.is_active ? "bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20" : "bg-[var(--ht-accent)]/10 text-[var(--status-success-fg)] hover:bg-[var(--ht-accent)]/20"}`}>
             {clinica.is_active ? "Suspender" : "Activar"}
           </button>
         </div>

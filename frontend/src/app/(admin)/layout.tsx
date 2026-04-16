@@ -125,10 +125,10 @@ function AdminContent({ children }: { children: React.ReactNode }) {
         <div className="px-5 py-2">
           <div className="flex items-center gap-2 rounded-lg bg-[var(--ht-accent)]/[0.08] px-3 py-1.5">
             <span className="relative flex h-2 w-2">
-              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-emerald-400 opacity-75" />
-              <span className="relative inline-flex h-2 w-2 rounded-full bg-emerald-500" />
+              <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--ht-accent)] opacity-75" />
+              <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--ht-accent)]" />
             </span>
-            <span className="text-[11px] font-medium text-emerald-400/80">
+            <span className="text-[11px] font-medium text-[var(--ht-accent)]/80">
               Sistema operativo
             </span>
           </div>

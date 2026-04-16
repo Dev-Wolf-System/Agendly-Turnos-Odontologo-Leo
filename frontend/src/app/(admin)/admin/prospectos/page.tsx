@@ -8,7 +8,7 @@ const ESTADO_CONFIG: Record<EstadoLead, { bg: string; text: string; dot: string;
   nuevo: { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", dot: "bg-blue-500", label: "Nuevo" },
   contactado: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", label: "Contactado" },
   en_negociacion: { bg: "bg-purple-500/10", text: "text-purple-600 dark:text-purple-400", dot: "bg-purple-500", label: "En Negociacion" },
-  convertido: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", label: "Convertido" },
+  convertido: { bg: "bg-[var(--ht-accent)]/10", text: "text-[var(--status-success-fg)]", dot: "bg-[var(--ht-accent)]", label: "Convertido" },
   descartado: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Descartado" },
 };
 
@@ -96,7 +96,7 @@ export default function AdminProspectosPage() {
             { label: "Nuevos", value: stats.nuevos, gradient: "from-blue-500 to-blue-600" },
             { label: "Contactados", value: stats.contactados, gradient: "from-amber-500 to-amber-600" },
             { label: "En Negociacion", value: stats.en_negociacion, gradient: "from-purple-500 to-purple-600" },
-            { label: "Convertidos", value: stats.convertidos, gradient: "from-emerald-500 to-emerald-600" },
+            { label: "Convertidos", value: stats.convertidos, gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]" },
             { label: "Descartados", value: stats.descartados, gradient: "from-slate-400 to-slate-500" },
           ].map((kpi) => (
             <div key={kpi.label} className="rounded-xl border bg-card p-4 shadow-sm">

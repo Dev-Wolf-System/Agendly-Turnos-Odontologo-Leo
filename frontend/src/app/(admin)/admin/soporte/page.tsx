@@ -36,7 +36,7 @@ const ESTADO_CONFIG: Record<string, { bg: string; text: string; dot: string; lab
   abierto: { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", dot: "bg-blue-500", label: "Abierto" },
   en_progreso: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", label: "En Progreso" },
   esperando_respuesta: { bg: "bg-[var(--ht-accent-dark)]/10", text: "text-[var(--ht-accent)] dark:text-accent", dot: "bg-[var(--ht-accent-dark)]", label: "Esperando" },
-  resuelto: { bg: "bg-emerald-500/10", text: "text-emerald-600 dark:text-emerald-400", dot: "bg-emerald-500", label: "Resuelto" },
+  resuelto: { bg: "bg-[var(--ht-accent)]/10", text: "text-[var(--status-success-fg)]", dot: "bg-[var(--ht-accent)]", label: "Resuelto" },
   cerrado: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Cerrado" },
 };
 
@@ -182,9 +182,9 @@ export default function AdminSoportePage() {
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Esperando</p>
           <p className="text-2xl font-bold mt-1 text-[var(--ht-accent)] dark:text-accent">{stats.esperando_respuesta || 0}</p>
         </div>
-        <div className="rounded-xl border bg-gradient-to-br from-emerald-500/10 to-emerald-500/5 dark:from-emerald-500/20 dark:to-emerald-500/5 p-5">
+        <div className="rounded-xl border bg-gradient-to-br from-[var(--ht-accent)]/10 to-[var(--ht-accent)]/5 p-5">
           <p className="text-[10px] font-semibold uppercase tracking-wider text-muted-foreground">Resueltos</p>
-          <p className="text-2xl font-bold mt-1 text-emerald-600 dark:text-emerald-400">{totalResueltos}</p>
+          <p className="text-2xl font-bold mt-1 text-[var(--status-success-fg)]">{totalResueltos}</p>
         </div>
       </div>
 
