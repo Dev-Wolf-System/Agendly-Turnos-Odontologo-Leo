@@ -411,7 +411,7 @@ export default function AdminClinicaDetailPage() {
             <button
               onClick={handleSaveEvolution}
               disabled={isSavingEvolution}
-              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-green-500 to-emerald-600 px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[var(--ht-accent)] to-[var(--ht-accent-dark)] px-3 py-1.5 text-xs font-semibold text-white hover:opacity-90 transition-opacity shadow-sm disabled:opacity-50"
             >
               {isSavingEvolution ? "Guardando..." : "Guardar"}
             </button>

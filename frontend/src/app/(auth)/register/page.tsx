@@ -198,8 +198,8 @@ function RegisterForm() {
           className="mx-auto mb-6 rounded-xl shadow-md"
         />
         <div className="rounded-xl border bg-card shadow-lg p-8">
-          <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-emerald-500/10 mb-5">
-            <CheckIcon className="h-7 w-7 text-emerald-500" />
+          <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-full bg-[var(--ht-accent)]/10 mb-5">
+            <CheckIcon className="h-7 w-7 text-[var(--ht-accent)]" />
           </div>
           <h2 className="text-xl font-bold tracking-tight mb-2">
             Solicitud enviada
@@ -531,8 +531,8 @@ function RegisterForm() {
 
               {/* Security badge */}
               <div className="mt-4 flex items-center gap-2 text-xs text-muted-foreground">
-                <ShieldIcon className="h-3.5 w-3.5 text-emerald-500" />
-                Tus datos estan protegidos con encriptacion de extremo a extremo
+                <ShieldIcon className="h-3.5 w-3.5 text-[var(--ht-accent)]" />
+                Tus datos están protegidos con encriptación de extremo a extremo
               </div>
 
               <div className="flex justify-between mt-8">

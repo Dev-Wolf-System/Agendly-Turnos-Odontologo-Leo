@@ -70,12 +70,12 @@ export default function LoginPage() {
         {/* Center — Value Prop */}
         <div className="relative z-10 flex-1 flex items-center px-10 lg:px-14">
           <div className="max-w-md">
-            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[#38BDF8]/20 bg-[#38BDF8]/10 px-4 py-1.5">
+            <div className="mb-8 inline-flex items-center gap-2 rounded-full border border-[var(--ht-primary-light)]/20 bg-[var(--ht-primary-light)]/10 px-4 py-1.5">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[#38BDF8] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#38BDF8]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--ht-primary-light)] opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--ht-primary-light)]" />
               </span>
-              <span className="text-xs font-medium text-[#38BDF8]">Plataforma activa</span>
+              <span className="text-xs font-medium text-[var(--ht-primary-light)]">Plataforma activa</span>
             </div>
 
             <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
@@ -97,8 +97,8 @@ export default function LoginPage() {
                 { icon: "M13 10V3L4 14h7v7l9-11h-7z", text: "Impulsado por inteligencia artificial" },
               ].map((item) => (
                 <div key={item.text} className="flex items-center gap-3">
-                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[#38BDF8]/10 border border-[#38BDF8]/10">
-                    <svg className="h-4 w-4 text-[#38BDF8]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+                  <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--ht-primary-light)]/10 border border-[var(--ht-primary-light)]/10">
+                    <svg className="h-4 w-4 text-[var(--ht-primary-light)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
                       <path d={item.icon} />
                     </svg>
                   </div>
@@ -140,7 +140,7 @@ export default function LoginPage() {
               height={36}
               className="rounded-xl"
             />
-            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-[#0F172A] to-[#38BDF8] bg-clip-text text-transparent">
+            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-primary-light)] bg-clip-text text-transparent">
               Avax Health
             </span>
           </Link>
@@ -280,7 +280,7 @@ export default function LoginPage() {
             <div className="text-center space-y-4">
               <Link
                 href="/register"
-                className="inline-flex w-full items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition-all hover:bg-muted hover:border-[#38BDF8]/30"
+                className="inline-flex w-full items-center justify-center rounded-xl border border-border px-4 py-3 text-sm font-semibold text-foreground transition-all hover:bg-muted hover:border-[var(--ht-primary-light)]/30"
               >
                 Solicitar Prueba Gratuita
               </Link>
