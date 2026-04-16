@@ -2,6 +2,7 @@
 
 import { useEffect, useState, useCallback, useMemo } from "react";
 import { RoleGuard } from "@/components/guards/role-guard";
+import { FeatureGate } from "@/components/ui/feature-gate";
 import api from "@/services/api";
 import type { PaginationMeta } from "@/services/pacientes.service";
 import { Pagination } from "@/components/ui/pagination";
@@ -53,7 +54,14 @@ interface Proveedor {
 export default function ProveedoresPage() {
   return (
     <RoleGuard allowedRoles={["admin"]}>
-      <ProveedoresContent />
+      <FeatureGate
+        feature="proveedores"
+        planRequired="Avax Consultorio Standard"
+        mode="replace"
+        description="Gestioná tus proveedores de insumos y materiales, con historial de compras y contactos."
+      >
+        <ProveedoresContent />
+      </FeatureGate>
     </RoleGuard>
   );
 }

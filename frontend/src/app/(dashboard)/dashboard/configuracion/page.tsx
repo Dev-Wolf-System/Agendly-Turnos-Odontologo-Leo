@@ -3,6 +3,7 @@
 import React, { useEffect, useState, useCallback, useRef } from "react";
 import { usePlanLimits } from "@/hooks/usePlanLimits";
 import { RoleGuard } from "@/components/guards/role-guard";
+import { FeatureGate } from "@/components/ui/feature-gate";
 import clinicaService, {
   Clinica,
   HorarioDia,
@@ -303,10 +304,24 @@ function ConfiguracionContent() {
         <TabEquipo users={users} clinica={clinica} onUpdate={loadData} />
       )}
       {activeTab === "integraciones" && (
-        <TabIntegraciones clinica={clinica} onUpdate={loadData} />
+        <FeatureGate
+          feature="whatsapp_reminders"
+          planRequired="Avax Consultorio Standard"
+          mode="overlay"
+          description="Los recordatorios automáticos y webhooks requieren un plan pago."
+        >
+          <TabIntegraciones clinica={clinica} onUpdate={loadData} />
+        </FeatureGate>
       )}
       {activeTab === "whatsapp" && (
-        <TabWhatsApp clinica={clinica} onUpdate={loadData} />
+        <FeatureGate
+          feature="whatsapp_agent"
+          planRequired="Avax Consultorio Plus IA"
+          mode="overlay"
+          description="El Agente IA de WhatsApp responde consultas y gestiona turnos automáticamente."
+        >
+          <TabWhatsApp clinica={clinica} onUpdate={loadData} />
+        </FeatureGate>
       )}
       {activeTab === "dashboard" && (
         <TabDashboard clinica={clinica} onUpdate={loadData} />
