@@ -20,13 +20,13 @@ const FEATURE_LABELS: Record<string, string> = {
   whatsapp_reminders: "Recordatorios WhatsApp",
   multi_consultorio: "Multi-Consultorio",
   advanced_reports: "Reportes Avanzados",
-  csv_export: "Exportacion CSV",
+  csv_export: "Exportación CSV",
   custom_branding: "Branding Personalizado",
   api_access: "Acceso API",
-  audit_logs: "Registro de Auditoria",
+  audit_logs: "Registro de Auditoría",
   priority_support: "Soporte Prioritario",
   inventario: "Inventario",
-  pagos: "Gestion de Pagos",
+  pagos: "Gestión de Pagos",
   proveedores: "Proveedores",
 };
 
@@ -34,7 +34,7 @@ const FEATURE_LABELS: Record<string, string> = {
 
 function CheckIcon() {
   return (
-    <svg className="h-4 w-4 shrink-0 text-emerald-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
+    <svg className="h-4 w-4 shrink-0 text-[var(--ht-accent)]" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2.5" strokeLinecap="round" strokeLinejoin="round">
       <path d="M20 6 9 17l-5-5" />
     </svg>
   );
@@ -125,19 +125,19 @@ export default function PlanesPage() {
         </div>
 
         <div className="mx-auto max-w-3xl text-center px-4">
-          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-[#0F172A]/10 px-4 py-1.5 text-sm font-medium text-primary/90">
+          <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-[var(--ht-primary)]/20 bg-[var(--ht-primary)]/8 px-4 py-1.5 text-sm font-medium text-[var(--ht-primary)]">
             <SparkleIcon />
-            14 dias de prueba gratis
+            14 días de prueba gratis
           </div>
           <h1 className="text-3xl font-extrabold tracking-tight sm:text-4xl lg:text-5xl">
-            Elige el plan ideal para tu{" "}
+            Elegí el plan ideal para tu{" "}
             <span className="bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] bg-clip-text text-transparent">
-              clinica
+              clínica
             </span>
           </h1>
           <p className="mt-4 text-lg text-muted-foreground max-w-xl mx-auto">
-            Todos los planes incluyen 14 dias de trial sin tarjeta de credito.
-            Cancela cuando quieras.
+            Todos los planes incluyen 14 días de trial sin tarjeta de crédito.
+            Cancelá cuando quieras.
           </p>
 
           {/* Toggle */}
@@ -161,7 +161,7 @@ export default function PlanesPage() {
               }`}
             >
               Anual
-              <span className="ml-1.5 rounded-full bg-emerald-500/15 px-2 py-0.5 text-xs font-semibold text-emerald-500">
+              <span className="ml-1.5 rounded-full bg-[var(--ht-accent)]/15 px-2 py-0.5 text-xs font-semibold text-[var(--ht-accent)]">
                 -20%
               </span>
             </button>
@@ -184,7 +184,7 @@ export default function PlanesPage() {
           ) : plans.length === 0 ? (
             <div className="text-center py-20 text-muted-foreground">
               <p className="text-lg font-medium">
-                Los planes estaran disponibles pronto.
+                Los planes estarán disponibles pronto.
               </p>
             </div>
           ) : (
@@ -241,7 +241,7 @@ export default function PlanesPage() {
                       {/* Popular badge */}
                       {plan.is_highlighted && (
                         <div className="absolute -top-3 left-1/2 -translate-x-1/2 rounded-full bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-4 py-1 text-xs font-semibold text-white shadow-md">
-                          Mas popular
+                          Más popular
                         </div>
                       )}
 
@@ -354,9 +354,9 @@ export default function PlanesPage() {
 
           {/* Bottom note */}
           <p className="mt-12 text-center text-sm text-muted-foreground">
-            Todos los precios estan en pesos argentinos (ARS) e incluyen IVA.
+            Todos los precios están en pesos argentinos (ARS) e incluyen IVA.
             <br />
-            Necesitas algo personalizado?{" "}
+            ¿Necesitás algo personalizado?{" "}
             <a
               href="mailto:soporte@avaxhealth.com"
               className="font-medium text-primary hover:text-primary/80 transition-colors"
