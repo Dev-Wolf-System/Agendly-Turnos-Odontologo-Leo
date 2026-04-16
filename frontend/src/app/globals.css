@@ -75,97 +75,100 @@
 }
 
 /* ═══════════════════════════════════════════════
-   HEALTH_TRUST Design System — Light Mode
+   HEALTH_TRUST Design System v2 — Light Mode
+   Paleta: Medical Blue #0284C7 + Health Green #16A34A
+   Tipografía: Figtree (display) + Noto Sans (body)
+   Referencia: ui-ux-pro-max — Medical Clinic / Swiss Modernism
    ═══════════════════════════════════════════════ */
 :root {
   /* === shadcn semantic tokens === */
-  --background: #F8FAFC;
-  --foreground: #0F172A;
+  --background: #F0F9FF;
+  --foreground: #0C1A2E;
   --card: #FFFFFF;
-  --card-foreground: #0F172A;
+  --card-foreground: #0C1A2E;
   --popover: #FFFFFF;
-  --popover-foreground: #0F172A;
-  --primary: #0EA5E9;
+  --popover-foreground: #0C1A2E;
+  --primary: #0284C7;
   --primary-foreground: #FFFFFF;
-  --secondary: #F1F5F9;
-  --secondary-foreground: #0F172A;
-  --muted: #F1F5F9;
-  --muted-foreground: #64748B;
-  --accent: #10B981;
+  --secondary: #F0F7FF;
+  --secondary-foreground: #0C1A2E;
+  --muted: #EBF5FF;
+  --muted-foreground: #5A7A94;
+  --accent: #16A34A;
   --accent-foreground: #FFFFFF;
-  --destructive: #EF4444;
-  --border: #E2E8F0;
-  --input: #E2E8F0;
-  --ring: #0EA5E9;
+  --destructive: #DC2626;
+  --border: #D6EAF8;
+  --input: #D6EAF8;
+  --ring: #0284C7;
   --radius: 0.625rem;
 
-  /* === Chart colors === */
-  --chart-1: #0EA5E9;
-  --chart-2: #10B981;
-  --chart-3: #F59E0B;
-  --chart-4: #8B5CF6;
-  --chart-5: #EF4444;
+  /* === Chart colors — accesibles, WCAG AA === */
+  --chart-1: #0284C7;
+  --chart-2: #16A34A;
+  --chart-3: #D97706;
+  --chart-4: #7C3AED;
+  --chart-5: #DC2626;
 
   /* === Status tokens === */
-  --status-success: #10B981;
-  --status-success-fg: #065F46;
-  --status-success-bg: #ECFDF5;
-  --status-warning: #F59E0B;
-  --status-warning-fg: #92400E;
+  --status-success: #16A34A;
+  --status-success-fg: #14532D;
+  --status-success-bg: #F0FDF4;
+  --status-warning: #D97706;
+  --status-warning-fg: #78350F;
   --status-warning-bg: #FFFBEB;
-  --status-error: #EF4444;
-  --status-error-fg: #991B1B;
+  --status-error: #DC2626;
+  --status-error-fg: #7F1D1D;
   --status-error-bg: #FEF2F2;
-  --status-info: #0EA5E9;
+  --status-info: #0284C7;
   --status-info-fg: #0C4A6E;
   --status-info-bg: #EFF6FF;
   --status-neutral: #64748B;
   --status-neutral-fg: #334155;
   --status-neutral-bg: #F1F5F9;
 
-  /* === Sidebar === */
-  --sidebar: #0F172A;
-  --sidebar-foreground: #F8FAFC;
-  --sidebar-primary: #0EA5E9;
+  /* === Sidebar — azul profundo médico === */
+  --sidebar: #0C1A2E;
+  --sidebar-foreground: #EFF6FF;
+  --sidebar-primary: #38BDF8;
   --sidebar-primary-foreground: #FFFFFF;
-  --sidebar-accent: #1E293B;
-  --sidebar-accent-foreground: #F8FAFC;
-  --sidebar-border: rgba(255, 255, 255, 0.08);
-  --sidebar-ring: #0EA5E9;
+  --sidebar-accent: #1A2E45;
+  --sidebar-accent-foreground: #EFF6FF;
+  --sidebar-border: rgba(255, 255, 255, 0.07);
+  --sidebar-ring: #0284C7;
 
-  /* === HEALTH_TRUST extended tokens === */
-  --ht-primary: #0EA5E9;
-  --ht-primary-dark: #0369A1;
-  --ht-primary-light: #38BDF8;
-  --ht-primary-glow: rgba(14, 165, 233, 0.12);
-  --ht-accent: #10B981;
-  --ht-accent-dark: #059669;
-  --ht-accent-warm: #F59E0B;
-  --ht-accent-warm-dark: #D97706;
-  --ht-danger: #EF4444;
-  --ht-success: #10B981;
+  /* === HEALTH_TRUST v2 extended tokens === */
+  --ht-primary: #0284C7;
+  --ht-primary-dark: #075985;
+  --ht-primary-light: #0EA5E9;
+  --ht-primary-glow: rgba(2, 132, 199, 0.12);
+  --ht-accent: #16A34A;
+  --ht-accent-dark: #15803D;
+  --ht-accent-warm: #D97706;
+  --ht-accent-warm-dark: #B45309;
+  --ht-danger: #DC2626;
+  --ht-success: #16A34A;
 
   /* === Backgrounds === */
-  --bg-base: #F8FAFC;
+  --bg-base: #F0F9FF;
   --bg-surface: #FFFFFF;
-  --bg-card: #F1F5F9;
-  --bg-sidebar: #0F172A;
-  --bg-sidebar-hover: #1E293B;
+  --bg-card: #EBF5FF;
+  --bg-sidebar: #0C1A2E;
+  --bg-sidebar-hover: #1A2E45;
 
-  /* === Text === */
-  --text-primary: #0F172A;
-  --text-secondary: #334155;
-  --text-muted: #64748B;
-  --text-disabled: #94A3B8;
-  --text-inverse: #F8FAFC;
+  /* === Text — alto contraste WCAG AAA === */
+  --text-primary: #0C1A2E;
+  --text-secondary: #1E3A5F;
+  --text-muted: #5A7A94;
+  --text-disabled: #9CB3C8;
+  --text-inverse: #F0F9FF;
 
-  /* === Borders === */
-  --border-light: #E2E8F0;
-  --border-focus: #0EA5E9;
+  /* === Borders — tono azul-frío === */
+  --border-light: #D6EAF8;
+  --border-focus: #0284C7;
 
   /* === Semantic backgrounds === */
-  --success-bg: #ECFDF5;
-  --success-border: #6EE7B7;
+  --success-bg: #F0FDF4;
+  --success-border: #86EFAC;
   --warning-bg: #FFFBEB;
   --warning-border: #FCD34D;
   --danger-bg: #FEF2F2;
@@ -174,22 +177,22 @@
   --info-border: #BAE6FD;
 
   /* === Gradients === */
-  --gradient-hero: linear-gradient(135deg, #EFF6FF 0%, #ECFDF5 100%);
-  --gradient-primary: linear-gradient(135deg, #0EA5E9 0%, #0369A1 100%);
-  --gradient-accent: linear-gradient(135deg, #10B981 0%, #059669 100%);
-  --gradient-warm: linear-gradient(135deg, #F59E0B 0%, #D97706 100%);
-  --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #F1F5F9 100%);
-  --gradient-sidebar: linear-gradient(180deg, #0F172A 0%, #1E293B 100%);
+  --gradient-hero: linear-gradient(135deg, #EFF6FF 0%, #F0FDF4 100%);
+  --gradient-primary: linear-gradient(135deg, #0284C7 0%, #075985 100%);
+  --gradient-accent: linear-gradient(135deg, #16A34A 0%, #15803D 100%);
+  --gradient-warm: linear-gradient(135deg, #D97706 0%, #B45309 100%);
+  --gradient-card: linear-gradient(145deg, #FFFFFF 0%, #EBF5FF 100%);
+  --gradient-sidebar: linear-gradient(180deg, #0C1A2E 0%, #1A2E45 100%);
 
-  /* === Shadows === */
-  --shadow-xs: 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-sm: 0 1px 4px rgba(15, 23, 42, 0.06), 0 1px 2px rgba(15, 23, 42, 0.04);
-  --shadow-md: 0 4px 16px rgba(15, 23, 42, 0.08), 0 2px 4px rgba(15, 23, 42, 0.04);
-  --shadow-lg: 0 8px 32px rgba(15, 23, 42, 0.10), 0 4px 8px rgba(15, 23, 42, 0.04);
-  --shadow-xl: 0 16px 48px rgba(15, 23, 42, 0.12);
-  --shadow-primary: 0 4px 20px rgba(14, 165, 233, 0.25);
-  --shadow-accent: 0 4px 20px rgba(16, 185, 129, 0.25);
-  --shadow-card: 0 2px 12px rgba(15, 23, 42, 0.06);
+  /* === Shadows — tinte azul médico === */
+  --shadow-xs: 0 1px 2px rgba(2, 48, 71, 0.04);
+  --shadow-sm: 0 1px 4px rgba(2, 48, 71, 0.06), 0 1px 2px rgba(2, 48, 71, 0.04);
+  --shadow-md: 0 4px 16px rgba(2, 48, 71, 0.08), 0 2px 4px rgba(2, 48, 71, 0.04);
+  --shadow-lg: 0 8px 32px rgba(2, 48, 71, 0.10), 0 4px 8px rgba(2, 48, 71, 0.04);
+  --shadow-xl: 0 16px 48px rgba(2, 48, 71, 0.12);
+  --shadow-primary: 0 4px 20px rgba(2, 132, 199, 0.28);
+  --shadow-accent: 0 4px 20px rgba(22, 163, 74, 0.25);
+  --shadow-card: 0 2px 12px rgba(2, 48, 71, 0.06);
 
   /* === Transitions === */
   --transition-fast: 150ms cubic-bezier(0.16, 1, 0.3, 1);
@@ -214,22 +217,22 @@
   --secondary-foreground: #F1F5F9;
   --muted: #334155;
   --muted-foreground: #94A3B8;
-  --accent: #34D399;
-  --accent-foreground: #064E3B;
+  --accent: #4ADE80;
+  --accent-foreground: #14532D;
   --destructive: #F87171;
-  --border: #334155;
-  --input: #334155;
+  --border: #1E3A55;
+  --input: #1E3A55;
   --ring: #38BDF8;
 
   --chart-1: #38BDF8;
-  --chart-2: #34D399;
+  --chart-2: #4ADE80;
   --chart-3: #FBBF24;
   --chart-4: #A78BFA;
   --chart-5: #F87171;
 
-  --status-success: #34D399;
-  --status-success-fg: #A7F3D0;
-  --status-success-bg: rgba(16, 185, 129, 0.15);
+  --status-success: #4ADE80;
+  --status-success-fg: #BBF7D0;
+  --status-success-bg: rgba(22, 163, 74, 0.15);
   --status-warning: #FBBF24;
   --status-warning-fg: #FDE68A;
   --status-warning-bg: rgba(245, 158, 11, 0.15);
@@ -238,7 +241,7 @@
   --status-error-bg: rgba(239, 68, 68, 0.15);
   --status-info: #38BDF8;
   --status-info-fg: #BAE6FD;
-  --status-info-bg: rgba(14, 165, 233, 0.15);
+  --status-info-bg: rgba(2, 132, 199, 0.15);
   --status-neutral: #94A3B8;
   --status-neutral-fg: #CBD5E1;
   --status-neutral-bg: rgba(100, 116, 139, 0.15);
@@ -256,12 +259,12 @@
   --ht-primary-dark: #0EA5E9;
   --ht-primary-light: #7DD3FC;
   --ht-primary-glow: rgba(56, 189, 248, 0.15);
-  --ht-accent: #34D399;
-  --ht-accent-dark: #10B981;
+  --ht-accent: #4ADE80;
+  --ht-accent-dark: #22C55E;
   --ht-accent-warm: #FBBF24;
   --ht-accent-warm-dark: #F59E0B;
   --ht-danger: #F87171;
-  --ht-success: #34D399;
+  --ht-success: #4ADE80;
 
   --bg-base: #0F172A;
   --bg-surface: #1E293B;
@@ -278,18 +281,18 @@
   --border-light: #334155;
   --border-focus: #38BDF8;
 
-  --success-bg: rgba(16, 185, 129, 0.15);
-  --success-border: #059669;
+  --success-bg: rgba(22, 163, 74, 0.15);
+  --success-border: #16A34A;
   --warning-bg: rgba(245, 158, 11, 0.15);
   --warning-border: #D97706;
   --danger-bg: rgba(239, 68, 68, 0.15);
   --danger-border: #DC2626;
-  --info-bg: rgba(14, 165, 233, 0.15);
+  --info-bg: rgba(2, 132, 199, 0.15);
   --info-border: #0284C7;
 
-  --gradient-hero: linear-gradient(135deg, rgba(14, 165, 233, 0.08) 0%, rgba(16, 185, 129, 0.08) 100%);
+  --gradient-hero: linear-gradient(135deg, rgba(2, 132, 199, 0.08) 0%, rgba(22, 163, 74, 0.08) 100%);
   --gradient-primary: linear-gradient(135deg, #38BDF8 0%, #0EA5E9 100%);
-  --gradient-accent: linear-gradient(135deg, #34D399 0%, #10B981 100%);
+  --gradient-accent: linear-gradient(135deg, #4ADE80 0%, #22C55E 100%);
   --gradient-warm: linear-gradient(135deg, #FBBF24 0%, #F59E0B 100%);
   --gradient-card: linear-gradient(145deg, #1E293B 0%, #334155 100%);
   --gradient-sidebar: linear-gradient(180deg, #0B1120 0%, #0F172A 100%);
@@ -300,7 +303,7 @@
   --shadow-lg: 0 8px 32px rgba(0, 0, 0, 0.35), 0 4px 8px rgba(0, 0, 0, 0.2);
   --shadow-xl: 0 16px 48px rgba(0, 0, 0, 0.4);
   --shadow-primary: 0 4px 20px rgba(56, 189, 248, 0.2);
-  --shadow-accent: 0 4px 20px rgba(52, 211, 153, 0.2);
+  --shadow-accent: 0 4px 20px rgba(22, 163, 74, 0.2);
   --shadow-card: 0 2px 12px rgba(0, 0, 0, 0.2);
 }
 
@@ -349,8 +352,8 @@
 
 /* AI glow pulse */
 @keyframes glow-pulse {
-  0%, 100% { box-shadow: 0 0 0 0 rgba(14, 165, 233, 0.3); }
-  50%      { box-shadow: 0 0 0 8px rgba(14, 165, 233, 0); }
+  0%, 100% { box-shadow: 0 0 0 0 rgba(2, 132, 199, 0.3); }
+  50%      { box-shadow: 0 0 0 8px rgba(2, 132, 199, 0); }
 }
 
 /* Skeleton shimmer */

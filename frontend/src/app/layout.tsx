@@ -1,20 +1,24 @@
 import type { Metadata } from "next";
-import { Plus_Jakarta_Sans, Inter, JetBrains_Mono } from "next/font/google";
+import { Figtree, Noto_Sans, JetBrains_Mono } from "next/font/google";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ClinicaProvider } from "@/components/providers/clinica-provider";
 
-const displayFont = Plus_Jakarta_Sans({
+// Figtree — headings, KPIs, display (Medical Clean — ui-ux-pro-max)
+const displayFont = Figtree({
   variable: "--font-display",
   subsets: ["latin"],
-  weight: ["400", "500", "600", "700", "800"],
+  weight: ["300", "400", "500", "600", "700", "800"],
+  display: "swap",
 });
 
-const bodyFont = Inter({
+// Noto Sans — body, tablas, formularios (máxima legibilidad)
+const bodyFont = Noto_Sans({
   variable: "--font-body",
   subsets: ["latin"],
-  weight: ["400", "500", "600"],
+  weight: ["300", "400", "500", "700"],
+  display: "swap",
 });
 
 const monoFont = JetBrains_Mono({
