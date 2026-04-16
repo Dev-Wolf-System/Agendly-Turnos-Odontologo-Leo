@@ -168,6 +168,91 @@ export class AgentController {
     );
   }
 
+  /**
+   * Turnos del profesional (para que el profesional consulte sus turnos).
+   * GET /agent/turnos/mis-turnos/:userId?clinicaId=xxx&periodo=hoy|semana|pendientes
+   */
+  @Get('turnos/mis-turnos/:userId')
+  getMisTurnos(
+    @Param('userId', ParseUUIDPipe) userId: string,
+    @Query('clinicaId', ParseUUIDPipe) clinicaId: string,
+    @Query('periodo') periodo?: string,
+  ) {
+    const p = (['hoy', 'semana', 'pendientes'] as const).includes(
+      periodo as 'hoy' | 'semana' | 'pendientes',
+    )
+      ? (periodo as 'hoy' | 'semana' | 'pendientes')
+      : 'hoy';
+    return this.agentService.misTurnos(clinicaId, userId, p);
+  }
+
+  /* ─── Admin / Propietario ─── */
+
+  /**
+   * Identificar quién escribe por teléfono (paciente, profesional o admin).
+   * GET /agent/clinica/:clinicaId/quien-escribe/:phone
+   */
+  @Get('clinica/:clinicaId/quien-escribe/:phone')
+  quienEscribe(
+    @Param('clinicaId', ParseUUIDPipe) clinicaId: string,
+    @Param('phone') phone: string,
+  ) {
+    return this.agentService.quienEscribe(clinicaId, phone);
+  }
+
+  /**
+   * Resumen operativo del día + métricas del mes para el propietario.
+   * GET /agent/clinica/:clinicaId/resumen
+   */
+  @Get('clinica/:clinicaId/resumen')
+  getResumenClinica(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
+    return this.agentService.resumenClinica(clinicaId);
+  }
+
+  /**
+   * Finanzas del período solicitado.
+   * GET /agent/clinica/:clinicaId/finanzas?periodo=hoy|semana|mes
+   */
+  @Get('clinica/:clinicaId/finanzas')
+  getFinanzas(
+    @Param('clinicaId', ParseUUIDPipe) clinicaId: string,
+    @Query('periodo') periodo?: string,
+  ) {
+    const p = (['hoy', 'semana', 'mes'] as const).includes(
+      periodo as 'hoy' | 'semana' | 'mes',
+    )
+      ? (periodo as 'hoy' | 'semana' | 'mes')
+      : 'mes';
+    return this.agentService.finanzas(clinicaId, p);
+  }
+
+  /**
+   * Alertas de inventario (productos con stock bajo o agotado).
+   * GET /agent/clinica/:clinicaId/inventario/alertas
+   */
+  @Get('clinica/:clinicaId/inventario/alertas')
+  getInventarioAlertas(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
+    return this.agentService.inventarioAlertas(clinicaId);
+  }
+
+  /**
+   * Estadísticas de pacientes.
+   * GET /agent/clinica/:clinicaId/pacientes/stats
+   */
+  @Get('clinica/:clinicaId/pacientes/stats')
+  getPacientesStats(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
+    return this.agentService.pacientesStats(clinicaId);
+  }
+
+  /**
+   * Equipo de la clínica (profesionales y staff).
+   * GET /agent/clinica/:clinicaId/equipo
+   */
+  @Get('clinica/:clinicaId/equipo')
+  getEquipo(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
+    return this.agentService.equipo(clinicaId);
+  }
+
   /* ─── Webhooks ─── */
 
   /**

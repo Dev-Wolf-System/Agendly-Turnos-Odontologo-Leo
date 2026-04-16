@@ -35,3 +35,884 @@ Commits:
 Retomar sesion:
 claude --resume (se retoma automaticamente)
 claude --resume 52d9803c-53c0-4887-961f-3b35d817c74a
+
+
+Revision: 
+
+Revisar errores: 
+
+Error 1:
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads/stats 500 (Internal Server Error)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+tn.<computed> @ 0chbb6.v4nyux.js:1
+(anonymous) @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+n.unstable_scheduleCallback @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads 500 (Internal Server Error)
+
+Error 2:
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads?estado=nuevo 500 (Internal Server Error)
+
+Error 3:
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads/stats 500 (Internal Server Error)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+tn.<computed> @ 0chbb6.v4nyux.js:1
+(anonymous) @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+ud @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+s_ @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads?estado=contactado 500 (Internal Server Error)
+
+Error 4:
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads?estado=en_negociacion 500 (Internal Server Error)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+tn.<computed> @ 0chbb6.v4nyux.js:1
+(anonymous) @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+s_ @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads/stats 500 (Internal Server Error)
+
+Error 5: 
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads/stats 500 (Internal Server Error)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+tn.<computed> @ 0chbb6.v4nyux.js:1
+(anonymous) @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+iv @ 0h4bq73pogmtb.js:1
+s_ @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads?estado=convertido 500 (Internal Server Error)
+
+Error 6: 
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads/stats 500 (Internal Server Error)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+tn.<computed> @ 0chbb6.v4nyux.js:1
+(anonymous) @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+(anonymous) @ VM383 0pqd--hpo9ji3.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+s_ @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads?estado=descartado 500 (Internal Server Error)
+
+Error 7: 
+
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads/stats 500 (Internal Server Error)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM444 0pqd--hpo9ji3.js:1
+(anonymous) @ VM444 0pqd--hpo9ji3.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/leads 500 (Internal Server Error)
+
+Revisar: en la secion suscripciones del panel de admin del sistema las clinicas no son cliiqueables deben serlo para una una mejor navecacion entre paginas.
+
+Errores al iniciar secion con usuario de clinica:
+
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/clinicas/me 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+getMe @ 0q7_-d2clsq6l.js:1
+(anonymous) @ 0q7_-d2clsq6l.js:1
+(anonymous) @ 0q7_-d2clsq6l.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+XMLHttpRequest.send
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+(anonymous) @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+login @ 0q7_-d2clsq6l.js:1
+d @ 0q7_-d2clsq6l.js:1
+b @ 13s4~py8foljr.js:3
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/clinicas/me/subscription-status 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+getSubscriptionStatus @ 0q7_-d2clsq6l.js:1
+(anonymous) @ VM610 0n-_ylii~3ka7.js:37
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/dashboard/stats 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/dashboard/facturacion-diaria 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+ud @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/dashboard/ingresos-mensuales 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+sx @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/dashboard/tratamientos-mes 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+iv @ 0h4bq73pogmtb.js:1
+sx @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/notificaciones/count 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+en @ VM610 0n-_ylii~3ka7.js:1
+(anonymous) @ VM610 0n-_ylii~3ka7.js:37
+(anonymous) @ VM610 0n-_ylii~3ka7.js:37
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+ud @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/dashboard/turnos-semana 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+ud @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/dashboard/turnos-hoy 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+(anonymous) @ VM614 0c.uagezo1t2~.js:1
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/chat/unread-count 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+getUnreadCount @ VM610 0n-_ylii~3ka7.js:37
+e @ VM610 0n-_ylii~3ka7.js:37
+(anonymous) @ VM610 0n-_ylii~3ka7.js:37
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/clinicas/me/features 403 (Forbidden)
+(anonymous) @ 0chbb6.v4nyux.js:1
+xhr @ 0chbb6.v4nyux.js:1
+e7 @ 0chbb6.v4nyux.js:1
+Promise.then
+_request @ 0chbb6.v4nyux.js:1
+request @ 0chbb6.v4nyux.js:1
+push.Y.forEach.tn.<computed> @ 0chbb6.v4nyux.js:1
+push.toString @ 0chbb6.v4nyux.js:1
+getFeatures @ 0q7_-d2clsq6l.js:1
+(anonymous) @ VM610 0n-_ylii~3ka7.js:37
+(anonymous) @ VM610 0n-_ylii~3ka7.js:37
+iv @ 0h4bq73pogmtb.js:1
+up @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+O @ 0h4bq73pogmtb.js:1
+postMessage
+i @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+sH @ 0h4bq73pogmtb.js:1
+sV @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+PendingScript
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+loadChunkCached @ turbopack-103y1ri6ul0co.js:1
+M @ turbopack-103y1ri6ul0co.js:1
+(anonymous) @ turbopack-103y1ri6ul0co.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+t @ 116bln7dwkodj.js:1
+Promise.then
+es @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+Promise.then
+push.r.createFromFetch @ 116bln7dwkodj.js:1
+T @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+E @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:1
+_ @ 116bln7dwkodj.js:1
+s @ 116bln7dwkodj.js:1
+(anonymous) @ 116bln7dwkodj.js:2
+action @ 116bln7dwkodj.js:2
+_ @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+dispatch @ 116bln7dwkodj.js:2
+i @ 116bln7dwkodj.js:1
+c @ 116bln7dwkodj.js:1
+P @ 116bln7dwkodj.js:2
+(anonymous) @ 116bln7dwkodj.js:2
+U @ 0osn5uk23_xlz.js:1
+push @ 116bln7dwkodj.js:2
+b @ 13s4~py8foljr.js:3
+await in b
+sJ @ 0h4bq73pogmtb.js:1
+(anonymous) @ 0h4bq73pogmtb.js:1
+tD @ 0h4bq73pogmtb.js:1
+s4 @ 0h4bq73pogmtb.js:1
+fz @ 0h4bq73pogmtb.js:1
+fT @ 0h4bq73pogmtb.js:1Understand this error
+0chbb6.v4nyux.js:1  GET https://api.avaxhealth.com/api/chat/unread-per-user 40
+
+Error: 
+
+0chbb6.v4nyux.js:1  DELETE https://api.avaxhealth.com/api/admin/clinicas/2d3f04db-400d-474c-8088-a39c04224cf4 500 (Internal Server Error)
+
+
+
+
