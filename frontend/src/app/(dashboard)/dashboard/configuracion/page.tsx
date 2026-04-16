@@ -1615,7 +1615,7 @@ const WEBHOOK_ESTADOS = [
     key: "completado",
     label: "Turno Completado",
     description: "Se dispara cuando se marca un turno como completado",
-    color: "bg-emerald-500",
+    color: "bg-[var(--ht-accent)]",
   },
   {
     key: "cancelado",
@@ -1743,7 +1743,7 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
                       <p className="text-xs text-muted-foreground mt-0.5">{description}</p>
                     </div>
                     {wh.activo && (
-                      <span className="text-[10px] font-semibold uppercase tracking-wider text-emerald-500 bg-emerald-500/10 px-2 py-0.5 rounded-full">
+                      <span className="text-[10px] font-semibold uppercase tracking-wider text-[var(--ht-accent)] bg-[var(--ht-accent)]/10 px-2 py-0.5 rounded-full">
                         Activo
                       </span>
                     )}
@@ -1767,11 +1767,11 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
           </p>
         </div>
         <div className="px-6 pb-6 space-y-4">
-          <div className="rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50/50 dark:bg-emerald-950/20 p-4">
+          <div className="rounded-lg border border-[var(--ht-accent)]/30 bg-[var(--success-bg)] p-4">
             <div className="flex gap-3">
-              <Info className="h-5 w-5 text-emerald-500 shrink-0 mt-0.5" />
+              <Info className="h-5 w-5 text-[var(--ht-accent)] shrink-0 mt-0.5" />
               <div className="space-y-2 text-sm">
-                <p className="font-medium text-emerald-800 dark:text-emerald-200">
+                <p className="font-medium text-[var(--status-success-fg)]">
                   Cómo funciona
                 </p>
                 <ol className="list-decimal pl-4 text-emerald-700 dark:text-emerald-300 text-xs space-y-1">

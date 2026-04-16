@@ -170,7 +170,7 @@ export default function SucursalesPage() {
       <div className="grid grid-cols-1 sm:grid-cols-3 gap-4">
         {[
           { label: "Total Sucursales", value: resumen?.total ?? 0, gradient: "from-blue-500 to-[var(--ht-primary)]" },
-          { label: "Activas", value: resumen?.activas ?? 0, gradient: "from-emerald-500 to-teal-600" },
+          { label: "Activas", value: resumen?.activas ?? 0, gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]" },
           { label: "Inactivas", value: resumen?.inactivas ?? 0, gradient: "from-amber-500 to-orange-500" },
         ].map((kpi) => (
           <div key={kpi.label} className="rounded-xl border bg-card p-5 shadow-sm">

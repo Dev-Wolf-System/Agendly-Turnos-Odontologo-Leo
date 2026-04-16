@@ -440,7 +440,7 @@ function InventarioContent() {
                                 low
                                   ? "bg-red-500"
                                   : pct > 60
-                                    ? "bg-emerald-500"
+                                    ? "bg-[var(--ht-accent)]"
                                     : "bg-amber-500"
                               }`}
                               style={{ width: `${pct}%` }}

@@ -69,8 +69,8 @@ const estadoSubColors: Record<
 > = {
   activa: {
     badge:
-      "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-    dot: "bg-emerald-500",
+      "bg-[var(--ht-accent)]/15 text-[var(--status-success-fg)] dark:text-[var(--ht-accent)]",
+    dot: "bg-[var(--ht-accent)]",
   },
   inactiva: {
     badge:
@@ -644,7 +644,7 @@ function SuscripcionContent() {
                                 className="flex items-center gap-2 text-sm"
                               >
                                 {enabled ? (
-                                  <CheckCircle2 className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                                  <CheckCircle2 className="w-3.5 h-3.5 text-[var(--ht-accent)] shrink-0" />
                                 ) : (
                                   <XCircle className="w-3.5 h-3.5 text-muted-foreground/40 shrink-0" />
                                 )}
@@ -815,7 +815,7 @@ function SuscripcionContent() {
                               {ticket.asunto}
                             </p>
                             {ticket.respuesta_admin && (
-                              <MessageSquare className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              <MessageSquare className="w-3.5 h-3.5 text-[var(--ht-accent)] shrink-0" />
                             )}
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">

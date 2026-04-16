@@ -64,7 +64,7 @@ function getInitials(nombre: string, apellido: string): string {
 
 const GRADIENT_COLORS = [
   "from-[var(--ht-primary)] to-[var(--ht-accent-dark)]",
-  "from-emerald-500 to-teal-600",
+  "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]",
   "from-blue-500 to-cyan-600",
   "from-rose-500 to-pink-600",
   "from-amber-500 to-orange-600",

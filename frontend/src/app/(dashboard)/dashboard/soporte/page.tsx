@@ -216,7 +216,7 @@ export default function SoportePage() {
                           <div className="flex items-center gap-2 flex-wrap mb-2">
                             <p className="text-sm font-semibold truncate">{ticket.asunto}</p>
                             {ticket.respuesta_admin && (
-                              <MessageSquare className="w-3.5 h-3.5 text-emerald-500 shrink-0" />
+                              <MessageSquare className="w-3.5 h-3.5 text-[var(--ht-accent)] shrink-0" />
                             )}
                           </div>
                           <div className="flex items-center gap-2 flex-wrap">

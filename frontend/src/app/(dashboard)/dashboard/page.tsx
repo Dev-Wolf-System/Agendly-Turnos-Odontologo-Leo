@@ -243,25 +243,25 @@ export default function DashboardPage() {
   if (isProfessional) {
     allKpiCards.push(
       { id: "turnosHoy", label: "Mis Turnos Hoy", value: misTurnosHoy.length, sub: "turnos programados", gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-dark)]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
       { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-[var(--ht-primary-light)] to-[var(--ht-primary)]", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
       { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: usersSvg, href: "/dashboard/pacientes" },
     );
   } else if (isAssistant) {
     allKpiCards.push(
       { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-dark)]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
       { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-[var(--ht-primary-light)] to-[var(--ht-primary)]", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
       { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: usersSvg, href: "/dashboard/pacientes" },
-      { id: "pagosAprobados", label: "Pagos Aprobados", value: stats?.pagosAprobadosMes ?? 0, sub: "aprobados este mes", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: checkSvg, href: "/dashboard/pagos" },
+      { id: "pagosAprobados", label: "Pagos Aprobados", value: stats?.pagosAprobadosMes ?? 0, sub: "aprobados este mes", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: checkSvg, href: "/dashboard/pagos" },
     );
   } else {
     allKpiCards.push(
       { id: "turnosHoy", label: "Turnos Hoy", value: stats?.turnosHoy ?? 0, sub: "turnos programados", gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-dark)]", bgGlow: "bg-blue-500/10", icon: calendarSvg, href: "/dashboard/turnos" },
-      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
+      { id: "completadosHoy", label: "Completados", value: turnosCompletadosHoy, sub: "turnos finalizados hoy", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: checkCircleSvg, href: "/dashboard/turnos" },
       { id: "confirmadosRestantes", label: "Confirmados", value: turnosConfirmadosRestantes, sub: "restantes por atender", gradient: "from-[var(--ht-primary-light)] to-[var(--ht-primary)]", bgGlow: "bg-sky-500/10", icon: clockConfirmSvg, href: "/dashboard/turnos" },
       { id: "pacientes", label: "Pacientes", value: stats?.totalPacientes ?? 0, sub: "pacientes registrados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: usersSvg, href: "/dashboard/pacientes" },
-      { id: "ingresosMes", label: "Ingresos del Mes", value: formatCurrency(stats?.ingresosMes ?? 0), sub: "pagos aprobados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-emerald-500/10", icon: dollarSvg, href: "/dashboard/pagos" },
+      { id: "ingresosMes", label: "Ingresos del Mes", value: formatCurrency(stats?.ingresosMes ?? 0), sub: "pagos aprobados", gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", bgGlow: "bg-[var(--ht-accent)]/10", icon: dollarSvg, href: "/dashboard/pagos" },
       { id: "stockBajo", label: "Stock Bajo", value: stats?.lowStockCount ?? 0, sub: "items bajo mínimo", gradient: (stats?.lowStockCount ?? 0) > 0 ? "from-amber-500 to-orange-600" : "from-slate-400 to-slate-500", bgGlow: (stats?.lowStockCount ?? 0) > 0 ? "bg-amber-500/10" : "bg-slate-500/10", icon: alertSvg, href: "/dashboard/inventario" },
     );
   }
@@ -379,7 +379,7 @@ export default function DashboardPage() {
           </ResponsiveContainer>
           <div className="flex justify-center gap-6 mt-3">
             <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-primary" />Programados</div>
-            <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-emerald-500" />Completados</div>
+            <div className="flex items-center gap-2 text-xs text-muted-foreground"><span className="h-2.5 w-2.5 rounded-full bg-[var(--ht-accent)]" />Completados</div>
           </div>
         </div>
       ),
@@ -478,15 +478,15 @@ export default function DashboardPage() {
               <AreaChart data={facturacionDiaria}>
                 <defs>
                   <linearGradient id="gradientIngresos" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#0EA5E9" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#0EA5E9" stopOpacity={0} />
+                    <stop offset="5%" stopColor="#0284C7" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#0284C7" stopOpacity={0} />
                   </linearGradient>
                 </defs>
                 <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="#E2E8F0" />
                 <XAxis dataKey="dia" tick={{ fontSize: 12 }} tickLine={false} axisLine={false} />
                 <YAxis tick={{ fontSize: 12 }} tickLine={false} axisLine={false} tickFormatter={(v) => `$${v / 1000}k`} />
                 <Tooltip contentStyle={CHART_TOOLTIP_STYLE} formatter={(value) => [`$${Number(value).toLocaleString("es-AR")}`, "Ingreso"]} />
-                <Area type="monotone" dataKey="monto" stroke="#0EA5E9" fill="url(#gradientIngresos)" strokeWidth={2} />
+                <Area type="monotone" dataKey="monto" stroke="#0284C7" fill="url(#gradientIngresos)" strokeWidth={2} />
               </AreaChart>
             </ResponsiveContainer>
           )}

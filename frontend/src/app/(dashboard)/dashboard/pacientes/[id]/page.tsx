@@ -118,7 +118,7 @@ function EstadoBadge({ estado }: { estado: string }) {
 const gradients = [
   "from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)]",
   "from-blue-500 to-cyan-500",
-  "from-emerald-500 to-teal-500",
+  "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]",
   "from-orange-500 to-amber-500",
   "from-rose-500 to-pink-500",
   "from-[var(--ht-primary)] to-blue-600",
