@@ -141,7 +141,7 @@ function DashboardMockup() {
             {[
               { label: "Turnos Hoy", value: "12", color: "from-blue-500 to-[var(--ht-primary)]" },
               { label: "Pacientes", value: "847", color: "from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)]" },
-              { label: "Ingresos", value: "$284k", color: "from-emerald-500 to-teal-500" },
+              { label: "Ingresos", value: "$284k", color: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]" },
             ].map((kpi) => (
               <div key={kpi.label} className="rounded-xl border border-border/40 bg-card p-3">
                 <p className="text-[10px] sm:text-xs text-muted-foreground">{kpi.label}</p>
@@ -159,7 +159,7 @@ function DashboardMockup() {
             <div className="space-y-2">
               {[
                 { time: "09:00", name: "María García", type: "Consulta", bg: "bg-blue-500/10 border-blue-500/20" },
-                { time: "10:30", name: "Juan López", type: "Control", bg: "bg-emerald-500/10 border-emerald-500/20" },
+                { time: "10:30", name: "Juan López", type: "Control", bg: "bg-[var(--ht-accent)]/10 border-[var(--ht-accent)]/20" },
                 { time: "11:00", name: "Ana Martínez", type: "Limpieza", bg: "bg-purple-500/10 border-purple-500/20" },
                 { time: "14:00", name: "Carlos Ruiz", type: "Ortodoncia", bg: "bg-amber-500/10 border-amber-500/20" },
               ].map((apt) => (
@@ -208,7 +208,7 @@ const features = [
     icon: MessageIcon,
     title: "WhatsApp + IA",
     description: "Agente inteligente que atiende pacientes 24/7: agenda turnos, responde consultas y envía recordatorios automáticamente.",
-    gradient: "from-emerald-500 to-teal-500",
+    gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]",
   },
   {
     icon: BuildingIcon,
@@ -313,19 +313,50 @@ const stats = [
   { value: "99.9%", label: "Uptime garantizado" },
 ];
 
+function SmartphoneIcon({ className = "w-7 h-7" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <rect width="14" height="20" x="5" y="2" rx="2" />
+      <path d="M12 18h.01" />
+    </svg>
+  );
+}
+
+function FileTextIcon({ className = "w-7 h-7" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
+      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
+      <path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" />
+    </svg>
+  );
+}
+
+function TrendingUpIcon({ className = "w-7 h-7" }: { className?: string }) {
+  return (
+    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
+      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
+      <polyline points="16 7 22 7 22 13" />
+    </svg>
+  );
+}
+
 const painPoints = [
   {
-    emoji: "📱",
+    Icon: SmartphoneIcon,
+    gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-light)]",
     problem: "¿Seguís coordinando turnos por WhatsApp?",
     solution: "Con Avax Health tu agenda se gestiona sola — recordatorios automáticos, confirmaciones y cancelaciones sin intervención manual.",
   },
   {
-    emoji: "📋",
+    Icon: FileTextIcon,
+    gradient: "from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)]",
     problem: "¿El historial de tus pacientes está en papel o en planillas?",
     solution: "Digitalizá fichas médicas, diagnósticos y documentos. Buscá cualquier paciente en segundos desde cualquier dispositivo.",
   },
   {
-    emoji: "💸",
+    Icon: TrendingUpIcon,
+    gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]",
     problem: "¿No sabés cuánto facturaste este mes por profesional?",
     solution: "Dashboard financiero en tiempo real con KPIs de ingresos, pagos pendientes y métricas de ocupación.",
   },
@@ -433,17 +464,17 @@ export default function LandingPage() {
       <section className="relative overflow-hidden">
         <div className="pointer-events-none absolute inset-0 -z-10">
           <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-gradient-to-br from-[var(--ht-primary)]/20 via-[var(--ht-primary-light)]/20 to-[var(--ht-accent-dark)]/10 blur-3xl" />
-          <div className="absolute top-40 -left-40 h-72 w-72 rounded-full bg-[#0F172A]/10 blur-3xl" />
+          <div className="absolute top-40 -left-40 h-72 w-72 rounded-full bg-[var(--ht-primary-dark)]/10 blur-3xl" />
           <div className="absolute top-60 -right-40 h-72 w-72 rounded-full bg-[var(--ht-accent)]/10 blur-3xl" />
         </div>
 
         <div className="mx-auto max-w-7xl px-4 pt-16 pb-8 sm:px-6 sm:pt-24 sm:pb-12 lg:px-8 lg:pt-28">
           <div className="mx-auto max-w-3xl text-center">
             {/* Badge */}
-            <div className="reveal mb-6 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-[#0F172A]/10 px-4 py-1.5 text-sm font-medium text-primary/90">
+            <div className="reveal mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--ht-primary)]/20 bg-[var(--ht-primary)]/8 px-4 py-1.5 text-sm font-medium text-[var(--ht-primary)]">
               <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--ht-primary-dark)] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[#0F172A]" />
+                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--ht-primary)] opacity-75" />
+                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--ht-primary)]" />
               </span>
               Plataforma SaaS para salud · 14 días gratis
             </div>
@@ -479,15 +510,15 @@ export default function LandingPage() {
 
             <div className="reveal reveal-delay-4 mt-5 flex items-center justify-center gap-6 text-sm text-muted-foreground flex-wrap">
               <span className="flex items-center gap-1.5">
-                <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
+                <CheckCircleIcon className="w-4 h-4 text-[var(--ht-accent)]" />
                 Sin tarjeta de crédito
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
+                <CheckCircleIcon className="w-4 h-4 text-[var(--ht-accent)]" />
                 Cancelás cuando quieras
               </span>
               <span className="flex items-center gap-1.5">
-                <CheckCircleIcon className="w-4 h-4 text-emerald-500" />
+                <CheckCircleIcon className="w-4 h-4 text-[var(--ht-accent)]" />
                 Soporte incluido
               </span>
             </div>
@@ -512,9 +543,11 @@ export default function LandingPage() {
             {painPoints.map((p, i) => (
               <div
                 key={p.problem}
-                className={`reveal reveal-delay-${i + 1} rounded-xl border border-border/50 bg-card p-6 space-y-3`}
+                className={`reveal reveal-delay-${i + 1} rounded-xl border border-border/50 bg-card p-6 space-y-4`}
               >
-                <div className="text-3xl">{p.emoji}</div>
+                <div className={`inline-flex rounded-xl bg-gradient-to-br ${p.gradient} p-3 text-white shadow-md`}>
+                  <p.Icon className="w-6 h-6" />
+                </div>
                 <p className="font-semibold text-sm leading-snug text-foreground">
                   {p.problem}
                 </p>
@@ -851,7 +884,7 @@ export default function LandingPage() {
         </div>
 
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-[var(--ht-primary)] to-[#0d1f33] px-6 py-16 sm:px-16 sm:py-20 text-center">
+          <div className="reveal relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-primary-dark)] px-6 py-16 sm:px-16 sm:py-20 text-center">
             <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-[var(--ht-accent)]/10 blur-3xl" />
             <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-[var(--ht-accent-dark)]/10 blur-3xl" />
 

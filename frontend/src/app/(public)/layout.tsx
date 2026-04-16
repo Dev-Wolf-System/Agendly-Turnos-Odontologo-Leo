@@ -40,10 +40,22 @@ export default function PublicLayout({
               Inicio
             </Link>
             <Link
+              href="/#funcionalidades"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              Funcionalidades
+            </Link>
+            <Link
               href="/planes"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
               Planes
+            </Link>
+            <Link
+              href="/#faq"
+              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
+            >
+              FAQ
             </Link>
           </div>
 
@@ -54,7 +66,7 @@ export default function PublicLayout({
               href="/login"
               className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
             >
-              Iniciar sesion
+              Iniciar sesión
             </Link>
             <Link
               href="/planes"
@@ -100,11 +112,25 @@ export default function PublicLayout({
                 Inicio
               </Link>
               <Link
+                href="/#funcionalidades"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                Funcionalidades
+              </Link>
+              <Link
                 href="/planes"
                 onClick={() => setMobileOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
                 Planes
+              </Link>
+              <Link
+                href="/#faq"
+                onClick={() => setMobileOpen(false)}
+                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
+              >
+                FAQ
               </Link>
               <hr className="my-2 border-border/40" />
               <Link
@@ -112,7 +138,7 @@ export default function PublicLayout({
                 onClick={() => setMobileOpen(false)}
                 className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
               >
-                Iniciar sesion
+                Iniciar sesión
               </Link>
               <Link
                 href="/planes"
@@ -148,7 +174,7 @@ export default function PublicLayout({
                 </span>
               </Link>
               <p className="text-sm text-muted-foreground leading-relaxed">
-                Plataforma SaaS para la gestion integral de clinicas y consultorios de salud.
+                Plataforma SaaS para la gestión integral de clínicas y consultorios de salud.
               </p>
             </div>
 
@@ -158,7 +184,7 @@ export default function PublicLayout({
               <ul className="space-y-2">
                 <li><Link href="/planes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Planes</Link></li>
                 <li><Link href="/register" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Registrarse</Link></li>
-                <li><Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Iniciar sesion</Link></li>
+                <li><Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Iniciar sesión</Link></li>
               </ul>
             </div>
 
@@ -175,8 +201,8 @@ export default function PublicLayout({
             <div>
               <h4 className="text-sm font-semibold mb-3">Legal</h4>
               <ul className="space-y-2">
-                <li><span className="text-sm text-muted-foreground">Terminos de servicio</span></li>
-                <li><span className="text-sm text-muted-foreground">Politica de privacidad</span></li>
+                <li><span className="text-sm text-muted-foreground">Términos de servicio</span></li>
+                <li><span className="text-sm text-muted-foreground">Política de privacidad</span></li>
               </ul>
             </div>
           </div>
