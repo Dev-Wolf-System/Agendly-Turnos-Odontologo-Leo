@@ -4,6 +4,10 @@ import { useState, useEffect } from "react";
 import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
+  ArrowLeft, ChevronRight, Building2, Users, Heart,
+  Calendar, Clock, Info, Crown, Webhook, Trash2, XCircle,
+} from "lucide-react";
+import {
   getAdminClinicaById,
   updateAdminClinica,
   deleteAdminClinica,
@@ -13,17 +17,17 @@ import { formatPhone } from "@/lib/utils";
 
 const ESTADO_COLORS: Record<string, { bg: string; text: string; dot: string }> = {
   activa: { bg: "bg-[var(--ht-accent)]/10", text: "text-[var(--status-success-fg)]", dot: "bg-[var(--ht-accent)]" },
-  inactiva: { bg: "bg-red-500/10", text: "text-red-600 dark:text-red-400", dot: "bg-red-500" },
+  inactiva: { bg: "bg-[var(--status-error)]/10", text: "text-[var(--status-error-fg)]", dot: "bg-[var(--status-error)]" },
   cancelada: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500" },
   vencida: { bg: "bg-orange-500/10", text: "text-orange-600 dark:text-orange-400", dot: "bg-orange-500" },
 };
 
 const WEBHOOK_ESTADOS = [
-  { key: "confirmado", label: "Turno Confirmado", color: "bg-blue-500" },
+  { key: "confirmado", label: "Turno Confirmado", color: "bg-[var(--ht-primary)]" },
   { key: "completado", label: "Turno Completado", color: "bg-[var(--ht-accent)]" },
-  { key: "cancelado", label: "Turno Cancelado", color: "bg-red-500" },
-  { key: "perdido", label: "Turno Perdido", color: "bg-orange-500" },
-  { key: "pendiente", label: "Turno Creado", color: "bg-amber-500" },
+  { key: "cancelado", label: "Turno Cancelado", color: "bg-[var(--status-error)]" },
+  { key: "perdido", label: "Turno Perdido", color: "bg-[var(--ht-accent-warm)]" },
+  { key: "pendiente", label: "Turno Creado", color: "bg-[var(--ht-accent-warm)]" },
   { key: "recordatorio", label: "Recordatorio", color: "bg-[var(--ht-accent)]" },
 ];
 
@@ -164,10 +168,8 @@ export default function AdminClinicaDetailPage() {
   if (loadError) {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-3">
-        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-red-500/10 mb-2">
-          <svg className="h-6 w-6 text-red-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-            <circle cx="12" cy="12" r="10" /><path d="m15 9-6 6" /><path d="m9 9 6 6" />
-          </svg>
+        <div className="flex h-14 w-14 items-center justify-center rounded-xl bg-[var(--status-error)]/10 mb-2">
+          <XCircle className="h-6 w-6 text-[var(--status-error-fg)]" />
         </div>
         <p className="text-sm font-medium text-muted-foreground">{loadError}</p>
         <button
@@ -184,14 +186,14 @@ export default function AdminClinicaDetailPage() {
     return (
       <div className="flex flex-col items-center justify-center py-20 gap-4">
         <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted">
-          <BuildingIcon className="h-7 w-7 text-muted-foreground" />
+          <Building2 className="h-7 w-7 text-muted-foreground" />
         </div>
         <p className="text-sm font-medium text-muted-foreground">Clinica no encontrada</p>
         <Link
           href="/admin/clinicas"
           className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F172A]/10 px-4 py-2 text-sm font-medium text-primary hover:bg-[#0F172A]/20 transition-colors"
         >
-          <ArrowLeftIcon className="h-3.5 w-3.5" />
+          <ArrowLeft className="h-3.5 w-3.5" />
           Volver a clinicas
         </Link>
       </div>
@@ -203,10 +205,10 @@ export default function AdminClinicaDetailPage() {
   const estado = sub ? ESTADO_COLORS[sub.estado] ?? ESTADO_COLORS.cancelada : null;
 
   const statsData = [
-    { label: "Usuarios", value: stats?.usuarios ?? 0, icon: UsersIcon, gradient: "from-blue-500 to-cyan-500", glow: "shadow-blue-500/20" },
-    { label: "Pacientes", value: stats?.pacientes ?? 0, icon: HeartIcon, gradient: "from-pink-500 to-rose-500", glow: "shadow-pink-500/20" },
-    { label: "Turnos", value: stats?.turnos ?? 0, icon: CalendarIcon, gradient: "from-[var(--ht-primary)] to-[var(--ht-accent)]", glow: "shadow-[var(--ht-primary)]/20" },
-    { label: "Registrada", value: new Date(clinica.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }), icon: ClockIcon, gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", glow: "shadow-[var(--ht-accent)]/20" },
+    { label: "Usuarios", value: stats?.usuarios ?? 0, icon: Users, gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-light)]", glow: "shadow-[var(--ht-primary)]/20" },
+    { label: "Pacientes", value: stats?.pacientes ?? 0, icon: Heart, gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]", glow: "shadow-[var(--ht-accent)]/20" },
+    { label: "Turnos", value: stats?.turnos ?? 0, icon: Calendar, gradient: "from-[var(--ht-primary)] to-[var(--ht-accent)]", glow: "shadow-[var(--ht-primary)]/20" },
+    { label: "Registrada", value: new Date(clinica.created_at).toLocaleDateString("es-AR", { day: "2-digit", month: "short", year: "numeric" }), icon: Clock, gradient: "from-[var(--ht-accent-warm)] to-[var(--ht-accent-warm-dark)]", glow: "shadow-[var(--ht-accent-warm)]/20" },
   ];
 
   return (
@@ -216,10 +218,10 @@ export default function AdminClinicaDetailPage() {
         <div>
           <div className="flex items-center gap-2 text-sm mb-2">
             <Link href="/admin/clinicas" className="flex items-center gap-1 text-muted-foreground hover:text-foreground transition-colors">
-              <ArrowLeftIcon className="h-3.5 w-3.5" />
+              <ArrowLeft className="h-3.5 w-3.5" />
               Clinicas
             </Link>
-            <ChevronIcon className="h-3.5 w-3.5 text-muted-foreground/40" />
+            <ChevronRight className="h-3.5 w-3.5 text-muted-foreground/40" />
             <span className="font-medium">{clinica.nombre}</span>
           </div>
           <div className="flex items-center gap-3">
@@ -230,11 +232,11 @@ export default function AdminClinicaDetailPage() {
           </div>
         </div>
         <div className="flex items-center gap-2.5">
-          <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${clinica.is_active ? "bg-[var(--ht-accent)]/10 text-[var(--status-success-fg)]" : "bg-red-500/10 text-red-600 dark:text-red-400"}`}>
-            <span className={`h-1.5 w-1.5 rounded-full ${clinica.is_active ? "bg-[var(--ht-accent)]" : "bg-red-500"}`} />
+          <span className={`inline-flex items-center gap-1.5 rounded-lg px-3 py-1.5 text-xs font-semibold ${clinica.is_active ? "bg-[var(--ht-accent)]/10 text-[var(--status-success-fg)]" : "bg-[var(--status-error)]/10 text-[var(--status-error-fg)]"}`}>
+            <span className={`h-1.5 w-1.5 rounded-full ${clinica.is_active ? "bg-[var(--ht-accent)]" : "bg-[var(--status-error)]"}`} />
             {clinica.is_active ? "Activa" : "Inactiva"}
           </span>
-          <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${clinica.is_active ? "bg-red-500/10 text-red-600 dark:text-red-400 hover:bg-red-500/20" : "bg-[var(--ht-accent)]/10 text-[var(--status-success-fg)] hover:bg-[var(--ht-accent)]/20"}`}>
+          <button onClick={toggleActive} className={`inline-flex items-center gap-1.5 rounded-xl px-4 py-2 text-sm font-medium transition-all duration-200 ${clinica.is_active ? "bg-[var(--status-error)]/10 text-[var(--status-error-fg)] hover:bg-[var(--status-error)]/20" : "bg-[var(--ht-accent)]/10 text-[var(--status-success-fg)] hover:bg-[var(--ht-accent)]/20"}`}>
             {clinica.is_active ? "Suspender" : "Activar"}
           </button>
         </div>
@@ -261,7 +263,7 @@ export default function AdminClinicaDetailPage() {
         <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
           <div className="border-b px-5 py-3.5 bg-muted/20">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <InfoIcon className="h-4 w-4 text-primary" />
+              <Info className="h-4 w-4 text-primary" />
               Informacion General
             </h2>
           </div>
@@ -289,7 +291,7 @@ export default function AdminClinicaDetailPage() {
         <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
           <div className="border-b px-5 py-3.5 bg-muted/20">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <CrownIcon className="h-4 w-4 text-primary" />
+              <Crown className="h-4 w-4 text-primary" />
               Suscripcion
             </h2>
           </div>
@@ -300,7 +302,7 @@ export default function AdminClinicaDetailPage() {
                   <dt className="text-sm text-muted-foreground">Plan</dt>
                   <dd>
                     <span className="inline-flex items-center gap-1 rounded-lg bg-[#0F172A]/10 px-2.5 py-1 text-xs font-semibold text-primary dark:text-primary/90">
-                      <CrownIcon className="h-3 w-3" />
+                      <Crown className="h-3 w-3" />
                       {sub.plan?.nombre ?? "—"}
                     </span>
                   </dd>
@@ -353,7 +355,7 @@ export default function AdminClinicaDetailPage() {
       <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
         <div className="border-b px-5 py-3.5 bg-muted/20 flex items-center justify-between">
           <h2 className="text-sm font-semibold flex items-center gap-2">
-            <WebhookIcon className="h-4 w-4 text-accent" />
+            <Webhook className="h-4 w-4 text-accent" />
             Webhooks de la Clinica
           </h2>
           <button
@@ -405,7 +407,7 @@ export default function AdminClinicaDetailPage() {
         <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
           <div className="border-b px-5 py-3.5 bg-muted/20 flex items-center justify-between">
             <h2 className="text-sm font-semibold flex items-center gap-2">
-              <WhatsAppIcon className="h-4 w-4 text-green-500" />
+              <WhatsAppIcon className="h-4 w-4 text-[var(--ht-accent)]" />
               WhatsApp (Evolution API)
             </h2>
             <button
@@ -424,7 +426,7 @@ export default function AdminClinicaDetailPage() {
                 value={evolutionInstance}
                 onChange={(e) => setEvolutionInstance(e.target.value)}
                 placeholder="clinica-whatsapp-01"
-                className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-green-500/20 transition-all"
+                className="w-full rounded-lg border bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--ht-accent)]/20 transition-all"
               />
             </div>
             <div className="space-y-1.5">
@@ -435,7 +437,7 @@ export default function AdminClinicaDetailPage() {
                   value={evolutionApiKey}
                   onChange={(e) => setEvolutionApiKey(e.target.value)}
                   placeholder="••••••••••••••••"
-                  className="w-full rounded-lg border bg-background px-3 py-2 pr-10 text-sm outline-none focus:ring-2 focus:ring-green-500/20 transition-all"
+                  className="w-full rounded-lg border bg-background px-3 py-2 pr-10 text-sm outline-none focus:ring-2 focus:ring-[var(--ht-accent)]/20 transition-all"
                 />
                 <button
                   type="button"
@@ -453,10 +455,10 @@ export default function AdminClinicaDetailPage() {
         </div>
 
         {/* Danger Zone */}
-        <div className="rounded-xl border border-red-200 dark:border-red-900/50 bg-card shadow-sm overflow-hidden">
-          <div className="border-b border-red-200 dark:border-red-900/50 px-5 py-3.5 bg-red-50/50 dark:bg-red-950/20">
-            <h2 className="text-sm font-semibold flex items-center gap-2 text-red-600 dark:text-red-400">
-              <TrashIcon className="h-4 w-4" />
+        <div className="rounded-xl border border-[var(--status-error)]/20 bg-card shadow-sm overflow-hidden">
+          <div className="border-b border-[var(--status-error)]/20 px-5 py-3.5 bg-[var(--status-error)]/5">
+            <h2 className="text-sm font-semibold flex items-center gap-2 text-[var(--status-error-fg)]">
+              <Trash2 className="h-4 w-4" />
               Zona de Peligro
             </h2>
           </div>
@@ -468,14 +470,14 @@ export default function AdminClinicaDetailPage() {
             {!showDeleteDialog ? (
               <button
                 onClick={() => setShowDeleteDialog(true)}
-                className="inline-flex items-center gap-1.5 rounded-lg border border-red-300 dark:border-red-800 bg-red-50 dark:bg-red-950/30 px-4 py-2 text-sm font-medium text-red-600 dark:text-red-400 hover:bg-red-100 dark:hover:bg-red-950/50 transition-colors"
+                className="inline-flex items-center gap-1.5 rounded-lg border border-[var(--status-error)]/30 bg-[var(--status-error)]/5 px-4 py-2 text-sm font-medium text-[var(--status-error-fg)] hover:bg-[var(--status-error)]/10 transition-colors"
               >
-                <TrashIcon className="h-3.5 w-3.5" />
+                <Trash2 className="h-3.5 w-3.5" />
                 Eliminar clinica permanentemente
               </button>
             ) : (
-              <div className="rounded-lg border border-red-200 dark:border-red-900 bg-red-50/30 dark:bg-red-950/10 p-4 space-y-3">
-                <p className="text-xs font-semibold text-red-600 dark:text-red-400">
+              <div className="rounded-lg border border-[var(--status-error)]/20 bg-[var(--status-error)]/5 p-4 space-y-3">
+                <p className="text-xs font-semibold text-[var(--status-error-fg)]">
                   Escribi el nombre de la clinica para confirmar: <strong>{clinica.nombre}</strong>
                 </p>
                 <input
@@ -483,23 +485,23 @@ export default function AdminClinicaDetailPage() {
                   value={deleteConfirmName}
                   onChange={(e) => setDeleteConfirmName(e.target.value)}
                   placeholder="Nombre de la clinica"
-                  className="w-full rounded-md border border-red-200 dark:border-red-800 bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
+                  className="w-full rounded-md border border-[var(--status-error)]/20 bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--status-error)]/20 transition-all"
                 />
                 <input
                   type="password"
                   value={deletePassword}
                   onChange={(e) => setDeletePassword(e.target.value)}
                   placeholder="Tu contraseña de superadmin"
-                  className="w-full rounded-md border border-red-200 dark:border-red-800 bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-red-500/20 transition-all"
+                  className="w-full rounded-md border border-[var(--status-error)]/20 bg-background px-3 py-2 text-sm outline-none focus:ring-2 focus:ring-[var(--status-error)]/20 transition-all"
                 />
                 {deleteError && (
-                  <p className="text-xs text-red-500 font-medium">{deleteError}</p>
+                  <p className="text-xs text-[var(--status-error-fg)] font-medium">{deleteError}</p>
                 )}
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleDelete}
                     disabled={isDeleting || deleteConfirmName !== clinica.nombre}
-                    className="inline-flex items-center gap-1.5 rounded-lg bg-red-600 px-4 py-2 text-sm font-semibold text-white hover:bg-red-700 transition-colors disabled:opacity-50 disabled:cursor-not-allowed"
+                    className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--status-error)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isDeleting ? "Eliminando..." : "Confirmar eliminacion"}
                   </button>
@@ -526,86 +528,6 @@ export default function AdminClinicaDetailPage() {
 
 /* ─── Icons ─── */
 
-function ArrowLeftIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m12 19-7-7 7-7" /><path d="M19 12H5" />
-    </svg>
-  );
-}
-
-function ChevronIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m9 18 6-6-6-6" />
-    </svg>
-  );
-}
-
-function BuildingIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="16" height="20" x="4" y="2" rx="2" ry="2" /><path d="M9 22v-4h6v4" /><path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M12 6h.01" /><path d="M12 10h.01" /><path d="M12 14h.01" /><path d="M16 10h.01" /><path d="M16 14h.01" /><path d="M8 10h.01" /><path d="M8 14h.01" />
-    </svg>
-  );
-}
-
-function UsersIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-}
-
-function HeartIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M19 14c1.49-1.46 3-3.21 3-5.5A5.5 5.5 0 0 0 16.5 3c-1.76 0-3 .5-4.5 2-1.5-1.5-2.74-2-4.5-2A5.5 5.5 0 0 0 2 8.5c0 2.3 1.5 4.05 3 5.5l7 7Z" />
-    </svg>
-  );
-}
-
-function CalendarIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" />
-    </svg>
-  );
-}
-
-function ClockIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
-}
-
-function InfoIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><path d="M12 16v-4" /><path d="M12 8h.01" />
-    </svg>
-  );
-}
-
-function CrownIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M11.562 3.266a.5.5 0 0 1 .876 0L15.39 8.87a1 1 0 0 0 1.516.294L21.183 5.5a.5.5 0 0 1 .798.519l-2.834 10.246a1 1 0 0 1-.956.734H5.81a1 1 0 0 1-.957-.734L2.02 6.02a.5.5 0 0 1 .798-.519l4.276 3.664a1 1 0 0 0 1.516-.294z" /><path d="M5.5 21h13" />
-    </svg>
-  );
-}
-
-function WebhookIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M18 16.98h-5.99c-1.1 0-1.95.94-2.48 1.9A4 4 0 0 1 2 17c.01-.7.2-1.4.57-2" /><path d="m6 17 3.13-5.78c.53-.97.1-2.18-.5-3.1a4 4 0 1 1 6.89-4.06" /><path d="m12 6 3.13 5.73C15.66 12.7 16.9 13 18 13a4 4 0 0 1 0 8H12" />
-    </svg>
-  );
-}
-
 function WhatsAppIcon({ className }: { className?: string }) {
   return (
     <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -614,10 +536,4 @@ function WhatsAppIcon({ className }: { className?: string }) {
   );
 }
 
-function TrashIcon({ className }: { className?: string }) {
-  return (
-    <svg className={className} xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M3 6h18" /><path d="M19 6v14c0 1-1 2-2 2H7c-1 0-2-1-2-2V6" /><path d="M8 6V4c0-1 1-2 2-2h4c1 0 2 1 2 2v2" /><line x1="10" x2="10" y1="11" y2="17" /><line x1="14" x2="14" y1="11" y2="17" />
-    </svg>
-  );
-}
+

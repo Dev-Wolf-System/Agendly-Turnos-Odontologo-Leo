@@ -1,12 +1,13 @@
 "use client";
 
 import { useState, useEffect, useCallback } from "react";
+import { Search, X } from "lucide-react";
 import { toast } from "sonner";
 import leadsService, { Lead, EstadoLead, LeadStats } from "@/services/leads.service";
 
 const ESTADO_CONFIG: Record<EstadoLead, { bg: string; text: string; dot: string; label: string }> = {
-  nuevo: { bg: "bg-blue-500/10", text: "text-blue-600 dark:text-blue-400", dot: "bg-blue-500", label: "Nuevo" },
-  contactado: { bg: "bg-amber-500/10", text: "text-amber-600 dark:text-amber-400", dot: "bg-amber-500", label: "Contactado" },
+  nuevo: { bg: "bg-[var(--ht-primary)]/10", text: "text-[var(--ht-primary)]", dot: "bg-[var(--ht-primary)]", label: "Nuevo" },
+  contactado: { bg: "bg-[var(--ht-accent-warm)]/10", text: "text-[var(--ht-accent-warm)]", dot: "bg-[var(--ht-accent-warm)]", label: "Contactado" },
   en_negociacion: { bg: "bg-purple-500/10", text: "text-purple-600 dark:text-purple-400", dot: "bg-purple-500", label: "En Negociacion" },
   convertido: { bg: "bg-[var(--ht-accent)]/10", text: "text-[var(--status-success-fg)]", dot: "bg-[var(--ht-accent)]", label: "Convertido" },
   descartado: { bg: "bg-slate-500/10", text: "text-slate-600 dark:text-slate-400", dot: "bg-slate-500", label: "Descartado" },
@@ -93,8 +94,8 @@ export default function AdminProspectosPage() {
         <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
           {[
             { label: "Total", value: stats.total, gradient: "from-slate-500 to-slate-600" },
-            { label: "Nuevos", value: stats.nuevos, gradient: "from-blue-500 to-blue-600" },
-            { label: "Contactados", value: stats.contactados, gradient: "from-amber-500 to-amber-600" },
+            { label: "Nuevos", value: stats.nuevos, gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-dark)]" },
+            { label: "Contactados", value: stats.contactados, gradient: "from-[var(--ht-accent-warm)] to-[var(--ht-accent-warm-dark)]" },
             { label: "En Negociacion", value: stats.en_negociacion, gradient: "from-purple-500 to-purple-600" },
             { label: "Convertidos", value: stats.convertidos, gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]" },
             { label: "Descartados", value: stats.descartados, gradient: "from-slate-400 to-slate-500" },
@@ -138,7 +139,7 @@ export default function AdminProspectosPage() {
 
       {/* Search */}
       <div className="relative max-w-md">
-        <svg className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><circle cx="11" cy="11" r="8"/><path d="m21 21-4.3-4.3"/></svg>
+        <Search className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground" />
         <input
           placeholder="Buscar por nombre, email o empresa..."
           value={search}
@@ -205,7 +206,7 @@ export default function AdminProspectosPage() {
             <div className="flex items-center justify-between">
               <h3 className="font-bold text-lg">{selected.nombre}</h3>
               <button onClick={() => setSelected(null)} className="text-muted-foreground hover:text-foreground">
-                <svg className="h-4 w-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2"><path d="M18 6 6 18"/><path d="m6 6 12 12"/></svg>
+                <X className="h-4 w-4" />
               </button>
             </div>
 
@@ -258,7 +259,7 @@ export default function AdminProspectosPage() {
 
             <button
               onClick={() => deleteLead(selected.id)}
-              className="w-full rounded-xl border border-red-200 bg-red-50 dark:bg-red-900/10 px-3 py-2 text-sm font-medium text-red-600 hover:bg-red-100 transition-colors"
+              className="w-full rounded-xl border border-[var(--status-error)]/20 bg-[var(--status-error)]/5 px-3 py-2 text-sm font-medium text-[var(--status-error-fg)] hover:bg-[var(--status-error)]/10 transition-colors"
             >
               Eliminar prospecto
             </button>
