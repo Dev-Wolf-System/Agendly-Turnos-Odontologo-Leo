@@ -5,6 +5,7 @@ import Link from "next/link";
 import {
   BarChart, Bar, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer,
   PieChart, Pie, Cell,
+  AreaChart, Area, ComposedChart, Line,
 } from "recharts";
 import {
   Building2,
@@ -19,8 +20,8 @@ import {
   AlertTriangle,
   LayoutGrid,
 } from "lucide-react";
-import { getAdminDashboard } from "@/services/admin.service";
-import type { AdminDashboardKPIs } from "@/types";
+import { getAdminDashboard, getAdminDashboardTrends } from "@/services/admin.service";
+import type { AdminDashboardKPIs, AdminDashboardTrend } from "@/types";
 import { KpiCard } from "@/components/ui/kpi-card";
 
 const PIE_COLORS = [
@@ -32,13 +33,29 @@ const PIE_COLORS = [
   "var(--ht-accent-warm)",
 ];
 
+const CHART_TOOLTIP_STYLE = {
+  borderRadius: "12px",
+  border: "1px solid var(--border-light)",
+  background: "var(--card)",
+  fontSize: "12px",
+  boxShadow: "var(--shadow-md)",
+  color: "var(--text-primary)",
+};
+
 export default function AdminDashboardPage() {
   const [kpis, setKpis] = useState<AdminDashboardKPIs | null>(null);
+  const [trends, setTrends] = useState<AdminDashboardTrend[]>([]);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    getAdminDashboard()
-      .then(setKpis)
+    Promise.all([
+      getAdminDashboard(),
+      getAdminDashboardTrends().catch(() => []),
+    ])
+      .then(([kpiData, trendsData]) => {
+        setKpis(kpiData);
+        setTrends(trendsData);
+      })
       .catch(console.error)
       .finally(() => setLoading(false));
   }, []);
@@ -152,6 +169,99 @@ export default function AdminDashboardPage() {
         />
       </div>
 
+      {/* Trends chart */}
+      {trends.length > 0 && (
+        <div className="rounded-xl border border-[var(--border-light)] bg-card p-6 shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between mb-6">
+            <div>
+              <h2 className="font-[family-name:var(--font-display)] text-base font-semibold text-[var(--text-primary)]">
+                Crecimiento — Últimos 6 meses
+              </h2>
+              <p className="text-xs text-[var(--text-muted)] mt-0.5">
+                Nuevas clínicas y MRR acumulado
+              </p>
+            </div>
+            <div className="flex items-center gap-4 text-xs text-[var(--text-muted)]">
+              <span className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-[var(--ht-primary)]" />
+                Clínicas nuevas
+              </span>
+              <span className="flex items-center gap-1.5">
+                <span className="h-2.5 w-2.5 rounded-full bg-[var(--ht-accent)]" />
+                MRR ($)
+              </span>
+            </div>
+          </div>
+          <ResponsiveContainer width="100%" height={240}>
+            <ComposedChart data={trends} margin={{ top: 4, right: 4, left: 0, bottom: 0 }}>
+              <defs>
+                <linearGradient id="gradClinicas" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--ht-primary)" stopOpacity={0.25} />
+                  <stop offset="95%" stopColor="var(--ht-primary)" stopOpacity={0} />
+                </linearGradient>
+                <linearGradient id="gradMRR" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="5%" stopColor="var(--ht-accent)" stopOpacity={0.20} />
+                  <stop offset="95%" stopColor="var(--ht-accent)" stopOpacity={0} />
+                </linearGradient>
+              </defs>
+              <CartesianGrid strokeDasharray="4 4" vertical={false} stroke="var(--border-light)" />
+              <XAxis
+                dataKey="mes"
+                tick={{ fontSize: 12, fill: "var(--text-muted)" }}
+                tickLine={false}
+                axisLine={false}
+              />
+              <YAxis
+                yAxisId="clinicas"
+                orientation="left"
+                tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                tickLine={false}
+                axisLine={false}
+                allowDecimals={false}
+                width={28}
+              />
+              <YAxis
+                yAxisId="mrr"
+                orientation="right"
+                tick={{ fontSize: 11, fill: "var(--text-muted)" }}
+                tickLine={false}
+                axisLine={false}
+                tickFormatter={(v: number) => v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`}
+                width={42}
+              />
+              <Tooltip
+                contentStyle={CHART_TOOLTIP_STYLE}
+                formatter={(value: number, name: string) =>
+                  name === "nuevas_clinicas"
+                    ? [`${value} clínicas`, "Nuevas clínicas"]
+                    : [`$${value.toLocaleString("es-AR")}`, "MRR"]
+                }
+              />
+              <Area
+                yAxisId="clinicas"
+                type="monotone"
+                dataKey="nuevas_clinicas"
+                stroke="var(--ht-primary)"
+                fill="url(#gradClinicas)"
+                strokeWidth={2}
+                dot={{ fill: "var(--ht-primary)", r: 3, strokeWidth: 0 }}
+                activeDot={{ r: 5, strokeWidth: 0 }}
+              />
+              <Line
+                yAxisId="mrr"
+                type="monotone"
+                dataKey="mrr"
+                stroke="var(--ht-accent)"
+                strokeWidth={2}
+                dot={{ fill: "var(--ht-accent)", r: 3, strokeWidth: 0 }}
+                activeDot={{ r: 5, strokeWidth: 0 }}
+                strokeDasharray="5 3"
+              />
+            </ComposedChart>
+          </ResponsiveContainer>
+        </div>
+      )}
+
       {/* Charts row */}
       <div className="grid grid-cols-1 lg:grid-cols-5 gap-6">
         {/* Bar chart */}
@@ -182,13 +292,7 @@ export default function AdminDashboardPage() {
                 <YAxis tick={{ fontSize: 12, fill: "var(--text-muted)" }} tickLine={false} axisLine={false} allowDecimals={false} />
                 <Tooltip
                   cursor={{ fill: "var(--muted)", opacity: 0.4 }}
-                  contentStyle={{
-                    borderRadius: "12px",
-                    border: "1px solid var(--border-light)",
-                    background: "var(--card)",
-                    fontSize: "12px",
-                    boxShadow: "var(--shadow-md)",
-                  }}
+                  contentStyle={CHART_TOOLTIP_STYLE}
                   formatter={(value) => [`${value} clínicas`, "Cantidad"]}
                 />
                 <Bar dataKey="clinicas" fill="var(--ht-primary)" radius={[8, 8, 0, 0]} />
@@ -227,15 +331,7 @@ export default function AdminDashboardPage() {
                       <Cell key={i} fill={PIE_COLORS[i % PIE_COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip
-                    contentStyle={{
-                      borderRadius: "12px",
-                      border: "1px solid var(--border-light)",
-                      background: "var(--card)",
-                      fontSize: "12px",
-                      boxShadow: "var(--shadow-md)",
-                    }}
-                  />
+                  <Tooltip contentStyle={CHART_TOOLTIP_STYLE} />
                 </PieChart>
               </ResponsiveContainer>
               <div className="space-y-2 mt-2">

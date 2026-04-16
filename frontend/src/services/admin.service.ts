@@ -2,6 +2,7 @@ import api from "./api";
 import type {
   AdminClinica,
   AdminDashboardKPIs,
+  AdminDashboardTrend,
   Plan,
   Subscription,
 } from "@/types";
@@ -10,6 +11,11 @@ import type {
 
 export async function getAdminDashboard(): Promise<AdminDashboardKPIs> {
   const { data } = await api.get("/admin/dashboard");
+  return data;
+}
+
+export async function getAdminDashboardTrends(): Promise<AdminDashboardTrend[]> {
+  const { data } = await api.get("/admin/dashboard/trends");
   return data;
 }
 

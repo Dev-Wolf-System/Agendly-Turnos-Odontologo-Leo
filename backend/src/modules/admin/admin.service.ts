@@ -293,4 +293,49 @@ export class AdminService {
       planes,
     };
   }
+
+  // ─── Dashboard trends (últimos 6 meses) ─────────────────
+
+  async getDashboardTrends() {
+    const months: Array<{ label: string; inicio: Date; fin: Date }> = [];
+    const now = new Date();
+
+    for (let i = 5; i >= 0; i--) {
+      const d = new Date(now.getFullYear(), now.getMonth() - i, 1);
+      const inicio = new Date(d.getFullYear(), d.getMonth(), 1);
+      const fin = new Date(d.getFullYear(), d.getMonth() + 1, 0, 23, 59, 59);
+      const label = d.toLocaleDateString('es-AR', { month: 'short' });
+      months.push({ label, inicio, fin });
+    }
+
+    const [clinicasTrend, mrrTrend] = await Promise.all([
+      // Nuevas clínicas por mes
+      Promise.all(
+        months.map(({ inicio, fin }) =>
+          this.clinicaRepo.count({
+            where: { created_at: Between(inicio, fin) },
+          }),
+        ),
+      ),
+      // MRR acumulado por mes (suscripciones activas creadas hasta fin del mes)
+      Promise.all(
+        months.map(({ fin }) =>
+          this.subscriptionRepo
+            .createQueryBuilder('s')
+            .select('COALESCE(SUM(p.precio_mensual), 0)', 'mrr')
+            .innerJoin('s.plan', 'p')
+            .where('s.estado = :estado', { estado: EstadoSubscription.ACTIVA })
+            .andWhere('s.created_at <= :fin', { fin })
+            .getRawOne()
+            .then((r) => Number(r?.mrr ?? 0)),
+        ),
+      ),
+    ]);
+
+    return months.map((m, i) => ({
+      mes: m.label,
+      nuevas_clinicas: clinicasTrend[i],
+      mrr: mrrTrend[i],
+    }));
+  }
 }

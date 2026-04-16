@@ -11,4 +11,9 @@ export class AdminDashboardController {
   getKPIs() {
     return this.adminService.getDashboardKPIs();
   }
+
+  @Get('trends')
+  getTrends() {
+    return this.adminService.getDashboardTrends();
+  }
 }

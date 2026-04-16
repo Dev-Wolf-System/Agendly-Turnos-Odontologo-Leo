@@ -87,6 +87,12 @@ export interface AdminDashboardKPIs {
   planes: Plan[];
 }
 
+export interface AdminDashboardTrend {
+  mes: string;
+  nuevas_clinicas: number;
+  mrr: number;
+}
+
 export interface AuthResponse {
   user: User;
   clinica?: Clinica;
