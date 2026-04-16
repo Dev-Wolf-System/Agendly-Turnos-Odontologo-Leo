@@ -64,17 +64,17 @@ export default function AdminDashboardPage() {
     return (
       <div className="animate-page-in space-y-8">
         <div>
-          <div className="h-8 w-64 rounded-lg bg-[var(--muted)] animate-pulse" />
-          <div className="h-4 w-48 rounded bg-[var(--muted)] mt-2 animate-pulse" />
+          <div className="skeleton h-8 w-64 rounded-lg" />
+          <div className="skeleton h-4 w-48 rounded mt-2" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
           {[...Array(4)].map((_, i) => (
-            <div key={i} className="h-36 rounded-xl border border-[var(--border-light)] bg-card animate-pulse" />
+            <div key={i} className="skeleton h-36 rounded-xl" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-80 rounded-xl border border-[var(--border-light)] bg-card animate-pulse" />
-          <div className="h-80 rounded-xl border border-[var(--border-light)] bg-card animate-pulse" />
+          <div className="skeleton h-80 rounded-xl" />
+          <div className="skeleton h-80 rounded-xl" />
         </div>
       </div>
     );
@@ -124,49 +124,57 @@ export default function AdminDashboardPage() {
 
       {/* KPI Cards */}
       <div className="grid grid-cols-1 sm:grid-cols-2 xl:grid-cols-4 gap-5">
-        <KpiCard
-          label="Clínicas Activas"
-          value={kpis.clinicas.activas}
-          sub={`${kpis.clinicas.total} totales`}
-          icon={<Building2 className="h-5 w-5" />}
-          variant="accent"
-          href="/admin/clinicas"
-          trend={
-            kpis.clinicas.nuevas_este_mes > 0
-              ? { value: `+${kpis.clinicas.nuevas_este_mes} este mes`, direction: "up" }
-              : { value: "Sin nuevas", direction: "flat" }
-          }
-        />
-        <KpiCard
-          label="MRR"
-          value={`$${kpis.mrr.toLocaleString("es-AR")}`}
-          sub={`${kpis.subscripciones.activas} suscripciones activas`}
-          icon={<DollarSign className="h-5 w-5" />}
-          variant="primary"
-          href="/admin/suscripciones"
-          trend={{ value: "Recurrente", direction: "up" }}
-        />
-        <KpiCard
-          label="Trials Activos"
-          value={kpis.subscripciones.trial}
-          sub={`${kpis.subscripciones.trials_por_vencer} vencen pronto`}
-          icon={<Clock className="h-5 w-5" />}
-          variant="warm"
-          href="/admin/suscripciones"
-          trend={
-            kpis.subscripciones.trials_por_vencer > 0
-              ? { value: "Atención", direction: "up", positive: false }
-              : { value: "OK", direction: "flat" }
-          }
-        />
-        <KpiCard
-          label="Nuevas del Mes"
-          value={kpis.clinicas.nuevas_este_mes}
-          sub={`${kpis.clinicas.inactivas} inactivas · ${kpis.clinicas.total} totales`}
-          icon={<Sparkles className="h-5 w-5" />}
-          variant="primary"
-          href="/admin/clinicas?is_active=false"
-        />
+        <div className="stagger-item animate-page-in">
+          <KpiCard
+            label="Clínicas Activas"
+            value={kpis.clinicas.activas}
+            sub={`${kpis.clinicas.total} totales`}
+            icon={<Building2 className="h-5 w-5" />}
+            variant="accent"
+            href="/admin/clinicas"
+            trend={
+              kpis.clinicas.nuevas_este_mes > 0
+                ? { value: `+${kpis.clinicas.nuevas_este_mes} este mes`, direction: "up" }
+                : { value: "Sin nuevas", direction: "flat" }
+            }
+          />
+        </div>
+        <div className="stagger-item animate-page-in">
+          <KpiCard
+            label="MRR"
+            value={`$${kpis.mrr.toLocaleString("es-AR")}`}
+            sub={`${kpis.subscripciones.activas} suscripciones activas`}
+            icon={<DollarSign className="h-5 w-5" />}
+            variant="primary"
+            href="/admin/suscripciones"
+            trend={{ value: "Recurrente", direction: "up" }}
+          />
+        </div>
+        <div className="stagger-item animate-page-in">
+          <KpiCard
+            label="Trials Activos"
+            value={kpis.subscripciones.trial}
+            sub={`${kpis.subscripciones.trials_por_vencer} vencen pronto`}
+            icon={<Clock className="h-5 w-5" />}
+            variant="warm"
+            href="/admin/suscripciones"
+            trend={
+              kpis.subscripciones.trials_por_vencer > 0
+                ? { value: "Atención", direction: "up", positive: false }
+                : { value: "OK", direction: "flat" }
+            }
+          />
+        </div>
+        <div className="stagger-item animate-page-in">
+          <KpiCard
+            label="Nuevas del Mes"
+            value={kpis.clinicas.nuevas_este_mes}
+            sub={`${kpis.clinicas.inactivas} inactivas · ${kpis.clinicas.total} totales`}
+            icon={<Sparkles className="h-5 w-5" />}
+            variant="primary"
+            href="/admin/clinicas?is_active=false"
+          />
+        </div>
       </div>
 
       {/* Trends chart */}

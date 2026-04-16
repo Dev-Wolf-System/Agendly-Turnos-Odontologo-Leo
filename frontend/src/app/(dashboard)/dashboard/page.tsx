@@ -29,7 +29,10 @@ import dashboardService, {
   TurnoSemana,
   TratamientoMes,
 } from "@/services/dashboard.service";
-import { GripVertical, Lock, Unlock } from "lucide-react";
+import {
+  GripVertical, Lock, Unlock,
+  Calendar, Users, DollarSign, CheckCircle2, AlertTriangle, Clock, BadgeCheck,
+} from "lucide-react";
 import { OnboardingWizard } from "@/components/onboarding-wizard";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MONTH_LABELS, CHART_TOOLTIP_STYLE, CHART_COLORS } from "@/lib/constants";
@@ -166,58 +169,30 @@ export default function DashboardPage() {
       <div className="space-y-8">
         <WelcomeBanner />
         <div>
-          <div className="h-8 w-64 bg-muted rounded-lg animate-pulse" />
-          <div className="h-4 w-48 bg-muted rounded mt-2 animate-pulse" />
+          <div className="skeleton h-8 w-64 rounded-lg" />
+          <div className="skeleton h-4 w-48 rounded mt-2" />
         </div>
         <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6">
           {[...Array(6)].map((_, i) => (
-            <div key={i} className="h-36 rounded-xl border bg-card animate-pulse" />
+            <div key={i} className="skeleton h-36 rounded-xl" />
           ))}
         </div>
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-          <div className="h-80 rounded-xl border bg-card animate-pulse" />
-          <div className="h-80 rounded-xl border bg-card animate-pulse" />
+          <div className="skeleton h-80 rounded-xl" />
+          <div className="skeleton h-80 rounded-xl" />
         </div>
       </div>
     );
   }
 
   // KPI icons
-  const calendarSvg = (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M8 2v4" /><path d="M16 2v4" /><rect width="18" height="18" x="3" y="4" rx="2" /><path d="M3 10h18" />
-    </svg>
-  );
-  const usersSvg = (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" /><circle cx="9" cy="7" r="4" /><path d="M22 21v-2a4 4 0 0 0-3-3.87" /><path d="M16 3.13a4 4 0 0 1 0 7.75" />
-    </svg>
-  );
-  const dollarSvg = (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <line x1="12" x2="12" y1="2" y2="22" /><path d="M17 5H9.5a3.5 3.5 0 0 0 0 7h5a3.5 3.5 0 0 1 0 7H6" />
-    </svg>
-  );
-  const checkSvg = (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><polyline points="22 4 12 14.01 9 11.01" />
-    </svg>
-  );
-  const alertSvg = (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m21.73 18-8-14a2 2 0 0 0-3.48 0l-8 14A2 2 0 0 0 4 21h16a2 2 0 0 0 1.73-3" /><path d="M12 9v4" /><path d="M12 17h.01" />
-    </svg>
-  );
-  const checkCircleSvg = (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><path d="m9 12 2 2 4-4" />
-    </svg>
-  );
-  const clockConfirmSvg = (
-    <svg className="h-5 w-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><polyline points="12 6 12 12 16 14" />
-    </svg>
-  );
+  const calendarSvg = <Calendar className="h-5 w-5" />;
+  const usersSvg = <Users className="h-5 w-5" />;
+  const dollarSvg = <DollarSign className="h-5 w-5" />;
+  const checkSvg = <BadgeCheck className="h-5 w-5" />;
+  const alertSvg = <AlertTriangle className="h-5 w-5" />;
+  const checkCircleSvg = <CheckCircle2 className="h-5 w-5" />;
+  const clockConfirmSvg = <Clock className="h-5 w-5" />;
 
   // Helper para verificar visibilidad de KPI
   const isKpiVisible = (kpiId: string): boolean => {
