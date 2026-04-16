@@ -38,9 +38,9 @@ export default function LoginPage() {
       <div className="relative hidden lg:flex flex-col justify-between overflow-hidden bg-[#0F172A]">
         {/* Background effects */}
         <div className="pointer-events-none absolute inset-0">
-          <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-[#38BDF8]/8 blur-[100px]" />
-          <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-[#10B981]/6 blur-[80px]" />
-          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] w-[300px] rounded-full bg-[#38BDF8]/4 blur-[60px]" />
+          <div className="absolute -top-40 -left-40 h-[500px] w-[500px] rounded-full bg-[var(--ht-primary-light)]/8 blur-[100px]" />
+          <div className="absolute bottom-0 right-0 h-[400px] w-[400px] rounded-full bg-[var(--ht-accent)]/6 blur-[80px]" />
+          <div className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 h-[300px] w-[300px] rounded-full bg-[var(--ht-primary-light)]/4 blur-[60px]" />
           {/* Grid pattern */}
           <div
             className="absolute inset-0 opacity-[0.03]"
@@ -79,8 +79,8 @@ export default function LoginPage() {
             </div>
 
             <h1 className="text-3xl font-extrabold leading-tight tracking-tight text-white xl:text-4xl">
-              Gestiona tu clinica de manera{" "}
-              <span className="bg-gradient-to-r from-[#38BDF8] to-[#10B981] bg-clip-text text-transparent">
+              Gestioná tu clínica de manera{" "}
+              <span className="bg-gradient-to-r from-[var(--ht-primary-light)] to-[var(--ht-accent)] bg-clip-text text-transparent">
                 inteligente
               </span>
             </h1>
@@ -113,10 +113,10 @@ export default function LoginPage() {
         <div className="relative z-10 p-10 lg:p-14">
           <div className="rounded-xl border border-white/5 bg-white/[0.03] backdrop-blur-sm p-5">
             <p className="text-sm leading-relaxed text-white/40 italic">
-              &ldquo;Desde que usamos Avax Health, la gestion de turnos paso de ser un caos a algo automatico. Nuestros pacientes reciben recordatorios y la agenda se organiza sola.&rdquo;
+              &ldquo;Desde que usamos Avax Health, la gestión de turnos pasó de ser un caos a algo automático. Nuestros pacientes reciben recordatorios y la agenda se organiza sola.&rdquo;
             </p>
             <div className="mt-4 flex items-center gap-3">
-              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[#38BDF8] to-[#10B981] text-[10px] font-bold text-[#0F172A]">
+              <div className="flex h-8 w-8 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent)] text-[10px] font-bold text-white">
                 LM
               </div>
               <div>
@@ -158,7 +158,7 @@ export default function LoginPage() {
                 Bienvenido de vuelta
               </h2>
               <p className="mt-2 text-sm text-muted-foreground">
-                Ingresa tus credenciales para acceder a tu clinica
+                Ingresá tus credenciales para acceder a tu clínica
               </p>
             </div>
 

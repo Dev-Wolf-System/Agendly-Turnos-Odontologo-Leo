@@ -362,7 +362,7 @@ export function OnboardingWizard({ onComplete }: OnboardingWizardProps) {
           {/* ── Step 4: Listo ── */}
           {step === 4 && (
             <div className="text-center py-6">
-              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-emerald-500 to-teal-500 text-white shadow-lg">
+              <div className="mx-auto mb-6 flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-accent)] to-[var(--ht-accent-dark)] text-white shadow-lg">
                 <CheckIcon />
               </div>
               <h2 className="text-2xl font-bold">Tu clinica esta lista</h2>

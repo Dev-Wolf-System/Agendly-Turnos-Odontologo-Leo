@@ -311,8 +311,8 @@ function RegisterForm() {
               </p>
 
               {/* Trial badge */}
-              <div className="mb-6 flex items-center gap-3 rounded-xl border border-emerald-500/20 bg-emerald-500/[0.04] p-3">
-                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-emerald-500 to-teal-600 shadow-sm">
+              <div className="mb-6 flex items-center gap-3 rounded-xl border border-[var(--ht-accent)]/20 bg-[var(--ht-accent)]/[0.04] p-3">
+                <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-gradient-to-br from-[var(--ht-accent)] to-[var(--ht-accent-dark)] shadow-sm">
                   <SparkleIcon className="h-4 w-4 text-white" />
                 </div>
                 <div className="flex-1 min-w-0">
