@@ -6,6 +6,7 @@ import sucursalesService, {
   SucursalResumen,
 } from "@/services/sucursales.service";
 import { toast } from "sonner";
+import { FeatureGate } from "@/components/ui/feature-gate";
 
 export default function SucursalesPage() {
   const [resumen, setResumen] = useState<SucursalResumen | null>(null);
@@ -132,13 +133,19 @@ export default function SucursalesPage() {
   }
 
   return (
+    <FeatureGate
+      feature="multi_sucursal"
+      planRequired="Avax Clínica Standard"
+      mode="replace"
+      description="Gestioná múltiples sedes desde un único panel centralizado."
+    >
     <div className="animate-page-in space-y-6">
       {/* Header */}
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold tracking-tight">Sucursales</h1>
           <p className="text-sm text-muted-foreground mt-1">
-            Gestiona las sedes de tu red de clinicas
+            Gestioná las sedes de tu red de clínicas
           </p>
         </div>
         <button
@@ -357,5 +364,6 @@ export default function SucursalesPage() {
         </div>
       )}
     </div>
+    </FeatureGate>
   );
 }
