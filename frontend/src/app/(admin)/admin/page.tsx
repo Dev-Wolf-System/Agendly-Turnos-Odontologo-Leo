@@ -239,11 +239,12 @@ export default function AdminDashboardPage() {
               />
               <Tooltip
                 contentStyle={CHART_TOOLTIP_STYLE}
-                formatter={(value: number, name: string) =>
-                  name === "nuevas_clinicas"
-                    ? [`${value} clínicas`, "Nuevas clínicas"]
-                    : [`$${value.toLocaleString("es-AR")}`, "MRR"]
-                }
+                formatter={(value, name) => {
+                  const n = Number(value ?? 0);
+                  return String(name) === "nuevas_clinicas"
+                    ? [`${n} clínicas`, "Nuevas clínicas"]
+                    : [`$${n.toLocaleString("es-AR")}`, "MRR"];
+                }}
               />
               <Area
                 yAxisId="clinicas"

@@ -1,30 +1,31 @@
 import type { Metadata } from "next";
-import { Figtree, Noto_Sans, JetBrains_Mono } from "next/font/google";
+import localFont from "next/font/local";
 import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ClinicaProvider } from "@/components/providers/clinica-provider";
 
 // Figtree — headings, KPIs, display (Medical Clean — ui-ux-pro-max)
-const displayFont = Figtree({
+const displayFont = localFont({
+  src: "../../public/fonts/figtree-latin.woff2",
   variable: "--font-display",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "600", "700", "800"],
+  weight: "300 800",
   display: "swap",
 });
 
 // Noto Sans — body, tablas, formularios (máxima legibilidad)
-const bodyFont = Noto_Sans({
+const bodyFont = localFont({
+  src: "../../public/fonts/noto-sans-latin.woff2",
   variable: "--font-body",
-  subsets: ["latin"],
-  weight: ["300", "400", "500", "700"],
+  weight: "300 700",
   display: "swap",
 });
 
-const monoFont = JetBrains_Mono({
+const monoFont = localFont({
+  src: "../../public/fonts/jetbrains-mono-latin.woff2",
   variable: "--font-mono",
-  subsets: ["latin"],
-  weight: ["400", "500"],
+  weight: "400 500",
+  display: "swap",
 });
 
 export const metadata: Metadata = {
