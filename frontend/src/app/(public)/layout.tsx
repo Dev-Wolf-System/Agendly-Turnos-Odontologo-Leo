@@ -207,7 +207,7 @@ export default function PublicLayout({
             </div>
           </div>
 
-          <div className="mt-10 pt-6 border-t border-border/40 flex flex-col items-center gap-4 sm:flex-row sm:justify-between">
+          <div className="mt-10 pt-6 border-t border-border/40 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
             <p className="text-sm text-muted-foreground">
               &copy; 2026 Avax Health. Todos los derechos reservados.
             </p>
@@ -219,6 +219,16 @@ export default function PublicLayout({
                 </svg>
               </a>
             </div>
+          </div>
+
+          {/* DevWolf credit */}
+          <div className="mt-4 flex justify-center">
+            <p className="text-xs text-muted-foreground/50 tracking-wide select-none">
+              Desarrollado por{" "}
+              <span className="font-medium text-muted-foreground/70">
+                DevWolf Soluciones IT
+              </span>
+            </p>
           </div>
         </div>
       </footer>
