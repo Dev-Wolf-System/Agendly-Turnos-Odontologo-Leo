@@ -49,11 +49,12 @@ export class BillingService {
       },
     });
 
-    const url = this.config.get('NODE_ENV') === 'production'
-      ? result.init_point
-      : result.sandbox_init_point;
+    const url =
+      (this.config.get('NODE_ENV') === 'production'
+        ? result.init_point
+        : result.sandbox_init_point) ?? result.init_point ?? '';
 
-    return { checkout_url: url ?? result.init_point };
+    return { checkout_url: url };
   }
 
   async processWebhook(body: any, signature: string, requestId: string): Promise<void> {
