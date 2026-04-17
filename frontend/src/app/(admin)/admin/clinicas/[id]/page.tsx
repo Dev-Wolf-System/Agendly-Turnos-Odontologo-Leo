@@ -339,7 +339,7 @@ export default function AdminClinicaDetailPage() {
             ) : (
               <div className="flex flex-col items-center py-8 gap-3">
                 <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted">
-                  <CrownIcon className="h-5 w-5 text-muted-foreground" />
+                  <Crown className="h-5 w-5 text-muted-foreground" />
                 </div>
                 <p className="text-sm text-muted-foreground">Sin suscripcion asignada</p>
                 <Link href="/admin/suscripciones" className="inline-flex items-center gap-1.5 rounded-lg bg-[#0F172A] px-4 py-2 text-sm font-medium text-white hover:bg-[#0F172A] transition-colors shadow-md shadow-[var(--ht-primary)]/20">
