@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, NotFoundException, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Between, In, DataSource } from 'typeorm';
 import { Clinica } from '../clinicas/entities/clinica.entity';
@@ -11,6 +11,8 @@ import { EstadoSubscription } from '../../common/enums';
 
 @Injectable()
 export class AdminService {
+  private readonly logger = new Logger(AdminService.name);
+
   constructor(
     @InjectRepository(Clinica)
     private readonly clinicaRepo: Repository<Clinica>,
@@ -195,6 +197,7 @@ export class AdminService {
       return { deleted: true, clinica: clinica.nombre };
     } catch (error) {
       await qr.rollbackTransaction();
+      this.logger.error(`deleteClinica(${id}) falló: ${(error as Error).message}`, (error as Error).stack);
       throw error;
     } finally {
       await qr.release();

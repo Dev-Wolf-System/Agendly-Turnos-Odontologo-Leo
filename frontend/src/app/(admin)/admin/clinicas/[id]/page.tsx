@@ -92,7 +92,7 @@ export default function AdminClinicaDetailPage() {
 
   const handleDelete = async () => {
     if (!clinica) return;
-    if (deleteConfirmName !== clinica.nombre) {
+    if (deleteConfirmName.trim() !== clinica.nombre.trim()) {
       setDeleteError("El nombre no coincide");
       return;
     }
@@ -500,7 +500,7 @@ export default function AdminClinicaDetailPage() {
                 <div className="flex items-center gap-2">
                   <button
                     onClick={handleDelete}
-                    disabled={isDeleting || deleteConfirmName !== clinica.nombre}
+                    disabled={isDeleting || deleteConfirmName.trim() !== clinica.nombre.trim()}
                     className="inline-flex items-center gap-1.5 rounded-lg bg-[var(--status-error)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity disabled:opacity-50 disabled:cursor-not-allowed"
                   >
                     {isDeleting ? "Eliminando..." : "Confirmar eliminacion"}
