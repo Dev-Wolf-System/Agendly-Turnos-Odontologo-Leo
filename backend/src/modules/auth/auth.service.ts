@@ -2,8 +2,8 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  Logger,
 } from '@nestjs/common';
-import { JwtService } from '@nestjs/jwt';
 import { ConfigService } from '@nestjs/config';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
@@ -12,22 +12,24 @@ import { User } from '../users/entities/user.entity';
 import { Clinica } from '../clinicas/entities/clinica.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { JwtPayload } from './interfaces/jwt-payload.interface';
 import { UserRole } from '../../common/enums';
 import { PlansService } from '../plans/plans.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { SupabaseService } from '../../common/services/supabase.service';
 
 @Injectable()
 export class AuthService {
+  private readonly logger = new Logger(AuthService.name);
+
   constructor(
     @InjectRepository(User)
     private readonly userRepository: Repository<User>,
     @InjectRepository(Clinica)
     private readonly clinicaRepository: Repository<Clinica>,
-    private readonly jwtService: JwtService,
     private readonly configService: ConfigService,
     private readonly plansService: PlansService,
     private readonly subscriptionsService: SubscriptionsService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -44,7 +46,9 @@ export class AuthService {
       nombre_propietario: registerDto.nombre_propietario,
       cel: registerDto.clinica_cel,
       especialidad: registerDto.especialidad,
-      logo_url: registerDto.especialidad ? `__esp:${registerDto.especialidad}` : undefined,
+      logo_url: registerDto.especialidad
+        ? `__esp:${registerDto.especialidad}`
+        : undefined,
       estado_aprobacion: 'pendiente',
     });
     const savedClinica = await this.clinicaRepository.save(clinica);
@@ -61,11 +65,13 @@ export class AuthService {
     });
     const savedUser = await this.userRepository.save(user);
 
+    // Crear usuario en Supabase Auth (asíncrono, no bloquea el registro)
+    this.createSupabaseUser(savedUser.id, registerDto.email, registerDto.password);
+
     // Auto-asignar trial subscription (queda inactiva hasta aprobación)
-    let subscription = null;
     const trialPlan = await this.plansService.findDefaultTrial();
     if (trialPlan) {
-      subscription = await this.subscriptionsService.createTrialForClinica(
+      await this.subscriptionsService.createTrialForClinica(
         savedClinica.id,
         trialPlan.id,
       );
@@ -74,12 +80,13 @@ export class AuthService {
     return {
       success: true,
       message:
-        'Tu solicitud de prueba gratuita fue enviada. Nuestro equipo la revisara y te contactaremos por email.',
+        'Tu solicitud de prueba gratuita fue enviada. Nuestro equipo la revisará y te contactará por email.',
       clinica: savedClinica,
     };
   }
 
-  async login(loginDto: LoginDto) {
+  /** Fallback de login para admin/internal (no se expone en producción normal) */
+  async loginInternal(loginDto: LoginDto) {
     const user = await this.userRepository.findOne({
       where: { email: loginDto.email },
     });
@@ -97,67 +104,7 @@ export class AuthService {
       throw new UnauthorizedException('Contraseña incorrecta');
     }
 
-    // Verificar estado de aprobación de la clínica
-    if (user.clinica_id) {
-      const clinica = await this.clinicaRepository.findOne({
-        where: { id: user.clinica_id },
-      });
-      if (clinica?.estado_aprobacion === 'pendiente') {
-        throw new UnauthorizedException(
-          'Tu solicitud de prueba gratuita esta pendiente de aprobacion. Te notificaremos por email cuando sea revisada.',
-        );
-      }
-      if (clinica?.estado_aprobacion === 'rechazado') {
-        throw new UnauthorizedException(
-          'Tu solicitud fue rechazada. Contacta a soporte para mas informacion.',
-        );
-      }
-    }
-
-    const tokens = await this.generateTokens(user);
-
-    return {
-      user: this.sanitizeUser(user),
-      ...tokens,
-    };
-  }
-
-  async refreshToken(refreshToken: string) {
-    try {
-      const payload = this.jwtService.verify<JwtPayload>(refreshToken, {
-        secret: this.configService.get<string>('JWT_SECRET'),
-      });
-
-      const user = await this.userRepository.findOne({
-        where: { id: payload.sub },
-      });
-
-      if (!user) {
-        throw new UnauthorizedException('Token inválido');
-      }
-
-      return this.generateTokens(user);
-    } catch {
-      throw new UnauthorizedException('Token inválido o expirado');
-    }
-  }
-
-  private async generateTokens(user: User) {
-    const payload: JwtPayload = {
-      sub: user.id,
-      ...(user.clinica_id ? { clinicaId: user.clinica_id } : {}),
-      role: user.role,
-      email: user.email,
-    };
-
-    const [access_token, refresh_token] = await Promise.all([
-      this.jwtService.signAsync(payload),
-      this.jwtService.signAsync(payload, {
-        expiresIn: '7d',
-      }),
-    ]);
-
-    return { access_token, refresh_token };
+    return { success: true, message: 'Credenciales válidas' };
   }
 
   async getMe(userId: string) {
@@ -167,7 +114,91 @@ export class AuthService {
     if (!user) {
       throw new UnauthorizedException('Usuario no encontrado');
     }
+
+    // Verificar estado de aprobación de la clínica
+    if (user.clinica_id) {
+      const clinica = await this.clinicaRepository.findOne({
+        where: { id: user.clinica_id },
+      });
+      if (clinica?.estado_aprobacion === 'pendiente') {
+        throw new UnauthorizedException(
+          'Tu solicitud de prueba gratuita está pendiente de aprobación. Te notificaremos por email cuando sea revisada.',
+        );
+      }
+      if (clinica?.estado_aprobacion === 'rechazado') {
+        throw new UnauthorizedException(
+          'Tu solicitud fue rechazada. Contacta a soporte para más información.',
+        );
+      }
+    }
+
     return this.sanitizeUser(user);
+  }
+
+  /** Migra un usuario existente a Supabase Auth (genera link de reset si no tiene contraseña Supabase) */
+  async migrateUserToSupabase(userId: string): Promise<{ email: string; reset_link?: string; error?: string }> {
+    const user = await this.userRepository.findOne({ where: { id: userId } });
+    if (!user) return { email: '', error: 'Usuario no encontrado' };
+    if (user.supabase_uid) return { email: user.email, error: 'Ya tiene cuenta Supabase' };
+
+    const supabase = this.supabaseService.getClient();
+
+    // Crear sin contraseña → el usuario deberá resetearla
+    const { data, error } = await supabase.auth.admin.createUser({
+      email: user.email,
+      email_confirm: true,
+    });
+
+    if (error) {
+      // Si ya existe en Supabase, vincular por email
+      const { data: listData } = await supabase.auth.admin.listUsers();
+      const existing = listData?.users?.find((u) => u.email === user.email);
+      if (existing) {
+        await this.userRepository.update(userId, { supabase_uid: existing.id });
+        return { email: user.email };
+      }
+      return { email: user.email, error: error.message };
+    }
+
+    await this.userRepository.update(userId, { supabase_uid: data.user.id });
+
+    // Generar link de reset de contraseña
+    const siteUrl = this.configService.get<string>('FRONTEND_URL') ?? 'https://avaxhealth.com';
+    const { data: linkData } = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email: user.email,
+      options: { redirectTo: `${siteUrl}/reset-password` },
+    });
+
+    return {
+      email: user.email,
+      reset_link: linkData?.properties?.action_link,
+    };
+  }
+
+  /** Crea un usuario en Supabase Auth y vincula el supabase_uid */
+  private async createSupabaseUser(
+    userId: string,
+    email: string,
+    password: string,
+  ): Promise<void> {
+    try {
+      const supabase = this.supabaseService.getClient();
+      const { data, error } = await supabase.auth.admin.createUser({
+        email,
+        password,
+        email_confirm: true,
+      });
+
+      if (error) {
+        this.logger.warn(`Supabase Auth createUser falló para ${email}: ${error.message}`);
+        return;
+      }
+
+      await this.userRepository.update(userId, { supabase_uid: data.user.id });
+    } catch (err) {
+      this.logger.warn(`Error al crear usuario Supabase para ${email}: ${String(err)}`);
+    }
   }
 
   private sanitizeUser(user: User) {

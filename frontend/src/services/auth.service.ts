@@ -1,23 +1,33 @@
+import { getSupabaseClient } from "@/lib/supabase-client";
 import api from "./api";
-import type { AuthResponse, LoginRequest, RegisterRequest } from "@/types";
+import type { RegisterRequest } from "@/types";
 
-function setCookie(name: string, value: string, days: number) {
-  const expires = new Date(Date.now() + days * 864e5).toUTCString();
-  document.cookie = `${name}=${value}; expires=${expires}; path=/; SameSite=Lax`;
-}
+const SUPABASE_ERROR_MAP: Record<string, string> = {
+  "Invalid login credentials": "Email o contraseña incorrectos",
+  "Email not confirmed": "Debés confirmar tu email antes de iniciar sesión",
+  "User not found": "No existe una cuenta con ese email",
+  "Too many requests": "Demasiados intentos. Esperá unos minutos e intentá de nuevo",
+};
 
-function deleteCookie(name: string) {
-  document.cookie = `${name}=; expires=Thu, 01 Jan 1970 00:00:00 GMT; path=/`;
+function mapSupabaseError(message: string): string {
+  return SUPABASE_ERROR_MAP[message] ?? message;
 }
 
 export const authService = {
-  async login(data: LoginRequest): Promise<AuthResponse> {
-    const response = await api.post<AuthResponse>("/auth/login", data);
-    const { access_token, refresh_token } = response.data;
-    localStorage.setItem("access_token", access_token);
-    localStorage.setItem("refresh_token", refresh_token);
-    setCookie("access_token", access_token, 1);
-    return response.data;
+  async login(data: { email: string; password: string }) {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email: data.email,
+      password: data.password,
+    });
+
+    if (error) {
+      throw new Error(mapSupabaseError(error.message));
+    }
+
+    // Obtener datos del usuario desde nuestra API (incluye clinicaId, role, etc.)
+    const response = await api.get("/auth/me");
+    return { user: response.data };
   },
 
   async register(data: RegisterRequest): Promise<{ success: boolean; message: string }> {
@@ -25,24 +35,25 @@ export const authService = {
     return response.data;
   },
 
-  async refreshToken(): Promise<{ access_token: string; refresh_token: string }> {
-    const refresh_token = localStorage.getItem("refresh_token");
-    const response = await api.post("/auth/refresh", { refresh_token });
-    localStorage.setItem("access_token", response.data.access_token);
-    localStorage.setItem("refresh_token", response.data.refresh_token);
-    setCookie("access_token", response.data.access_token, 1);
-    return response.data;
+  async logout() {
+    const supabase = getSupabaseClient();
+    await supabase.auth.signOut();
+    if (typeof window !== "undefined") {
+      window.location.href = "/login";
+    }
   },
 
-  logout() {
-    localStorage.removeItem("access_token");
-    localStorage.removeItem("refresh_token");
-    deleteCookie("access_token");
-    window.location.href = "/login";
+  async getAccessToken(): Promise<string | null> {
+    if (typeof window === "undefined") return null;
+    const supabase = getSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    return session?.access_token ?? null;
   },
 
-  isAuthenticated(): boolean {
+  async isAuthenticated(): Promise<boolean> {
     if (typeof window === "undefined") return false;
-    return !!localStorage.getItem("access_token");
+    const supabase = getSupabaseClient();
+    const { data: { session } } = await supabase.auth.getSession();
+    return !!session;
   },
 };

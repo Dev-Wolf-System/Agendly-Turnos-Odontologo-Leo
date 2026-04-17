@@ -13,7 +13,12 @@ export function getSupabaseClient(): SupabaseClient {
   }
   if (!client) {
     client = createClient(url, anonKey, {
-      auth: { persistSession: false },
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true,
+        storageKey: "avax-auth-token",
+      },
       realtime: { params: { eventsPerSecond: 10 } },
     });
   }

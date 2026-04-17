@@ -8,8 +8,9 @@ import {
   useCallback,
 } from "react";
 import { authService } from "@/services/auth.service";
-import type { User, LoginRequest, RegisterRequest } from "@/types";
+import { getSupabaseClient } from "@/lib/supabase-client";
 import api from "@/services/api";
+import type { User, LoginRequest, RegisterRequest } from "@/types";
 
 interface AuthContextType {
   user: User | null;
@@ -27,22 +28,54 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   const loadUser = useCallback(async () => {
     try {
-      if (!authService.isAuthenticated()) {
-        setIsLoading(false);
-        return;
-      }
       const response = await api.get<User>("/auth/me");
       setUser(response.data);
     } catch {
-      localStorage.removeItem("access_token");
-      localStorage.removeItem("refresh_token");
-    } finally {
-      setIsLoading(false);
+      setUser(null);
     }
   }, []);
 
   useEffect(() => {
-    loadUser();
+    let mounted = true;
+    const supabase = getSupabaseClient();
+
+    // Cargar sesión inicial
+    supabase.auth.getSession().then(({ data: { session } }) => {
+      if (!mounted) return;
+      if (session) {
+        loadUser().finally(() => {
+          if (mounted) setIsLoading(false);
+        });
+      } else {
+        setIsLoading(false);
+      }
+    });
+
+    // Escuchar cambios de auth
+    const { data: { subscription } } = supabase.auth.onAuthStateChange(
+      async (event, session) => {
+        if (!mounted) return;
+
+        if (event === "SIGNED_OUT" || !session) {
+          setUser(null);
+          return;
+        }
+
+        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+          try {
+            const response = await api.get<User>("/auth/me");
+            if (mounted) setUser(response.data);
+          } catch {
+            if (mounted) setUser(null);
+          }
+        }
+      },
+    );
+
+    return () => {
+      mounted = false;
+      subscription.unsubscribe();
+    };
   }, [loadUser]);
 
   const login = async (data: LoginRequest): Promise<User> => {
@@ -51,9 +84,10 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
     return response.user;
   };
 
-  const register = async (data: RegisterRequest): Promise<{ success: boolean; message: string }> => {
-    const response = await authService.register(data);
-    return response;
+  const register = async (
+    data: RegisterRequest,
+  ): Promise<{ success: boolean; message: string }> => {
+    return authService.register(data);
   };
 
   const logout = () => {

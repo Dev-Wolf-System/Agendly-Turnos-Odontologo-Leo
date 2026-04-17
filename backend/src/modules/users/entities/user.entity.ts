@@ -18,6 +18,9 @@ export class User extends TenantBaseEntity {
   @Column({ type: 'text', nullable: true })
   password: string;
 
+  @Column({ type: 'uuid', nullable: true, unique: true })
+  supabase_uid: string | null;
+
   @Column({ type: 'text' })
   role: UserRole;
 
