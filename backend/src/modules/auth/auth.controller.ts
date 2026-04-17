@@ -1,7 +1,7 @@
 import { Controller, Post, Get, Body } from '@nestjs/common';
 import { AuthService } from './auth.service';
 import { RegisterDto } from './dto/register.dto';
-import { Public, CurrentUser } from '../../common/decorators';
+import { Public, CurrentUser, ApiKeyAuth } from '../../common/decorators';
 
 @Controller('auth')
 export class AuthController {
@@ -23,17 +23,12 @@ export class AuthController {
 
   /**
    * Migra todos los usuarios sin supabase_uid a Supabase Auth.
-   * Devuelve un link de reset de contraseña por usuario.
-   * Solo debe ejecutarse una vez en producción (superadmin).
+   * Protegido por AGENT_API_KEY (header x-api-key).
+   * Solo debe ejecutarse una vez en producción.
    */
+  @ApiKeyAuth()
   @Post('admin/migrate-users')
-  async migrateUsers(
-    @CurrentUser()
-    user: { userId: string; role: string },
-  ) {
-    if (user.role !== 'SUPERADMIN') {
-      return { error: 'No autorizado' };
-    }
+  async migrateUsers() {
     return this.authService.migrateAllUsersToSupabase();
   }
 }
