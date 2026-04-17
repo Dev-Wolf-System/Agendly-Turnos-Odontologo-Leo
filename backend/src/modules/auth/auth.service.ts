@@ -135,6 +135,14 @@ export class AuthService {
     return this.sanitizeUser(user);
   }
 
+  /** Migra todos los usuarios sin supabase_uid a Supabase Auth */
+  async migrateAllUsersToSupabase(): Promise<Array<{ email: string; reset_link?: string; error?: string }>> {
+    const users = await this.userRepository.find({
+      where: { supabase_uid: undefined },
+    });
+    return Promise.all(users.map((u) => this.migrateUserToSupabase(u.id)));
+  }
+
   /** Migra un usuario existente a Supabase Auth (genera link de reset si no tiene contraseña Supabase) */
   async migrateUserToSupabase(userId: string): Promise<{ email: string; reset_link?: string; error?: string }> {
     const user = await this.userRepository.findOne({ where: { id: userId } });
@@ -142,37 +150,42 @@ export class AuthService {
     if (user.supabase_uid) return { email: user.email, error: 'Ya tiene cuenta Supabase' };
 
     const supabase = this.supabaseService.getClient();
+    const userEmail = user.email;
 
     // Crear sin contraseña → el usuario deberá resetearla
-    const { data, error } = await supabase.auth.admin.createUser({
-      email: user.email,
+    const createResult = await supabase.auth.admin.createUser({
+      email: userEmail,
       email_confirm: true,
     });
 
-    if (error) {
+    if (createResult.error) {
       // Si ya existe en Supabase, vincular por email
-      const { data: listData } = await supabase.auth.admin.listUsers();
-      const existing = listData?.users?.find((u) => u.email === user.email);
+      const listResult = await supabase.auth.admin.listUsers();
+      const supabaseUsers = (listResult.data?.users ?? []) as Array<{ id: string; email?: string }>;
+      const existing = supabaseUsers.find((u) => u.email === userEmail);
       if (existing) {
         await this.userRepository.update(userId, { supabase_uid: existing.id });
-        return { email: user.email };
+        return { email: userEmail };
       }
-      return { email: user.email, error: error.message };
+      return { email: userEmail, error: createResult.error.message };
     }
 
-    await this.userRepository.update(userId, { supabase_uid: data.user.id });
+    const supabaseUid = createResult.data.user?.id;
+    if (supabaseUid) {
+      await this.userRepository.update(userId, { supabase_uid: supabaseUid });
+    }
 
     // Generar link de reset de contraseña
     const siteUrl = this.configService.get<string>('FRONTEND_URL') ?? 'https://avaxhealth.com';
-    const { data: linkData } = await supabase.auth.admin.generateLink({
+    const linkResult = await supabase.auth.admin.generateLink({
       type: 'recovery',
-      email: user.email,
+      email: userEmail,
       options: { redirectTo: `${siteUrl}/reset-password` },
     });
 
     return {
-      email: user.email,
-      reset_link: linkData?.properties?.action_link,
+      email: userEmail,
+      reset_link: linkResult.data?.properties?.action_link ?? undefined,
     };
   }
 

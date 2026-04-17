@@ -31,16 +31,9 @@ export class AuthController {
     @CurrentUser()
     user: { userId: string; role: string },
   ) {
-    // Solo SUPERADMIN puede ejecutar esta migración
     if (user.role !== 'SUPERADMIN') {
       return { error: 'No autorizado' };
     }
-    return this.authService['userRepository']
-      .find({ where: { supabase_uid: null } as any })
-      .then((users: { id: string }[]) =>
-        Promise.all(
-          users.map((u: { id: string }) => this.authService.migrateUserToSupabase(u.id)),
-        ),
-      );
+    return this.authService.migrateAllUsersToSupabase();
   }
 }
