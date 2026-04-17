@@ -26,8 +26,18 @@ export const authService = {
     }
 
     // Obtener datos del usuario desde nuestra API (incluye clinicaId, role, etc.)
-    const response = await api.get("/auth/me");
-    return { user: response.data };
+    try {
+      const response = await api.get("/auth/me");
+      return { user: response.data };
+    } catch (apiError: any) {
+      // Si el backend no responde, cerrar sesión de Supabase para no quedar en estado inconsistente
+      await supabase.auth.signOut();
+      const msg =
+        apiError?.code === "ECONNABORTED"
+          ? "El servidor no responde. Verificá que el backend esté activo."
+          : apiError?.response?.data?.message ?? apiError?.message ?? "Error al conectar con el servidor";
+      throw new Error(msg);
+    }
   },
 
   async register(data: RegisterRequest): Promise<{ success: boolean; message: string }> {
