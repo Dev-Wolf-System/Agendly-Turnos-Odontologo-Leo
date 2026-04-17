@@ -5,7 +5,6 @@ import {
   useContext,
   useState,
   useEffect,
-  useCallback,
 } from "react";
 import { authService } from "@/services/auth.service";
 import { getSupabaseClient } from "@/lib/supabase-client";
@@ -26,47 +25,35 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
   const [user, setUser] = useState<User | null>(null);
   const [isLoading, setIsLoading] = useState(true);
 
-  const loadUser = useCallback(async () => {
-    try {
-      const response = await api.get<User>("/auth/me");
-      setUser(response.data);
-    } catch {
-      setUser(null);
-    }
-  }, []);
-
   useEffect(() => {
     let mounted = true;
     const supabase = getSupabaseClient();
 
-    // Cargar sesión inicial
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!mounted) return;
-      if (session) {
-        loadUser().finally(() => {
-          if (mounted) setIsLoading(false);
-        });
-      } else {
-        setIsLoading(false);
-      }
-    });
-
-    // Escuchar cambios de auth
+    // onAuthStateChange dispara INITIAL_SESSION al montar — es la única fuente de verdad.
+    // Evitamos llamar getSession() por separado para no generar dos refreshes concurrentes
+    // que traban la carga al recargar la página con token vencido.
     const { data: { subscription } } = supabase.auth.onAuthStateChange(
       async (event, session) => {
         if (!mounted) return;
 
         if (event === "SIGNED_OUT" || !session) {
           setUser(null);
+          setIsLoading(false);
           return;
         }
 
-        if (event === "SIGNED_IN" || event === "TOKEN_REFRESHED") {
+        if (
+          event === "INITIAL_SESSION" ||
+          event === "SIGNED_IN" ||
+          event === "TOKEN_REFRESHED"
+        ) {
           try {
             const response = await api.get<User>("/auth/me");
             if (mounted) setUser(response.data);
           } catch {
             if (mounted) setUser(null);
+          } finally {
+            if (mounted) setIsLoading(false);
           }
         }
       },
@@ -76,7 +63,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
       mounted = false;
       subscription.unsubscribe();
     };
-  }, [loadUser]);
+  }, []);
 
   const login = async (data: LoginRequest): Promise<User> => {
     const response = await authService.login(data);
