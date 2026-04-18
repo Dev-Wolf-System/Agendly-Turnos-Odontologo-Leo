@@ -13,6 +13,7 @@ import * as crypto from 'crypto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { PlansService } from '../plans/plans.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { ClinicaMpService } from '../clinica-mp/clinica-mp.service';
 import { Pago } from '../pagos/entities/pago.entity';
 import { Turno } from '../turnos/entities/turno.entity';
 import { EstadoSubscription, EstadoPago, TipoNotificacion } from '../../common/enums';
@@ -27,6 +28,7 @@ export class BillingService {
     private readonly subscriptionsService: SubscriptionsService,
     private readonly plansService: PlansService,
     private readonly notificacionesService: NotificacionesService,
+    private readonly clinicaMpService: ClinicaMpService,
     @InjectRepository(Pago)
     private readonly pagoRepo: Repository<Pago>,
     @InjectRepository(Turno)
@@ -35,6 +37,10 @@ export class BillingService {
     this.mp = new MercadoPagoConfig({
       accessToken: this.config.getOrThrow<string>('MP_ACCESS_TOKEN'),
     });
+  }
+
+  private getMpForClinica(accessToken: string): MercadoPagoConfig {
+    return new MercadoPagoConfig({ accessToken });
   }
 
   async createCheckout(clinicaId: string, planId?: string): Promise<{ checkout_url: string }> {
@@ -104,10 +110,13 @@ export class BillingService {
     const monto = Number(pago.total);
     if (!monto || monto <= 0) throw new BadRequestException('El pago no tiene un monto válido');
 
+    const mpConfig = await this.clinicaMpService.findByClinica(clinicaId);
+    if (!mpConfig) throw new BadRequestException('La clínica no tiene Mercado Pago configurado');
+
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
     const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.avaxhealth.com/api');
 
-    const preference = new Preference(this.mp);
+    const preference = new Preference(this.getMpForClinica(mpConfig.access_token));
     const result = await preference.create({
       body: {
         items: [

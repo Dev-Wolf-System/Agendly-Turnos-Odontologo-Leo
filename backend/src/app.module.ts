@@ -36,6 +36,7 @@ import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { FeatureFlagGuard } from './common/guards/feature-flag.guard';
 import { CommonModule } from './common/common.module';
 import { BillingModule } from './modules/billing/billing.module';
+import { ClinicaMpModule } from './modules/clinica-mp/clinica-mp.module';
 
 @Module({
   imports: [
@@ -67,6 +68,7 @@ import { BillingModule } from './modules/billing/billing.module';
     SucursalesModule,
     ArchivosMedicosModule,
     BillingModule,
+    ClinicaMpModule,
   ],
   providers: [
     {

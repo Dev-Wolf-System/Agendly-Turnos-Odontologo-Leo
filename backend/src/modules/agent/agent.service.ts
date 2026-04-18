@@ -19,6 +19,7 @@ import { Pago } from '../pagos/entities/pago.entity';
 import { Inventario } from '../inventario/entities/inventario.entity';
 import { EstadoTurno, EstadoPago, SourceTurno, UserRole } from '../../common/enums';
 import { WebhookService } from '../../common/services/webhook.service';
+import { ClinicaMpService } from '../clinica-mp/clinica-mp.service';
 
 @Injectable()
 export class AgentService {
@@ -45,6 +46,7 @@ export class AgentService {
     private readonly inventarioRepo: Repository<Inventario>,
     private readonly webhookService: WebhookService,
     private readonly config: ConfigService,
+    private readonly clinicaMpService: ClinicaMpService,
   ) {}
 
   /* ─────────────────────────────────────────────
@@ -1025,11 +1027,14 @@ export class AgentService {
       throw new BadRequestException('El pago no tiene un monto válido');
     }
 
-    const accessToken = this.config.getOrThrow<string>('MP_ACCESS_TOKEN');
+    const mpConfig = await this.clinicaMpService.findByClinica(clinicaId);
+    if (!mpConfig) {
+      throw new BadRequestException('La clínica no tiene Mercado Pago configurado. Configuralo en Ajustes → Pagos.');
+    }
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
     const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.avaxhealth.com/api');
 
-    const mp = new MercadoPagoConfig({ accessToken });
+    const mp = new MercadoPagoConfig({ accessToken: mpConfig.access_token });
     const preference = new Preference(mp);
 
     const pacienteNombre = turno.paciente
@@ -1065,6 +1070,25 @@ export class AgentService {
       '';
 
     this.logger.log(`Link de pago generado para turno ${turnoId} — pago ${pago.id}`);
+
+    // Disparar webhook de la clínica si está configurado y activo
+    if (mpConfig.webhook_activo && mpConfig.webhook_url) {
+      const pacienteNombreWh = turno.paciente
+        ? `${turno.paciente.nombre} ${turno.paciente.apellido}`
+        : 'Paciente';
+      fetch(mpConfig.webhook_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          turno_id: turnoId,
+          pago_id: pago.id,
+          paciente: pacienteNombreWh,
+          tratamiento: turno.tipo_tratamiento ?? 'Consulta',
+          monto: Number(pago.total),
+          link_pago: checkout_url,
+        }),
+      }).catch((err) => this.logger.warn(`Webhook pago fallido: ${err.message}`));
+    }
 
     return {
       checkout_url,

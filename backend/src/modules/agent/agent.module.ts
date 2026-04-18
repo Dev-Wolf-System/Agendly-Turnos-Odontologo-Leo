@@ -12,9 +12,11 @@ import { HorarioProfesional } from '../horarios-profesional/entities/horario-pro
 import { Pago } from '../pagos/entities/pago.entity';
 import { Inventario } from '../inventario/entities/inventario.entity';
 import { WebhookService } from '../../common/services/webhook.service';
+import { ClinicaMpModule } from '../clinica-mp/clinica-mp.module';
 
 @Module({
   imports: [
+    ClinicaMpModule,
     TypeOrmModule.forFeature([
       Clinica,
       Paciente,
