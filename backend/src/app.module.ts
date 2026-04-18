@@ -35,7 +35,6 @@ import { ArchivosMedicosModule } from './modules/archivos-medicos/archivos-medic
 import { ApiKeyGuard } from './common/guards/api-key.guard';
 import { FeatureFlagGuard } from './common/guards/feature-flag.guard';
 import { CommonModule } from './common/common.module';
-import { BillingModule } from './modules/billing/billing.module';
 
 @Module({
   imports: [
@@ -66,7 +65,6 @@ import { BillingModule } from './modules/billing/billing.module';
     LeadsModule,
     SucursalesModule,
     ArchivosMedicosModule,
-    BillingModule,
   ],
   providers: [
     {
