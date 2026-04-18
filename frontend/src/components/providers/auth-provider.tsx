@@ -9,6 +9,7 @@ import {
 import { authService } from "@/services/auth.service";
 import { getSupabaseClient } from "@/lib/supabase-client";
 import api from "@/services/api";
+import { setAccessToken } from "@/lib/auth-token";
 import type { User, LoginRequest, RegisterRequest } from "@/types";
 
 interface AuthContextType {
@@ -40,6 +41,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
           if (!mounted) return;
 
           if (event === "SIGNED_OUT" || !session) {
+            setAccessToken(null);
             setUser(null);
             setIsLoading(false);
             return;
@@ -50,6 +52,7 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
             event === "SIGNED_IN" ||
             event === "TOKEN_REFRESHED"
           ) {
+            setAccessToken(session.access_token);
             try {
               const response = await api.get<User>("/auth/me");
               if (mounted) setUser(response.data);

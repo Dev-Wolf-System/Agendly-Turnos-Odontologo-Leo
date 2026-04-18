@@ -1,4 +1,5 @@
 import { getSupabaseClient } from "@/lib/supabase-client";
+import { setAccessToken } from "@/lib/auth-token";
 import api from "./api";
 import type { RegisterRequest } from "@/types";
 
@@ -16,13 +17,18 @@ function mapSupabaseError(message: string): string {
 export const authService = {
   async login(data: { email: string; password: string }) {
     const supabase = getSupabaseClient();
-    const { error } = await supabase.auth.signInWithPassword({
+    const { data: authData, error } = await supabase.auth.signInWithPassword({
       email: data.email,
       password: data.password,
     });
 
     if (error) {
       throw new Error(mapSupabaseError(error.message));
+    }
+
+    // Disponibilizar el token inmediatamente para el interceptor de api.ts
+    if (authData.session?.access_token) {
+      setAccessToken(authData.session.access_token);
     }
 
     // Obtener datos del usuario desde nuestra API (incluye clinicaId, role, etc.)
@@ -46,6 +52,7 @@ export const authService = {
   },
 
   async logout() {
+    setAccessToken(null);
     const supabase = getSupabaseClient();
     await supabase.auth.signOut();
     if (typeof window !== "undefined") {

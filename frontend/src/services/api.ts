@@ -1,5 +1,5 @@
 import axios from "axios";
-import { getSupabaseClient } from "@/lib/supabase-client";
+import { getAccessToken } from "@/lib/auth-token";
 
 const api = axios.create({
   baseURL: process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api",
@@ -9,17 +9,10 @@ const api = axios.create({
   },
 });
 
-api.interceptors.request.use(async (config) => {
-  if (typeof window !== "undefined") {
-    try {
-      const supabase = getSupabaseClient();
-      const { data: { session } } = await supabase.auth.getSession();
-      if (session?.access_token) {
-        config.headers.Authorization = `Bearer ${session.access_token}`;
-      }
-    } catch {
-      // getSupabaseClient puede fallar si las env vars no están definidas en SSR
-    }
+api.interceptors.request.use((config) => {
+  const token = getAccessToken();
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
   }
   return config;
 });
@@ -33,8 +26,8 @@ api.interceptors.response.use(
         window.location.pathname.startsWith("/register");
       if (!isAuthRoute) {
         try {
-          const supabase = getSupabaseClient();
-          await supabase.auth.signOut();
+          const { getSupabaseClient } = await import("@/lib/supabase-client");
+          await getSupabaseClient().auth.signOut();
         } catch {
           // ignorar
         }
