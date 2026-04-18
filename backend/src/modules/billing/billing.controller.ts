@@ -1,11 +1,13 @@
-import { Controller, Post, Get, Body, Headers } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, SetMetadata } from '@nestjs/common';
 import { BillingService } from './billing.service';
 import { Public, CurrentClinica } from '../../common/decorators';
+import { IS_WRITE_OPERATION } from '../../common/guards/subscription.guard';
 
 @Controller('billing')
 export class BillingController {
   constructor(private readonly billingService: BillingService) {}
 
+  @SetMetadata(IS_WRITE_OPERATION, false)
   @Post('checkout')
   createCheckout(@CurrentClinica() clinicaId: string) {
     return this.billingService.createCheckout(clinicaId);

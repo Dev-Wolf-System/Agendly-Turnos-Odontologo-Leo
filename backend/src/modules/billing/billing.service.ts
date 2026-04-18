@@ -100,7 +100,7 @@ export class BillingService {
       await this.subscriptionsService.update(subId, {
         estado: EstadoSubscription.ACTIVA,
         fecha_fin: newFechaFin,
-        trial_ends_at: undefined,
+        trial_ends_at: null as any,
         external_reference: String(paymentData.id),
       });
 
