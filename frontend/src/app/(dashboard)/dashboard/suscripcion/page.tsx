@@ -9,6 +9,7 @@ import subscriptionsService, {
 } from "@/services/subscriptions.service";
 import ticketsService, { Ticket, CreateTicketPayload } from "@/services/tickets.service";
 import pagosService, { Pago } from "@/services/pagos.service";
+import billingService from "@/services/billing.service";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -51,6 +52,8 @@ import {
   Send,
   MessageSquare,
   RefreshCw,
+  Zap,
+  ExternalLink,
   Crown,
   AlertTriangle,
   CheckCircle2,
@@ -254,6 +257,7 @@ function SuscripcionContent() {
   });
 
   const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
+  const [checkingOut, setCheckingOut] = useState(false);
 
   // ─── Fetch data ───
   const fetchSubscription = useCallback(async () => {
@@ -300,6 +304,18 @@ function SuscripcionContent() {
     fetchTickets();
     fetchPagos();
   }, [fetchSubscription, fetchTickets, fetchPagos]);
+
+  // ─── Checkout MP ───
+  const handleCheckout = async () => {
+    try {
+      setCheckingOut(true);
+      const { checkout_url } = await billingService.createCheckout();
+      window.location.href = checkout_url;
+    } catch {
+      toast.error("No se pudo iniciar el pago. Intentá de nuevo.");
+      setCheckingOut(false);
+    }
+  };
 
   // ─── Create ticket ───
   const handleCreateTicket = async () => {
@@ -356,6 +372,32 @@ function SuscripcionContent() {
   // ════════════════════════════════════════════════════════════════
   return (
     <div className="animate-page-in space-y-6">
+      {/* ── Banner renovación urgente ── */}
+      {sub && remaining <= 7 && estado !== "cancelada" && (
+        <div className="rounded-xl border border-orange-200 dark:border-orange-800 bg-orange-50 dark:bg-orange-900/20 px-5 py-4 flex flex-col sm:flex-row sm:items-center gap-3">
+          <div className="flex items-center gap-3 flex-1">
+            <AlertTriangle className="w-5 h-5 text-orange-500 shrink-0" />
+            <div>
+              <p className="text-sm font-semibold text-orange-800 dark:text-orange-300">
+                {remaining === 0 ? "Tu suscripción vence hoy" : `Tu suscripción vence en ${remaining} ${remaining === 1 ? "día" : "días"}`}
+              </p>
+              <p className="text-xs text-orange-600 dark:text-orange-400">
+                Renová ahora para no perder el acceso
+              </p>
+            </div>
+          </div>
+          <Button
+            size="sm"
+            onClick={handleCheckout}
+            disabled={checkingOut}
+            className="gap-2 bg-orange-500 hover:bg-orange-600 text-white border-0 shrink-0"
+          >
+            {checkingOut ? <Loader2 className="w-4 h-4 animate-spin" /> : <ExternalLink className="w-4 h-4" />}
+            Renovar ahora
+          </Button>
+        </div>
+      )}
+
       {/* ── Header ── */}
       <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
         <div>
@@ -600,21 +642,36 @@ function SuscripcionContent() {
                     </p>
                   </div>
 
-                  {/* Auto renew */}
-                  <div className="flex items-center gap-2 pt-2">
-                    <RefreshCw className="w-4 h-4 text-muted-foreground" />
-                    <span className="text-sm text-muted-foreground">
-                      Renovacion automatica
-                    </span>
-                    <Badge
-                      className={`border-0 text-[11px] ${
-                        sub.auto_renew
-                          ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                          : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                      }`}
+                  {/* Auto renew + botón de pago */}
+                  <div className="flex items-center justify-between pt-2">
+                    <div className="flex items-center gap-2">
+                      <RefreshCw className="w-4 h-4 text-muted-foreground" />
+                      <span className="text-sm text-muted-foreground">
+                        Renovacion automatica
+                      </span>
+                      <Badge
+                        className={`border-0 text-[11px] ${
+                          sub.auto_renew
+                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
+                            : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
+                        }`}
+                      >
+                        {sub.auto_renew ? "Activa" : "Inactiva"}
+                      </Badge>
+                    </div>
+                    <Button
+                      size="sm"
+                      onClick={handleCheckout}
+                      disabled={checkingOut || estado === "cancelada"}
+                      className="gap-1.5 text-xs bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white border-0"
                     >
-                      {sub.auto_renew ? "Activa" : "Inactiva"}
-                    </Badge>
+                      {checkingOut ? (
+                        <Loader2 className="w-3.5 h-3.5 animate-spin" />
+                      ) : (
+                        <Zap className="w-3.5 h-3.5" />
+                      )}
+                      {isTrial ? "Activar plan" : "Renovar"}
+                    </Button>
                   </div>
 
                   {/* Features */}
