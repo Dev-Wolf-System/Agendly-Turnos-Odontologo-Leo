@@ -27,41 +27,52 @@ export function AuthProvider({ children }: { children: React.ReactNode }) {
 
   useEffect(() => {
     let mounted = true;
-    const supabase = getSupabaseClient();
+    let subscription: { unsubscribe: () => void } | null = null;
 
-    // onAuthStateChange dispara INITIAL_SESSION al montar — es la única fuente de verdad.
-    // Evitamos llamar getSession() por separado para no generar dos refreshes concurrentes
-    // que traban la carga al recargar la página con token vencido.
-    const { data: { subscription } } = supabase.auth.onAuthStateChange(
-      async (event, session) => {
-        if (!mounted) return;
+    try {
+      const supabase = getSupabaseClient();
 
-        if (event === "SIGNED_OUT" || !session) {
-          setUser(null);
-          setIsLoading(false);
-          return;
-        }
+      // onAuthStateChange dispara INITIAL_SESSION al montar — es la única fuente de verdad.
+      // Evitamos llamar getSession() por separado para no generar dos refreshes concurrentes
+      // que traban la carga al recargar la página con token vencido.
+      const { data } = supabase.auth.onAuthStateChange(
+        async (event, session) => {
+          if (!mounted) return;
 
-        if (
-          event === "INITIAL_SESSION" ||
-          event === "SIGNED_IN" ||
-          event === "TOKEN_REFRESHED"
-        ) {
-          try {
-            const response = await api.get<User>("/auth/me");
-            if (mounted) setUser(response.data);
-          } catch {
-            if (mounted) setUser(null);
-          } finally {
-            if (mounted) setIsLoading(false);
+          if (event === "SIGNED_OUT" || !session) {
+            setUser(null);
+            setIsLoading(false);
+            return;
           }
-        }
-      },
-    );
+
+          if (
+            event === "INITIAL_SESSION" ||
+            event === "SIGNED_IN" ||
+            event === "TOKEN_REFRESHED"
+          ) {
+            try {
+              const response = await api.get<User>("/auth/me");
+              if (mounted) setUser(response.data);
+            } catch {
+              if (mounted) setUser(null);
+            } finally {
+              if (mounted) setIsLoading(false);
+            }
+          }
+        },
+      );
+      subscription = data.subscription;
+    } catch {
+      // Supabase env vars ausentes (build sin vars) — desbloquear la UI
+      if (mounted) {
+        setUser(null);
+        setIsLoading(false);
+      }
+    }
 
     return () => {
       mounted = false;
-      subscription.unsubscribe();
+      subscription?.unsubscribe();
     };
   }, []);
 

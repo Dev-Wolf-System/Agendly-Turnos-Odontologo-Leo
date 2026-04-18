@@ -181,7 +181,7 @@ export class AdminService {
       await qr.query(`DELETE FROM turnos WHERE clinica_id = $1`, [id]);
       await qr.query(`DELETE FROM pacientes WHERE clinica_id = $1`, [id]);
       await qr.query(`DELETE FROM inventario WHERE clinica_id = $1`, [id]);
-      await qr.query(`DELETE FROM proveedores WHERE clinica_id = $1`, [id]);
+      await qr.query(`DELETE FROM proveedor WHERE clinica_id = $1`, [id]);
       await qr.query(`DELETE FROM tratamientos WHERE clinica_id = $1`, [id]);
       await qr.query(`DELETE FROM categorias WHERE clinica_id = $1`, [id]);
       await qr.query(`DELETE FROM sucursales WHERE clinica_padre_id = $1`, [id]);
