@@ -32,12 +32,11 @@ services:
       - traefik.http.routers.avax-api.entrypoints=web,websecure
       - traefik.http.routers.avax-api.tls.certresolver=mytlschallenge
       - traefik.http.services.avax-api.loadbalancer.server.port=3001
-      - traefik.http.middlewares.avax-api-headers.headers.SSLRedirect=true
       - traefik.http.middlewares.avax-api-headers.headers.STSSeconds=315360000
       - traefik.http.middlewares.avax-api-headers.headers.browserXSSFilter=true
       - traefik.http.middlewares.avax-api-headers.headers.contentTypeNosniff=true
-      # CORS manejado por NestJS (origin: true) — Traefik no restringe origen
-      # para permitir webhooks de terceros (Mercado Pago, etc.)
+      # SSLRedirect eliminado — TLS ya está en el router; SSLRedirect causaba 403 en edge cases
+      # CORS manejado por NestJS (origin: true)
       - traefik.http.routers.avax-api.middlewares=avax-api-headers@docker
     networks:
       - n8n_evoapi
