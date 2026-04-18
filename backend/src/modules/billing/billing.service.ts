@@ -1,8 +1,9 @@
-import { Injectable, Logger } from '@nestjs/common';
+import { Injectable, Logger, BadRequestException } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import * as crypto from 'crypto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
+import { PlansService } from '../plans/plans.service';
 import { EstadoSubscription } from '../../common/enums';
 
 @Injectable()
@@ -13,32 +14,48 @@ export class BillingService {
   constructor(
     private readonly config: ConfigService,
     private readonly subscriptionsService: SubscriptionsService,
+    private readonly plansService: PlansService,
   ) {
     this.mp = new MercadoPagoConfig({
       accessToken: this.config.getOrThrow<string>('MP_ACCESS_TOKEN'),
     });
   }
 
-  async createCheckout(clinicaId: string): Promise<{ checkout_url: string }> {
+  async createCheckout(clinicaId: string, planId?: string): Promise<{ checkout_url: string }> {
     const sub = await this.subscriptionsService.findByClinica(clinicaId);
-    if (!sub?.plan) throw new Error('Suscripción o plan no encontrado');
+    if (!sub) throw new BadRequestException('No se encontró suscripción para esta clínica');
+
+    // Usar planId recibido, o el del plan actual si ya tiene uno no-trial
+    const targetPlanId = planId ?? (sub.plan?.is_default_trial ? null : sub.plan_id);
+    if (!targetPlanId) {
+      throw new BadRequestException('Seleccioná un plan para continuar');
+    }
+
+    const plan = planId ? await this.plansService.findOne(targetPlanId) : sub.plan;
+    if (!plan) throw new BadRequestException('Plan no encontrado');
+
+    const precio = Number(plan.precio_mensual);
+    if (precio <= 0) throw new BadRequestException('El plan seleccionado no tiene un precio válido');
 
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
     const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.avaxhealth.com/api');
+
+    // Codificar planId en external_reference para actualizarlo al pagar
+    const externalRef = `sub_${sub.id}_plan_${targetPlanId}`;
 
     const preference = new Preference(this.mp);
     const result = await preference.create({
       body: {
         items: [
           {
-            id: sub.plan_id,
-            title: `Suscripción ${sub.plan.nombre} — Avax Health`,
+            id: targetPlanId,
+            title: `Suscripción ${plan.nombre} — Avax Health`,
             quantity: 1,
-            unit_price: Number(sub.plan.precio_mensual),
+            unit_price: precio,
             currency_id: 'ARS',
           },
         ],
-        external_reference: `sub_${sub.id}`,
+        external_reference: externalRef,
         back_urls: {
           success: `${frontendUrl}/billing/success`,
           failure: `${frontendUrl}/billing/failure`,
@@ -67,7 +84,6 @@ export class BillingService {
 
       const { ts, v1 } = parts;
       if (ts && v1) {
-        // Formato oficial MP: id:{data.id};request-id:{x-request-id};ts:{ts};
         const dataId = body?.data?.id ?? '';
         const manifest = `id:${dataId};request-id:${requestId};ts:${ts};`;
         const expected = crypto.createHmac('sha256', secret).update(manifest).digest('hex');
@@ -92,13 +108,15 @@ export class BillingService {
         return;
       }
 
-      const externalRef = paymentData.external_reference;
-      if (!externalRef?.startsWith('sub_')) {
+      const externalRef = paymentData.external_reference ?? '';
+      // Formato: sub_{subId}_plan_{planId}
+      const subMatch = externalRef.match(/^sub_([^_]+(?:_[^_]+)*?)_plan_(.+)$/);
+      if (!subMatch) {
         this.logger.warn(`Webhook MP: external_reference inválido: ${externalRef}`);
         return;
       }
 
-      const subId = externalRef.replace('sub_', '');
+      const [, subId, newPlanId] = subMatch;
       const sub = await this.subscriptionsService.findOne(subId);
 
       const base = new Date(sub.fecha_fin) > new Date() ? new Date(sub.fecha_fin) : new Date();
@@ -109,10 +127,11 @@ export class BillingService {
         estado: EstadoSubscription.ACTIVA,
         fecha_fin: newFechaFin,
         trial_ends_at: null as any,
+        plan_id: newPlanId,
         external_reference: String(paymentData.id),
       });
 
-      this.logger.log(`Sub ${subId} renovada hasta ${newFechaFin.toISOString().slice(0, 10)}`);
+      this.logger.log(`Sub ${subId} → plan ${newPlanId}, renovada hasta ${newFechaFin.toISOString().slice(0, 10)}`);
     } catch (err) {
       this.logger.error('Error procesando webhook MP', err);
     }

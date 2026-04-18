@@ -10,6 +10,8 @@ import subscriptionsService, {
 import ticketsService, { Ticket, CreateTicketPayload } from "@/services/tickets.service";
 import pagosService, { Pago } from "@/services/pagos.service";
 import billingService from "@/services/billing.service";
+import { plansService } from "@/services/plans.service";
+import type { Plan } from "@/types";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -258,6 +260,8 @@ function SuscripcionContent() {
 
   const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [planes, setPlanes] = useState<Plan[]>([]);
+  const [selectedPlanId, setSelectedPlanId] = useState<string>("");
 
   // ─── Fetch data ───
   const fetchSubscription = useCallback(async () => {
@@ -303,13 +307,23 @@ function SuscripcionContent() {
     fetchSubscription();
     fetchTickets();
     fetchPagos();
+    plansService.getActivePlans().then((data) => {
+      const pagados = data.filter((p) => !p.is_default_trial && Number(p.precio_mensual) > 0);
+      setPlanes(pagados);
+      if (pagados.length > 0) setSelectedPlanId(pagados[0].id);
+    }).catch(() => {});
   }, [fetchSubscription, fetchTickets, fetchPagos]);
 
   // ─── Checkout MP ───
-  const handleCheckout = async () => {
+  const handleCheckout = async (planId?: string) => {
+    const pid = planId ?? selectedPlanId ?? undefined;
+    if (!pid) {
+      toast.error("Seleccioná un plan para continuar");
+      return;
+    }
     try {
       setCheckingOut(true);
-      const { checkout_url } = await billingService.createCheckout();
+      const { checkout_url } = await billingService.createCheckout(pid);
       window.location.href = checkout_url;
     } catch {
       toast.error("No se pudo iniciar el pago. Intentá de nuevo.");
@@ -388,7 +402,7 @@ function SuscripcionContent() {
           </div>
           <Button
             size="sm"
-            onClick={handleCheckout}
+            onClick={() => handleCheckout(isTrial ? selectedPlanId : undefined)}
             disabled={checkingOut}
             className="gap-2 bg-orange-500 hover:bg-orange-600 text-white border-0 shrink-0"
           >
@@ -642,6 +656,39 @@ function SuscripcionContent() {
                     </p>
                   </div>
 
+                  {/* Selector de plan (solo en trial o si no tiene plan pagado) */}
+                  {isTrial && planes.length > 0 && (
+                    <div className="pt-2 space-y-2">
+                      <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
+                        Elegí tu plan
+                      </p>
+                      <div className="flex flex-col gap-2">
+                        {planes.map((p) => (
+                          <button
+                            key={p.id}
+                            type="button"
+                            onClick={() => setSelectedPlanId(p.id)}
+                            className={`flex items-center justify-between rounded-xl border px-4 py-3 text-left transition-all ${
+                              selectedPlanId === p.id
+                                ? "border-[var(--ht-primary)] bg-[var(--ht-primary)]/5"
+                                : "border-border hover:border-[var(--ht-primary)]/50"
+                            }`}
+                          >
+                            <div>
+                              <p className="text-sm font-semibold">{p.nombre}</p>
+                              {p.descripcion && (
+                                <p className="text-xs text-muted-foreground">{p.descripcion}</p>
+                              )}
+                            </div>
+                            <span className="text-sm font-bold text-[var(--ht-primary)] shrink-0 ml-3">
+                              ${Number(p.precio_mensual).toLocaleString("es-AR")}/mes
+                            </span>
+                          </button>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+
                   {/* Auto renew + botón de pago */}
                   <div className="flex items-center justify-between pt-2">
                     <div className="flex items-center gap-2">
@@ -661,8 +708,8 @@ function SuscripcionContent() {
                     </div>
                     <Button
                       size="sm"
-                      onClick={handleCheckout}
-                      disabled={checkingOut || estado === "cancelada"}
+                      onClick={() => handleCheckout(isTrial ? selectedPlanId : undefined)}
+                      disabled={checkingOut || estado === "cancelada" || (isTrial && !selectedPlanId)}
                       className="gap-1.5 text-xs bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white border-0"
                     >
                       {checkingOut ? (

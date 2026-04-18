@@ -10,8 +10,11 @@ export class BillingController {
 
   @SetMetadata(IS_WRITE_OPERATION, false)
   @Post('checkout')
-  createCheckout(@CurrentClinica() clinicaId: string) {
-    return this.billingService.createCheckout(clinicaId);
+  createCheckout(
+    @CurrentClinica() clinicaId: string,
+    @Body() body: { planId?: string },
+  ) {
+    return this.billingService.createCheckout(clinicaId, body?.planId);
   }
 
   @Public()

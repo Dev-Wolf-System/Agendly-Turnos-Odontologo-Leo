@@ -16,8 +16,8 @@ export interface BillingPortal {
 }
 
 const billingService = {
-  async createCheckout(): Promise<{ checkout_url: string }> {
-    const res = await api.post<{ checkout_url: string }>("/billing/checkout");
+  async createCheckout(planId?: string): Promise<{ checkout_url: string }> {
+    const res = await api.post<{ checkout_url: string }>("/billing/checkout", { planId });
     return res.data;
   },
 
