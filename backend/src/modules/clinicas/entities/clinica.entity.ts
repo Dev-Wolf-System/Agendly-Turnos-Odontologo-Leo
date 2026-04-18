@@ -27,7 +27,7 @@ export class Clinica extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   logo_url: string;
 
-  @Column({ type: 'text', nullable: true, default: 'odontologia' })
+  @Column({ type: 'text', nullable: true, default: 'Medicina General' })
   especialidad: string;
 
   @Column({ type: 'text', nullable: true, default: 'Paciente' })
@@ -60,7 +60,7 @@ export class Clinica extends BaseEntity {
   @Column({ type: 'boolean', default: false })
   agent_habilitado: boolean;
 
-  @Column({ type: 'text', nullable: true, default: 'Zoe' })
+  @Column({ type: 'text', nullable: true, default: 'Avax Health' })
   agent_nombre: string;
 
   @Column({ type: 'text', nullable: true })
@@ -75,8 +75,8 @@ export class Clinica extends BaseEntity {
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 
-  @Column({ type: 'text', default: 'aprobado' })
-  estado_aprobacion: 'pendiente' | 'aprobado' | 'rechazado';
+  @Column({ type: 'text', default: 'Pendiente' })
+  estado_aprobacion: 'Pendiente' | 'Aprobado' | 'Rechazado';
 
   @OneToMany(() => Subscription, (sub) => sub.clinica)
   subscriptions: Subscription[];
