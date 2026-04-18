@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Headers, SetMetadata, Logger, Req } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, SetMetadata, Logger, Req, HttpCode } from '@nestjs/common';
 import { Request } from 'express';
 import { BillingService } from './billing.service';
 import { Public, CurrentClinica } from '../../common/decorators';
@@ -22,6 +22,7 @@ export class BillingController {
   }
 
   @Public()
+  @HttpCode(200)
   @Post('webhook')
   async handleWebhook(
     @Body() body: any,
