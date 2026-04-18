@@ -249,7 +249,7 @@ export default function TurnosPage() {
       });
       setDialogOpen(true);
     }
-  // eslint-disable-next-line react-hooks/exhaustive-deps
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [preloadPacienteId, pacientes]);
 
   // Check overlap when user_id, start_time or end_time change
@@ -280,7 +280,7 @@ export default function TurnosPage() {
             ? `${conflict.paciente.nombre} ${conflict.paciente.apellido}`
             : "otro paciente";
           setOverlapWarning(
-            `Este odontólogo ya tiene un turno con ${pacName} de ${formatTime(conflict.start_time)} a ${formatTime(conflict.end_time)} (${ESTADO_TURNO_LABELS[conflict.estado] || conflict.estado})`,
+            `Este profesional ya tiene un turno con ${pacName} de ${formatTime(conflict.start_time)} a ${formatTime(conflict.end_time)} (${ESTADO_TURNO_LABELS[conflict.estado] || conflict.estado})`,
           );
         }
       } catch {
@@ -842,7 +842,7 @@ export default function TurnosPage() {
             </div>
 
             <div className="space-y-2">
-              <Label htmlFor="user_id">Odontologo *</Label>
+              <Label htmlFor="user_id">Profesional *</Label>
               <Select
                 value={form.user_id}
                 onValueChange={(v: string | null) =>
