@@ -49,7 +49,7 @@ export class AuthService {
       logo_url: registerDto.especialidad
         ? `__esp:${registerDto.especialidad}`
         : undefined,
-      estado_aprobacion: 'pendiente',
+      estado_aprobacion: 'Pendiente',
     });
     const savedClinica = await this.clinicaRepository.save(clinica);
 
@@ -120,12 +120,12 @@ export class AuthService {
       const clinica = await this.clinicaRepository.findOne({
         where: { id: user.clinica_id },
       });
-      if (clinica?.estado_aprobacion === 'pendiente') {
+      if (clinica?.estado_aprobacion === 'Pendiente') {
         throw new UnauthorizedException(
           'Tu solicitud de prueba gratuita está pendiente de aprobación. Te notificaremos por email cuando sea revisada.',
         );
       }
-      if (clinica?.estado_aprobacion === 'rechazado') {
+      if (clinica?.estado_aprobacion === 'Rechazado') {
         throw new UnauthorizedException(
           'Tu solicitud fue rechazada. Contacta a soporte para más información.',
         );

@@ -137,7 +137,7 @@ export class AdminService {
     if (!clinica) {
       throw new NotFoundException('Clínica no encontrada');
     }
-    clinica.estado_aprobacion = 'aprobado';
+    clinica.estado_aprobacion = 'Aprobado';
     return this.clinicaRepo.save(clinica);
   }
 
@@ -146,7 +146,7 @@ export class AdminService {
     if (!clinica) {
       throw new NotFoundException('Clínica no encontrada');
     }
-    clinica.estado_aprobacion = 'rechazado';
+    clinica.estado_aprobacion = 'Rechazado';
     clinica.is_active = false;
     return this.clinicaRepo.save(clinica);
   }
@@ -227,7 +227,7 @@ export class AdminService {
       planes,
     ] = await Promise.all([
       this.clinicaRepo.count(),
-      this.clinicaRepo.count({ where: { is_active: true, estado_aprobacion: 'aprobado' } }),
+      this.clinicaRepo.count({ where: { is_active: true, estado_aprobacion: 'Aprobado' } }),
       this.clinicaRepo.count({ where: { is_active: false } }),
       this.clinicaRepo
         .createQueryBuilder('c')
