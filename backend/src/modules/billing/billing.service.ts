@@ -1,10 +1,13 @@
 import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import { InjectRepository } from '@nestjs/typeorm';
+import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
 import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import * as crypto from 'crypto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { PlansService } from '../plans/plans.service';
-import { EstadoSubscription } from '../../common/enums';
+import { Pago } from '../pagos/entities/pago.entity';
+import { EstadoSubscription, EstadoPago } from '../../common/enums';
 
 @Injectable()
 export class BillingService {
@@ -15,6 +18,8 @@ export class BillingService {
     private readonly config: ConfigService,
     private readonly subscriptionsService: SubscriptionsService,
     private readonly plansService: PlansService,
+    @InjectRepository(Pago)
+    private readonly pagoRepo: Repository<Pago>,
   ) {
     this.mp = new MercadoPagoConfig({
       accessToken: this.config.getOrThrow<string>('MP_ACCESS_TOKEN'),
@@ -109,7 +114,19 @@ export class BillingService {
       }
 
       const externalRef = paymentData.external_reference ?? '';
-      // Formato: sub_{subId}_plan_{planId}
+
+      // ── Pago de turno ──
+      if (externalRef.startsWith('pago_')) {
+        const pagoId = externalRef.replace('pago_', '');
+        await this.pagoRepo.update(pagoId, {
+          estado: EstadoPago.APROBADO,
+          external_reference: String(paymentData.id),
+        });
+        this.logger.log(`Pago de turno ${pagoId} aprobado — MP ID ${paymentData.id}`);
+        return;
+      }
+
+      // ── Pago de suscripción ── formato: sub_{subId}_plan_{planId}
       const subMatch = externalRef.match(/^sub_([^_]+(?:_[^_]+)*?)_plan_(.+)$/);
       if (!subMatch) {
         this.logger.warn(`Webhook MP: external_reference inválido: ${externalRef}`);

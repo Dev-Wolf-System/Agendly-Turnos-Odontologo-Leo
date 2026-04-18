@@ -158,6 +158,18 @@ export class AgentController {
   }
 
   /**
+   * Generar link de pago MP para un turno.
+   * GET /agent/turnos/:turnoId/link-pago?clinicaId=xxx
+   */
+  @Get('turnos/:turnoId/link-pago')
+  generarLinkPagoTurno(
+    @Param('turnoId', ParseUUIDPipe) turnoId: string,
+    @Query('clinicaId', ParseUUIDPipe) clinicaId: string,
+  ) {
+    return this.agentService.generarLinkPagoTurno(clinicaId, turnoId);
+  }
+
+  /**
    * Turnos próximos pendientes de recordatorio.
    * GET /agent/turnos/proximos?horas=24
    */

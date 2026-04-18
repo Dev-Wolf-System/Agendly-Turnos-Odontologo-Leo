@@ -2,9 +2,12 @@ import {
   Injectable,
   NotFoundException,
   Logger,
+  BadRequestException,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository, Not, In, MoreThanOrEqual, Between } from 'typeorm';
+import { ConfigService } from '@nestjs/config';
+import { MercadoPagoConfig, Preference } from 'mercadopago';
 import { Clinica } from '../clinicas/entities/clinica.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
 import { Turno } from '../turnos/entities/turno.entity';
@@ -41,6 +44,7 @@ export class AgentService {
     @InjectRepository(Inventario)
     private readonly inventarioRepo: Repository<Inventario>,
     private readonly webhookService: WebhookService,
+    private readonly config: ConfigService,
   ) {}
 
   /* ─────────────────────────────────────────────
@@ -974,6 +978,99 @@ export class AgentService {
             }
           : null,
       })),
+    };
+  }
+
+  /* ─────────────────────────────────────────────
+   * 19. Generar link de pago para un turno (MP Checkout Pro)
+   * ───────────────────────────────────────────── */
+  async generarLinkPagoTurno(clinicaId: string, turnoId: string) {
+    const turno = await this.turnoRepo.findOne({
+      where: { id: turnoId, clinica_id: clinicaId },
+      relations: ['paciente', 'pagos'],
+    });
+    if (!turno) throw new NotFoundException('Turno no encontrado');
+
+    // Buscar pago pendiente existente para este turno
+    let pago = turno.pagos?.find((p) => p.estado === EstadoPago.PENDIENTE) ?? null;
+
+    // Si no hay pago, crearlo usando el precio del tratamiento
+    if (!pago) {
+      let precio: number | null = null;
+
+      if (turno.tipo_tratamiento) {
+        const tratamiento = await this.tratamientoRepo.findOne({
+          where: { clinica_id: clinicaId, nombre: turno.tipo_tratamiento, activo: true },
+          select: ['precio_base'],
+        });
+        if (tratamiento?.precio_base) precio = Number(tratamiento.precio_base);
+      }
+
+      if (!precio || precio <= 0) {
+        throw new BadRequestException(
+          'El turno no tiene un precio asociado. Asigná un tratamiento con precio primero.',
+        );
+      }
+
+      pago = this.pagoRepo.create({
+        turno_id: turnoId,
+        total: precio,
+        estado: EstadoPago.PENDIENTE,
+        method: 'mercadopago',
+      });
+      pago = await this.pagoRepo.save(pago);
+    }
+
+    if (!pago.total || Number(pago.total) <= 0) {
+      throw new BadRequestException('El pago no tiene un monto válido');
+    }
+
+    const accessToken = this.config.getOrThrow<string>('MP_ACCESS_TOKEN');
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.avaxhealth.com/api');
+
+    const mp = new MercadoPagoConfig({ accessToken });
+    const preference = new Preference(mp);
+
+    const pacienteNombre = turno.paciente
+      ? `${turno.paciente.nombre} ${turno.paciente.apellido}`
+      : 'Paciente';
+
+    const result = await preference.create({
+      body: {
+        items: [
+          {
+            id: turnoId,
+            title: `Turno — ${turno.tipo_tratamiento ?? 'Consulta'} — ${pacienteNombre}`,
+            quantity: 1,
+            unit_price: Number(pago.total),
+            currency_id: 'ARS',
+          },
+        ],
+        external_reference: `pago_${pago.id}`,
+        back_urls: {
+          success: `${frontendUrl}/billing/success`,
+          failure: `${frontendUrl}/billing/failure`,
+          pending: `${frontendUrl}/billing/success`,
+        },
+        auto_return: 'approved',
+        notification_url: `${backendUrl}/billing/webhook`,
+      },
+    });
+
+    const isProduction = this.config.get('NODE_ENV') === 'production';
+    const checkout_url =
+      (isProduction ? result.init_point : result.sandbox_init_point) ??
+      result.init_point ??
+      '';
+
+    this.logger.log(`Link de pago generado para turno ${turnoId} — pago ${pago.id}`);
+
+    return {
+      checkout_url,
+      pago_id: pago.id,
+      monto: Number(pago.total),
+      turno_id: turnoId,
     };
   }
 
