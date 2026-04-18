@@ -16,7 +16,10 @@ async function bootstrap() {
   );
 
   app.enableCors({
-    origin: process.env.FRONTEND_URL || 'http://localhost:3000',
+    // origin: true refleja el origen del request → permite cualquier origen.
+    // Seguro porque la auth usa Bearer tokens (no cookies), por lo que CSRF no aplica.
+    // Los webhooks de terceros (Mercado Pago, etc.) necesitan acceso sin restricción de origen.
+    origin: true,
     credentials: true,
   });
 
