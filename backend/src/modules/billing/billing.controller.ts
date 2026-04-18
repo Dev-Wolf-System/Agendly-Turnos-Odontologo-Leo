@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Headers, SetMetadata, Req, HttpCode } from '@nestjs/common';
+import { Controller, Post, Get, Body, Headers, SetMetadata, Req, HttpCode, Param, ParseUUIDPipe } from '@nestjs/common';
 import { Request } from 'express';
 import { BillingService } from './billing.service';
 import { Public, CurrentClinica } from '../../common/decorators';
@@ -34,6 +34,15 @@ export class BillingController {
   ) {
     await this.billingService.processWebhook(body, signature, requestId);
     return { ok: true };
+  }
+
+  @SetMetadata(IS_WRITE_OPERATION, false)
+  @Get('link-pago/:pagoId')
+  getLinkPagoPago(
+    @Param('pagoId', ParseUUIDPipe) pagoId: string,
+    @CurrentClinica() clinicaId: string,
+  ) {
+    return this.billingService.getLinkPagoPago(pagoId, clinicaId);
   }
 
   @Get('portal')

@@ -2,11 +2,14 @@
 
 import { useAuth } from "@/components/providers/auth-provider";
 import { HealthLoader } from "@/components/ui/health-loader";
-import { useEffect, useState } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { useRouter, usePathname } from "next/navigation";
 import Link from "next/link";
 import { cn } from "@/lib/utils";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
+import { AdminNotificationBell } from "@/components/admin/admin-notification-bell";
+import adminNotificacionesService from "@/services/admin-notificaciones.service";
+import { getSupabaseClient } from "@/lib/supabase-client";
 
 /* ─── Navigation Config ─── */
 
@@ -26,6 +29,41 @@ function AdminContent({ children }: { children: React.ReactNode }) {
   const router = useRouter();
   const pathname = usePathname();
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [soporteBadge, setSoporteBadge] = useState(0);
+  const [prospectosBadge, setProspectosBadge] = useState(0);
+
+  const fetchBadges = useCallback(async () => {
+    try {
+      const notifs = await adminNotificacionesService.getAll();
+      const unread = notifs.filter((n) => !n.leida);
+      setSoporteBadge(
+        unread.filter((n) => n.tipo === "ticket_nuevo" || n.tipo === "ticket_urgente").length
+      );
+      setProspectosBadge(unread.filter((n) => n.tipo === "lead_nuevo").length);
+    } catch {
+      // silently fail
+    }
+  }, []);
+
+  useEffect(() => {
+    if (!isLoading && user?.role === "superadmin") {
+      fetchBadges();
+      const supabase = getSupabaseClient();
+      const channel = supabase
+        .channel("admin-layout-badges")
+        .on("postgres_changes", { event: "INSERT", schema: "public", table: "admin_notificaciones" }, () => {
+          fetchBadges();
+        })
+        .on("postgres_changes", { event: "UPDATE", schema: "public", table: "admin_notificaciones" }, () => {
+          fetchBadges();
+        })
+        .subscribe();
+      return () => {
+        channel.unsubscribe();
+        supabase.removeChannel(channel);
+      };
+    }
+  }, [isLoading, user, fetchBadges]);
 
   useEffect(() => {
     if (!isLoading && (!user || user.role !== "superadmin")) {
@@ -53,6 +91,17 @@ function AdminContent({ children }: { children: React.ReactNode }) {
   const currentPage = adminNav.find((n) =>
     n.href === "/admin" ? pathname === "/admin" : pathname.startsWith(n.href)
   );
+
+  // Nav with dynamic badges
+  const navWithBadges = adminNav.map((item) => ({
+    ...item,
+    badge:
+      item.href === "/admin/soporte" && soporteBadge > 0
+        ? soporteBadge
+        : item.href === "/admin/prospectos" && prospectosBadge > 0
+          ? prospectosBadge
+          : null,
+  }));
 
   const sidebar = (
     <aside
@@ -82,7 +131,7 @@ function AdminContent({ children }: { children: React.ReactNode }) {
 
       {/* Navigation */}
       <nav className="flex-1 space-y-0.5 px-3 overflow-y-auto scrollbar-none" style={{ scrollbarWidth: 'none' }}>
-        {adminNav.map((item) => {
+        {navWithBadges.map((item) => {
           const isActive =
             item.href === "/admin"
               ? pathname === "/admin"
@@ -208,6 +257,7 @@ function AdminContent({ children }: { children: React.ReactNode }) {
               <span className="h-1.5 w-1.5 rounded-full bg-[var(--ht-primary)]" />
               Superadmin
             </div>
+            <AdminNotificationBell />
             <ThemeToggle />
           </div>
         </header>

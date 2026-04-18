@@ -21,6 +21,13 @@ const billingService = {
     return res.data;
   },
 
+  async getLinkPago(pagoId: string): Promise<{ checkout_url: string; pago_id: string; monto: number }> {
+    const res = await api.get<{ checkout_url: string; pago_id: string; monto: number }>(
+      `/billing/link-pago/${pagoId}`,
+    );
+    return res.data;
+  },
+
   async getPortal(): Promise<BillingPortal | null> {
     const res = await api.get<BillingPortal | null>("/billing/portal");
     return res.data;

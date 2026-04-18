@@ -1,4 +1,10 @@
-import { Injectable, Logger, BadRequestException } from '@nestjs/common';
+import {
+  Injectable,
+  Logger,
+  BadRequestException,
+  NotFoundException,
+  ForbiddenException,
+} from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
@@ -6,8 +12,10 @@ import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
 import * as crypto from 'crypto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { PlansService } from '../plans/plans.service';
+import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { Pago } from '../pagos/entities/pago.entity';
-import { EstadoSubscription, EstadoPago } from '../../common/enums';
+import { Turno } from '../turnos/entities/turno.entity';
+import { EstadoSubscription, EstadoPago, TipoNotificacion } from '../../common/enums';
 
 @Injectable()
 export class BillingService {
@@ -18,8 +26,11 @@ export class BillingService {
     private readonly config: ConfigService,
     private readonly subscriptionsService: SubscriptionsService,
     private readonly plansService: PlansService,
+    private readonly notificacionesService: NotificacionesService,
     @InjectRepository(Pago)
     private readonly pagoRepo: Repository<Pago>,
+    @InjectRepository(Turno)
+    private readonly turnoRepo: Repository<Turno>,
   ) {
     this.mp = new MercadoPagoConfig({
       accessToken: this.config.getOrThrow<string>('MP_ACCESS_TOKEN'),
@@ -30,7 +41,6 @@ export class BillingService {
     const sub = await this.subscriptionsService.findByClinica(clinicaId);
     if (!sub) throw new BadRequestException('No se encontró suscripción para esta clínica');
 
-    // Usar planId recibido, o el del plan actual si ya tiene uno no-trial
     const targetPlanId = planId ?? (sub.plan?.is_default_trial ? null : sub.plan_id);
     if (!targetPlanId) {
       throw new BadRequestException('Seleccioná un plan para continuar');
@@ -45,7 +55,6 @@ export class BillingService {
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
     const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.avaxhealth.com/api');
 
-    // Codificar planId en external_reference para actualizarlo al pagar
     const externalRef = `sub_${sub.id}_plan_${targetPlanId}`;
 
     const preference = new Preference(this.mp);
@@ -75,6 +84,56 @@ export class BillingService {
     const url = (isProduction ? result.init_point : result.sandbox_init_point) ?? result.init_point ?? '';
 
     return { checkout_url: url };
+  }
+
+  async getLinkPagoPago(
+    pagoId: string,
+    clinicaId: string,
+  ): Promise<{ checkout_url: string; pago_id: string; monto: number }> {
+    const pago = await this.pagoRepo.findOne({
+      where: { id: pagoId },
+      relations: ['turno'],
+    });
+
+    if (!pago) throw new NotFoundException('Pago no encontrado');
+    if (pago.turno?.clinica_id !== clinicaId) throw new ForbiddenException('No autorizado');
+    if (pago.estado !== EstadoPago.PENDIENTE) {
+      throw new BadRequestException('El pago no está en estado pendiente');
+    }
+
+    const monto = Number(pago.total);
+    if (!monto || monto <= 0) throw new BadRequestException('El pago no tiene un monto válido');
+
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.avaxhealth.com/api');
+
+    const preference = new Preference(this.mp);
+    const result = await preference.create({
+      body: {
+        items: [
+          {
+            id: pago.id,
+            title: 'Pago de turno — Avax Health',
+            quantity: 1,
+            unit_price: monto,
+            currency_id: 'ARS',
+          },
+        ],
+        external_reference: `pago_${pago.id}`,
+        back_urls: {
+          success: `${frontendUrl}/billing/success`,
+          failure: `${frontendUrl}/billing/failure`,
+          pending: `${frontendUrl}/billing/success`,
+        },
+        auto_return: 'approved',
+        notification_url: `${backendUrl}/billing/webhook`,
+      },
+    });
+
+    const isProduction = this.config.get('NODE_ENV') === 'production';
+    const url = (isProduction ? result.init_point : result.sandbox_init_point) ?? result.init_point ?? '';
+
+    return { checkout_url: url, pago_id: pago.id, monto };
   }
 
   async processWebhook(body: any, signature: string, requestId: string): Promise<void> {
@@ -122,6 +181,25 @@ export class BillingService {
           estado: EstadoPago.APROBADO,
           external_reference: String(paymentData.id),
         });
+
+        const pagoCompleto = await this.pagoRepo.findOne({
+          where: { id: pagoId },
+          relations: ['turno'],
+        });
+        if (pagoCompleto?.turno?.clinica_id) {
+          const paciente = (pagoCompleto.turno as any)?.paciente;
+          const nombrePaciente = paciente
+            ? `${paciente.nombre} ${paciente.apellido}`
+            : 'Paciente';
+          await this.notificacionesService.crear(
+            pagoCompleto.turno.clinica_id,
+            TipoNotificacion.PAGO_APROBADO,
+            'Pago aprobado',
+            `${nombrePaciente} — $${Number(pagoCompleto.total).toLocaleString('es-AR')} aprobado vía Mercado Pago`,
+            { pago_id: pagoCompleto.id, turno_id: pagoCompleto.turno_id },
+          );
+        }
+
         this.logger.log(`Pago de turno ${pagoId} aprobado — MP ID ${paymentData.id}`);
         return;
       }
@@ -147,6 +225,17 @@ export class BillingService {
         plan_id: newPlanId,
         external_reference: String(paymentData.id),
       });
+
+      if ((sub as any).clinica_id) {
+        const plan = await this.plansService.findOne(newPlanId).catch(() => null);
+        await this.notificacionesService.crear(
+          (sub as any).clinica_id,
+          TipoNotificacion.INFO,
+          'Suscripción renovada',
+          `Plan ${plan?.nombre ?? newPlanId} activo hasta ${newFechaFin.toLocaleDateString('es-AR')}`,
+          { sub_id: subId },
+        );
+      }
 
       this.logger.log(`Sub ${subId} → plan ${newPlanId}, renovada hasta ${newFechaFin.toISOString().slice(0, 10)}`);
     } catch (err) {

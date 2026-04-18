@@ -4,12 +4,15 @@ import { Repository } from 'typeorm';
 import { Ticket, EstadoTicket } from './entities/ticket.entity';
 import { CreateTicketDto } from './dto/create-ticket.dto';
 import { RespondTicketDto } from './dto/respond-ticket.dto';
+import { AdminNotificacionesService } from '../admin/admin-notificaciones.service';
+import { TipoAdminNotificacion } from '../../common/enums';
 
 @Injectable()
 export class TicketsService {
   constructor(
     @InjectRepository(Ticket)
     private readonly ticketRepository: Repository<Ticket>,
+    private readonly adminNotif: AdminNotificacionesService,
   ) {}
 
   async create(
@@ -22,7 +25,17 @@ export class TicketsService {
       user_id: userId,
       ...dto,
     });
-    return this.ticketRepository.save(ticket);
+    const saved = await this.ticketRepository.save(ticket);
+
+    const esUrgente = saved.prioridad === 'urgente' || saved.prioridad === 'alta';
+    await this.adminNotif.crear(
+      esUrgente ? TipoAdminNotificacion.TICKET_URGENTE : TipoAdminNotificacion.TICKET_NUEVO,
+      esUrgente ? `Ticket ${saved.prioridad} — ${saved.asunto}` : `Nuevo ticket — ${saved.asunto}`,
+      `Categoría: ${saved.categoria}. Clínica: ${clinicaId}`,
+      { ticket_id: saved.id, clinica_id: clinicaId, prioridad: saved.prioridad },
+    );
+
+    return saved;
   }
 
   async findAllByClinica(clinicaId: string): Promise<Ticket[]> {
@@ -36,10 +49,7 @@ export class TicketsService {
     const ticket = await this.ticketRepository.findOne({
       where: { id, clinica_id: clinicaId },
     });
-
-    if (!ticket) {
-      throw new NotFoundException('Ticket no encontrado');
-    }
+    if (!ticket) throw new NotFoundException('Ticket no encontrado');
     return ticket;
   }
 
@@ -63,18 +73,13 @@ export class TicketsService {
       qb.andWhere('t.estado = :estado', { estado: filters.estado });
     }
     if (filters?.categoria) {
-      qb.andWhere('t.categoria = :categoria', {
-        categoria: filters.categoria,
-      });
+      qb.andWhere('t.categoria = :categoria', { categoria: filters.categoria });
     }
     if (filters?.clinica_id) {
-      qb.andWhere('t.clinica_id = :clinicaId', {
-        clinicaId: filters.clinica_id,
-      });
+      qb.andWhere('t.clinica_id = :clinicaId', { clinicaId: filters.clinica_id });
     }
 
     qb.orderBy('t.created_at', 'DESC');
-
     return qb.getRawMany();
   }
 
@@ -84,31 +89,19 @@ export class TicketsService {
     dto: RespondTicketDto,
   ): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({ where: { id } });
-
-    if (!ticket) {
-      throw new NotFoundException('Ticket no encontrado');
-    }
+    if (!ticket) throw new NotFoundException('Ticket no encontrado');
 
     ticket.respuesta_admin = dto.respuesta_admin;
     ticket.respondido_por = adminUserId;
     ticket.respondido_at = new Date();
-
-    if (dto.estado) {
-      ticket.estado = dto.estado;
-    } else {
-      ticket.estado = EstadoTicket.ESPERANDO_RESPUESTA;
-    }
+    ticket.estado = dto.estado ?? EstadoTicket.ESPERANDO_RESPUESTA;
 
     return this.ticketRepository.save(ticket);
   }
 
   async updateEstado(id: string, estado: EstadoTicket): Promise<Ticket> {
     const ticket = await this.ticketRepository.findOne({ where: { id } });
-
-    if (!ticket) {
-      throw new NotFoundException('Ticket no encontrado');
-    }
-
+    if (!ticket) throw new NotFoundException('Ticket no encontrado');
     ticket.estado = estado;
     return this.ticketRepository.save(ticket);
   }

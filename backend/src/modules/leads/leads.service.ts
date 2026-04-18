@@ -4,17 +4,29 @@ import { Repository } from 'typeorm';
 import { Lead, EstadoLead } from './entities/lead.entity';
 import { CreateLeadDto } from './dto/create-lead.dto';
 import { UpdateLeadDto } from './dto/update-lead.dto';
+import { AdminNotificacionesService } from '../admin/admin-notificaciones.service';
+import { TipoAdminNotificacion } from '../../common/enums';
 
 @Injectable()
 export class LeadsService {
   constructor(
     @InjectRepository(Lead)
     private readonly leadRepository: Repository<Lead>,
+    private readonly adminNotif: AdminNotificacionesService,
   ) {}
 
   async create(dto: CreateLeadDto): Promise<Lead> {
     const lead = this.leadRepository.create(dto);
-    return this.leadRepository.save(lead);
+    const saved = await this.leadRepository.save(lead);
+
+    await this.adminNotif.crear(
+      TipoAdminNotificacion.LEAD_NUEVO,
+      `Nuevo prospecto — ${saved.nombre}`,
+      `${saved.email}${saved.empresa ? ` · ${saved.empresa}` : ''}${saved.plan_interes ? ` · Plan: ${saved.plan_interes}` : ''}`,
+      { lead_id: saved.id, email: saved.email },
+    );
+
+    return saved;
   }
 
   async findAll(estado?: EstadoLead): Promise<Lead[]> {

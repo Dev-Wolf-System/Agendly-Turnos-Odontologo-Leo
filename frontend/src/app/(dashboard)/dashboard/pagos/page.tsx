@@ -10,6 +10,7 @@ import pagosService, {
   PagoResumen,
   EstadoPago,
 } from "@/services/pagos.service";
+import billingService from "@/services/billing.service";
 import type { PaginationMeta } from "@/services/pacientes.service";
 import { Pagination } from "@/components/ui/pagination";
 import { SortableHeader } from "@/components/ui/sortable-header";
@@ -59,6 +60,9 @@ import {
   TrendingUp,
   Receipt,
   AlertTriangle,
+  Link2,
+  Copy,
+  ExternalLink,
 } from "lucide-react";
 import {
   PieChart,
@@ -188,6 +192,12 @@ function PagosContent() {
   const [deleteDialog, setDeleteDialog] = useState<Pago | null>(null);
   const [editing, setEditing] = useState<Pago | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [linkPagoLoading, setLinkPagoLoading] = useState<Set<string>>(new Set());
+  const [linkPagoDialog, setLinkPagoDialog] = useState<{
+    url: string;
+    monto: number;
+    paciente: string;
+  } | null>(null);
 
   // Filtros
   const [filtroEstado, setFiltroEstado] = useState<string>("all");
@@ -323,6 +333,26 @@ function PagosContent() {
       loadPagos();
     } catch {
       toast.error("Error al actualizar estado");
+    }
+  };
+
+  const handleGetLinkPago = async (pago: Pago) => {
+    setLinkPagoLoading((prev) => new Set(prev).add(pago.id));
+    try {
+      const result = await billingService.getLinkPago(pago.id);
+      const paciente = pago.turno?.paciente
+        ? `${pago.turno.paciente.nombre} ${pago.turno.paciente.apellido}`
+        : "Paciente";
+      setLinkPagoDialog({ url: result.checkout_url, monto: result.monto, paciente });
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Error al generar link de pago";
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    } finally {
+      setLinkPagoLoading((prev) => {
+        const next = new Set(prev);
+        next.delete(pago.id);
+        return next;
+      });
     }
   };
 
@@ -828,6 +858,20 @@ function PagosContent() {
                               <Button
                                 variant="ghost"
                                 size="icon"
+                                className="h-8 w-8 text-sky-600 hover:text-sky-700 hover:bg-sky-50 dark:hover:bg-sky-950/40 transition-all duration-200 hover:scale-110"
+                                onClick={() => handleGetLinkPago(pago)}
+                                disabled={linkPagoLoading.has(pago.id)}
+                                title="Generar link de pago MP"
+                              >
+                                {linkPagoLoading.has(pago.id) ? (
+                                  <span className="h-4 w-4 animate-spin rounded-full border-2 border-sky-600 border-t-transparent" />
+                                ) : (
+                                  <Link2 className="h-4 w-4" />
+                                )}
+                              </Button>
+                              <Button
+                                variant="ghost"
+                                size="icon"
                                 className="h-8 w-8 text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40 transition-all duration-200 hover:scale-110"
                                 onClick={() =>
                                   handleQuickStatus(pago, "aprobado")
@@ -1019,6 +1063,71 @@ function PagosContent() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+
+      {/* Dialog Link de Pago MP */}
+      <Dialog
+        open={!!linkPagoDialog}
+        onOpenChange={(open) => !open && setLinkPagoDialog(null)}
+      >
+        <DialogContent className="sm:max-w-[480px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Link2 className="h-5 w-5 text-sky-600" />
+              Link de pago — Mercado Pago
+            </DialogTitle>
+            <DialogDescription>
+              Compartí este link con{" "}
+              <span className="font-semibold text-foreground">
+                {linkPagoDialog?.paciente}
+              </span>{" "}
+              para que realice el pago de{" "}
+              <span className="font-semibold text-foreground">
+                {linkPagoDialog ? formatCurrency(linkPagoDialog.monto) : ""}
+              </span>
+            </DialogDescription>
+          </DialogHeader>
+
+          <div className="space-y-3">
+            <div className="flex items-center gap-2 rounded-lg border border-[var(--border-light)] bg-muted/40 px-3 py-2.5">
+              <span className="flex-1 truncate text-sm font-mono text-muted-foreground">
+                {linkPagoDialog?.url}
+              </span>
+              <Button
+                variant="ghost"
+                size="icon"
+                className="h-8 w-8 shrink-0 text-muted-foreground hover:text-foreground"
+                onClick={() => {
+                  if (linkPagoDialog?.url) {
+                    navigator.clipboard.writeText(linkPagoDialog.url);
+                    toast.success("Link copiado al portapapeles");
+                  }
+                }}
+                title="Copiar link"
+              >
+                <Copy className="h-4 w-4" />
+              </Button>
+            </div>
+            <p className="text-xs text-muted-foreground">
+              Al completar el pago, el estado se actualizará automáticamente vía Mercado Pago.
+            </p>
+          </div>
+
+          <DialogFooter className="gap-2">
+            <Button variant="outline" onClick={() => setLinkPagoDialog(null)}>
+              Cerrar
+            </Button>
+            <Button
+              className="bg-sky-600 hover:bg-sky-700 text-white"
+              onClick={() => {
+                if (linkPagoDialog?.url) window.open(linkPagoDialog.url, "_blank");
+              }}
+            >
+              <ExternalLink className="h-4 w-4 mr-1.5" />
+              Abrir link
+            </Button>
+          </DialogFooter>
         </DialogContent>
       </Dialog>
 

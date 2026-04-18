@@ -7,64 +7,51 @@ import {
   Check,
   CheckCheck,
   Trash2,
-  Package,
-  Calendar,
-  XCircle,
+  Ticket,
+  Users,
+  Building2,
   AlertTriangle,
   Info,
-  Clock,
-  CircleDollarSign,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import notificacionesService, {
-  Notificacion,
-} from "@/services/notificaciones.service";
-import { useAuth } from "@/components/providers/auth-provider";
+import adminNotificacionesService, {
+  AdminNotificacion,
+} from "@/services/admin-notificaciones.service";
 import { getSupabaseClient } from "@/lib/supabase-client";
 
 const TIPO_CONFIG: Record<
   string,
-  { icon: typeof Bell; color: string; bg: string }
+  { icon: typeof Bell; color: string; bg: string; href: string }
 > = {
-  turno_proximo: {
-    icon: Clock,
-    color: "text-blue-600",
+  ticket_nuevo: {
+    icon: Ticket,
+    color: "text-blue-500",
     bg: "bg-blue-50 dark:bg-blue-950/40",
+    href: "/admin/soporte",
   },
-  stock_bajo: {
-    icon: Package,
-    color: "text-orange-600",
-    bg: "bg-orange-50 dark:bg-orange-950/40",
-  },
-  pago_pendiente: {
+  ticket_urgente: {
     icon: AlertTriangle,
-    color: "text-yellow-600",
-    bg: "bg-yellow-50 dark:bg-yellow-950/40",
+    color: "text-red-500",
+    bg: "bg-red-50 dark:bg-red-950/40",
+    href: "/admin/soporte",
   },
-  pago_aprobado: {
-    icon: CircleDollarSign,
+  lead_nuevo: {
+    icon: Users,
     color: "text-emerald-600",
     bg: "bg-emerald-50 dark:bg-emerald-950/40",
+    href: "/admin/prospectos",
   },
-  turno_cancelado: {
-    icon: XCircle,
-    color: "text-red-600",
-    bg: "bg-red-50 dark:bg-red-950/40",
-  },
-  turno_confirmado: {
-    icon: Calendar,
-    color: "text-green-600",
-    bg: "bg-green-50 dark:bg-green-950/40",
-  },
-  turno_perdido: {
-    icon: AlertTriangle,
-    color: "text-gray-600",
-    bg: "bg-gray-50 dark:bg-gray-950/40",
+  clinica_nueva: {
+    icon: Building2,
+    color: "text-violet-600",
+    bg: "bg-violet-50 dark:bg-violet-950/40",
+    href: "/admin/clinicas",
   },
   info: {
     icon: Info,
-    color: "text-blue-600",
-    bg: "bg-blue-50 dark:bg-blue-950/40",
+    color: "text-slate-500",
+    bg: "bg-slate-50 dark:bg-slate-950/40",
+    href: "/admin",
   },
 };
 
@@ -75,34 +62,30 @@ function timeAgo(dateStr: string): string {
   if (mins < 60) return `hace ${mins}m`;
   const hours = Math.floor(mins / 60);
   if (hours < 24) return `hace ${hours}h`;
-  const days = Math.floor(hours / 24);
-  return `hace ${days}d`;
+  return `hace ${Math.floor(hours / 24)}d`;
 }
 
-export function NotificationBell() {
-  const { user } = useAuth();
+export function AdminNotificationBell() {
   const router = useRouter();
   const [open, setOpen] = useState(false);
-  const [notificaciones, setNotificaciones] = useState<Notificacion[]>([]);
+  const [notificaciones, setNotificaciones] = useState<AdminNotificacion[]>([]);
   const [unreadCount, setUnreadCount] = useState(0);
   const [loading, setLoading] = useState(false);
   const dropdownRef = useRef<HTMLDivElement>(null);
 
   const fetchCount = useCallback(async () => {
-    if (!user) return;
     try {
-      const count = await notificacionesService.getCount();
+      const count = await adminNotificacionesService.getCount();
       setUnreadCount(count);
     } catch {
       // silently fail
     }
-  }, [user]);
+  }, []);
 
-  const fetchNotificaciones = useCallback(async () => {
-    if (!user) return;
+  const fetchAll = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await notificacionesService.getAll();
+      const data = await adminNotificacionesService.getAll();
       setNotificaciones(data);
       setUnreadCount(data.filter((n) => !n.leida).length);
     } catch {
@@ -110,48 +93,37 @@ export function NotificationBell() {
     } finally {
       setLoading(false);
     }
-  }, [user]);
+  }, []);
 
-  // Carga inicial + Realtime: push instantáneo en INSERT de notificaciones
+  // Carga inicial del contador + Supabase Realtime en admin_notificaciones
   useEffect(() => {
     fetchCount();
-    if (!user?.id) return;
     const supabase = getSupabaseClient();
     const channel = supabase
-      .channel(`notificaciones-${user.id}`)
+      .channel("admin-notificaciones")
       .on(
         "postgres_changes",
-        {
-          event: "INSERT",
-          schema: "public",
-          table: "notificaciones",
-          filter: `user_id=eq.${user.id}`,
-        },
+        { event: "INSERT", schema: "public", table: "admin_notificaciones" },
         (payload) => {
-          const nueva = payload.new as Notificacion;
+          const nueva = payload.new as AdminNotificacion;
           setUnreadCount((c) => c + 1);
           setNotificaciones((prev) => [nueva, ...prev]);
-        },
+        }
       )
       .subscribe();
     return () => {
       channel.unsubscribe();
       supabase.removeChannel(channel);
     };
-  }, [fetchCount, user?.id]);
+  }, [fetchCount]);
 
-  // Load full list when dropdown opens
   useEffect(() => {
-    if (open) fetchNotificaciones();
-  }, [open, fetchNotificaciones]);
+    if (open) fetchAll();
+  }, [open, fetchAll]);
 
-  // Close on click outside
   useEffect(() => {
     function handleClick(e: MouseEvent) {
-      if (
-        dropdownRef.current &&
-        !dropdownRef.current.contains(e.target as Node)
-      ) {
+      if (dropdownRef.current && !dropdownRef.current.contains(e.target as Node)) {
         setOpen(false);
       }
     }
@@ -160,7 +132,7 @@ export function NotificationBell() {
   }, [open]);
 
   const handleMarkAsRead = async (id: string) => {
-    await notificacionesService.markAsRead(id);
+    await adminNotificacionesService.markAsRead(id);
     setNotificaciones((prev) =>
       prev.map((n) => (n.id === id ? { ...n, leida: true } : n))
     );
@@ -168,57 +140,43 @@ export function NotificationBell() {
   };
 
   const handleMarkAllAsRead = async () => {
-    await notificacionesService.markAllAsRead();
+    await adminNotificacionesService.markAllAsRead();
     setNotificaciones((prev) => prev.map((n) => ({ ...n, leida: true })));
     setUnreadCount(0);
   };
 
   const handleDelete = async (id: string) => {
     const notif = notificaciones.find((n) => n.id === id);
-    await notificacionesService.remove(id);
+    await adminNotificacionesService.remove(id);
     setNotificaciones((prev) => prev.filter((n) => n.id !== id));
     if (notif && !notif.leida) setUnreadCount((c) => Math.max(0, c - 1));
   };
 
-  const handleClick = (notif: Notificacion) => {
+  const handleClick = (notif: AdminNotificacion) => {
     if (!notif.leida) handleMarkAsRead(notif.id);
-
-    // Navigate based on type
-    const meta = notif.metadata as Record<string, string> | null;
-    if (meta?.turno_id) {
-      router.push(`/dashboard/turnos?turno_id=${meta.turno_id}`);
-      setOpen(false);
-    } else if (meta?.pago_id) {
-      router.push("/dashboard/pagos");
-      setOpen(false);
-    } else if (meta?.item_id) {
-      router.push("/dashboard/inventario");
-      setOpen(false);
-    }
+    const config = TIPO_CONFIG[notif.tipo] ?? TIPO_CONFIG.info;
+    router.push(config.href);
+    setOpen(false);
   };
-
-  if (!user) return null;
 
   return (
     <div className="relative" ref={dropdownRef}>
-      <Button
-        variant="ghost"
-        size="icon"
-        className="relative h-9 w-9"
+      <button
         onClick={() => setOpen(!open)}
+        className="relative flex h-9 w-9 items-center justify-center rounded-lg text-white/60 hover:text-white hover:bg-white/8 transition-all duration-150"
       >
         <Bell className="h-5 w-5" />
         {unreadCount > 0 && (
-          <span className="absolute -top-0.5 -right-0.5 flex h-5 w-5 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
+          <span className="absolute -top-0.5 -right-0.5 flex h-4 w-4 items-center justify-center rounded-full bg-red-500 text-[10px] font-bold text-white">
             {unreadCount > 99 ? "99+" : unreadCount}
           </span>
         )}
-      </Button>
+      </button>
 
       {open && (
-        <div className="absolute right-0 top-full mt-2 w-96 rounded-lg border bg-background shadow-lg z-50">
+        <div className="absolute right-0 top-full mt-2 w-96 rounded-xl border border-[var(--border-light)] bg-background shadow-xl z-50">
           {/* Header */}
-          <div className="flex items-center justify-between border-b px-4 py-3">
+          <div className="flex items-center justify-between border-b border-[var(--border-light)] px-4 py-3">
             <h3 className="text-sm font-semibold">Notificaciones</h3>
             {unreadCount > 0 && (
               <Button
@@ -234,7 +192,7 @@ export function NotificationBell() {
           </div>
 
           {/* List */}
-          <div className="max-h-[400px] overflow-y-auto">
+          <div className="max-h-[420px] overflow-y-auto">
             {loading && notificaciones.length === 0 && (
               <div className="flex items-center justify-center py-8 text-sm text-muted-foreground">
                 Cargando...
@@ -242,14 +200,14 @@ export function NotificationBell() {
             )}
 
             {!loading && notificaciones.length === 0 && (
-              <div className="flex flex-col items-center justify-center py-8 text-muted-foreground">
-                <Bell className="h-8 w-8 mb-2 opacity-40" />
+              <div className="flex flex-col items-center justify-center py-10 text-muted-foreground">
+                <Bell className="h-8 w-8 mb-2 opacity-30" />
                 <span className="text-sm">Sin notificaciones</span>
               </div>
             )}
 
             {notificaciones.map((notif) => {
-              const config = TIPO_CONFIG[notif.tipo] || TIPO_CONFIG.info;
+              const config = TIPO_CONFIG[notif.tipo] ?? TIPO_CONFIG.info;
               const Icon = config.icon;
 
               return (
