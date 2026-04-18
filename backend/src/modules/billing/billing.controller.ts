@@ -16,6 +16,12 @@ export class BillingController {
   }
 
   @Public()
+  @Get('webhook')
+  webhookHealthCheck() {
+    return { ok: true };
+  }
+
+  @Public()
   @Post('webhook')
   async handleWebhook(
     @Body() body: any,
