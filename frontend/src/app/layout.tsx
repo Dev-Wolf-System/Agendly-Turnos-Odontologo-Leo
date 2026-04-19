@@ -4,6 +4,7 @@ import "./globals.css";
 import { ThemeProvider } from "@/components/providers/theme-provider";
 import { AuthProvider } from "@/components/providers/auth-provider";
 import { ClinicaProvider } from "@/components/providers/clinica-provider";
+import { Toaster } from "@/components/ui/sonner";
 
 // Figtree — headings, KPIs, display (Medical Clean — ui-ux-pro-max)
 const displayFont = localFont({
@@ -62,6 +63,7 @@ export default function RootLayout({
           <AuthProvider>
             <ClinicaProvider>{children}</ClinicaProvider>
           </AuthProvider>
+          <Toaster richColors position="top-right" />
         </ThemeProvider>
       </body>
     </html>

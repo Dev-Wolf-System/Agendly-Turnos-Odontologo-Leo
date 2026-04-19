@@ -351,7 +351,7 @@ export default function AdminPlanesPage() {
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/60 animate-in fade-in duration-200"
+            className="fixed inset-0 z-40 bg-black/40 backdrop-blur-sm animate-in fade-in duration-200"
             onClick={closePanel}
           />
 
