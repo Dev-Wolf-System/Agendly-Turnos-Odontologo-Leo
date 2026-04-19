@@ -11,6 +11,7 @@ import { Turno } from '../turnos/entities/turno.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
 import { Pago } from '../pagos/entities/pago.entity';
 import { Clinica } from '../clinicas/entities/clinica.entity';
+import { EstadoPago } from '../../common/enums';
 
 @Injectable()
 export class ReportsService {
@@ -363,10 +364,10 @@ export class ReportsService {
       try {
         const imgBuf = await this.fetchImageBuffer(clinica.logo_url);
         const ext = clinica.logo_url.toLowerCase().includes('.png') ? 'png' : 'jpeg';
-        const imgId = wb.addImage({ buffer: imgBuf, extension: ext });
+        const imgId = wb.addImage({ buffer: imgBuf as Buffer, extension: ext });
         ws.addImage(imgId, {
-          tl: { col: 0.3, row: 1.2 },
-          br: { col: 1.8, row: 4.8 },
+          tl: { col: 0.3, row: 1.2 } as never,
+          br: { col: 1.8, row: 4.8 } as never,
           editAs: 'oneCell',
         });
         logoInserted = true;
@@ -492,15 +493,15 @@ export class ReportsService {
       .where('p.clinica_id = :clinicaId', { clinicaId })
       .andWhere('p.created_at >= :desde', { desde: desdeDate })
       .andWhere('p.created_at <= :hasta', { hasta: hastaDate })
-      .select(['p.monto', 'p.estado', 'p.fuente_pago'])
+      .select(['p.total', 'p.estado', 'p.fuente_pago'])
       .getMany();
 
     const totalFacturado = pagosRaw
-      .filter(p => p.estado === 'completado')
-      .reduce((sum, p) => sum + Number(p.monto), 0);
+      .filter(p => p.estado === EstadoPago.APROBADO)
+      .reduce((sum, p) => sum + Number(p.total), 0);
     const totalOS = pagosRaw
-      .filter(p => p.estado === 'completado' && p.fuente_pago === 'obra_social')
-      .reduce((sum, p) => sum + Number(p.monto), 0);
+      .filter(p => p.estado === EstadoPago.APROBADO && p.fuente_pago === 'obra_social')
+      .reduce((sum, p) => sum + Number(p.total), 0);
 
     const datosSummary = `
 Clínica: ${clinica?.nombre || 'N/D'}
