@@ -77,42 +77,56 @@ export class PagosService {
   }
 
   async getResumen(clinicaId: string, filters?: FilterPagosDto) {
-    const qb = this.pagoRepository
-      .createQueryBuilder('p')
-      .leftJoin('p.turno', 'turno')
-      .where('turno.clinica_id = :clinicaId', { clinicaId })
-      .andWhere('p.estado = :aprobado', { aprobado: EstadoPago.APROBADO });
-
-    if (filters?.desde) {
-      qb.andWhere('p.created_at >= :desde', { desde: filters.desde });
-    }
-    if (filters?.hasta) {
-      qb.andWhere('p.created_at <= :hasta', { hasta: `${filters.hasta}T23:59:59` });
-    }
-
-    const result = await qb
-      .select('COALESCE(SUM(p.total), 0)', 'total')
-      .addSelect('COUNT(p.id)', 'cantidad')
-      .getRawOne();
-
-    const porMetodo = await this.pagoRepository
+    const baseQb = () => this.pagoRepository
       .createQueryBuilder('p')
       .leftJoin('p.turno', 'turno')
       .where('turno.clinica_id = :clinicaId', { clinicaId })
       .andWhere('p.estado = :aprobado', { aprobado: EstadoPago.APROBADO })
       .andWhere(filters?.desde ? 'p.created_at >= :desde' : '1=1', { desde: filters?.desde })
-      .andWhere(filters?.hasta ? 'p.created_at <= :hasta' : '1=1', { hasta: filters?.hasta ? `${filters.hasta}T23:59:59` : undefined })
+      .andWhere(filters?.hasta ? 'p.created_at <= :hasta' : '1=1', { hasta: filters?.hasta ? `${filters.hasta}T23:59:59` : undefined });
+
+    // Balance particular (excluye obra social)
+    const resParticular = await baseQb()
+      .andWhere("p.fuente_pago = 'particular'")
+      .select('COALESCE(SUM(p.total), 0)', 'total')
+      .addSelect('COUNT(p.id)', 'cantidad')
+      .getRawOne();
+
+    // Obra social (caja aparte)
+    const resOS = await baseQb()
+      .andWhere("p.fuente_pago = 'obra_social'")
+      .select('COALESCE(SUM(p.total), 0)', 'total')
+      .addSelect('COUNT(p.id)', 'cantidad')
+      .getRawOne();
+
+    const porMetodo = await baseQb()
+      .andWhere("p.fuente_pago = 'particular'")
       .select('p.method', 'method')
       .addSelect('COALESCE(SUM(p.total), 0)', 'total')
       .addSelect('COUNT(p.id)', 'cantidad')
       .groupBy('p.method')
       .getRawMany();
 
+    const porObraSocial = await baseQb()
+      .andWhere("p.fuente_pago = 'obra_social'")
+      .select('p.obra_social_nombre', 'obra_social_nombre')
+      .addSelect('COALESCE(SUM(p.total), 0)', 'total')
+      .addSelect('COUNT(p.id)', 'cantidad')
+      .groupBy('p.obra_social_nombre')
+      .getRawMany();
+
     return {
-      total: parseFloat(result.total),
-      cantidad: parseInt(result.cantidad),
+      total: parseFloat(resParticular.total),
+      cantidad: parseInt(resParticular.cantidad),
+      total_obra_social: parseFloat(resOS.total),
+      cantidad_obra_social: parseInt(resOS.cantidad),
       por_metodo: porMetodo.map((r: { method: string; total: string; cantidad: string }) => ({
         method: r.method || 'sin_definir',
+        total: parseFloat(r.total),
+        cantidad: parseInt(r.cantidad),
+      })),
+      por_obra_social: porObraSocial.map((r: { obra_social_nombre: string | null; total: string; cantidad: string }) => ({
+        obra_social: r.obra_social_nombre || 'Sin nombre',
         total: parseFloat(r.total),
         cantidad: parseInt(r.cantidad),
       })),

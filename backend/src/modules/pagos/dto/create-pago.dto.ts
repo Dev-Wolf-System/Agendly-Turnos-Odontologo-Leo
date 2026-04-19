@@ -1,4 +1,5 @@
 import {
+  IsIn,
   IsNotEmpty,
   IsNumber,
   IsOptional,
@@ -22,4 +23,12 @@ export class CreatePagoDto {
   @IsString()
   @IsOptional()
   external_reference?: string;
+
+  @IsIn(['particular', 'obra_social'])
+  @IsOptional()
+  fuente_pago?: 'particular' | 'obra_social';
+
+  @IsString()
+  @IsOptional()
+  obra_social_nombre?: string;
 }

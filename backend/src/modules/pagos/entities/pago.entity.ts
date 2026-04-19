@@ -21,6 +21,12 @@ export class Pago extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   external_reference: string;
 
+  @Column({ type: 'text', default: 'particular' })
+  fuente_pago: 'particular' | 'obra_social';
+
+  @Column({ type: 'text', nullable: true })
+  obra_social_nombre: string | null;
+
   @ManyToOne(() => Turno, (turno) => turno.pagos)
   @JoinColumn({ name: 'turno_id' })
   turno: Turno;

@@ -1,5 +1,6 @@
 import {
   IsEnum,
+  IsIn,
   IsNumber,
   IsOptional,
   IsString,
@@ -22,4 +23,12 @@ export class UpdatePagoDto {
   @IsString()
   @IsOptional()
   external_reference?: string;
+
+  @IsIn(['particular', 'obra_social'])
+  @IsOptional()
+  fuente_pago?: 'particular' | 'obra_social';
+
+  @IsString()
+  @IsOptional()
+  obra_social_nombre?: string;
 }

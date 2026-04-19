@@ -63,6 +63,8 @@ import {
   Link2,
   Copy,
   ExternalLink,
+  Heart,
+  Building2,
 } from "lucide-react";
 import {
   PieChart,
@@ -211,6 +213,8 @@ function PagosContent() {
     total: "",
     method: "",
     estado: "pendiente" as EstadoPago,
+    fuente_pago: "particular" as "particular" | "obra_social",
+    obra_social_nombre: "",
   });
 
   const buildFilters = useCallback((): PagoFilters => {
@@ -268,7 +272,7 @@ function PagosContent() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ turno_id: "", total: "", method: "", estado: "pendiente" });
+    setForm({ turno_id: "", total: "", method: "", estado: "pendiente", fuente_pago: "particular", obra_social_nombre: "" });
     setDialogOpen(true);
   };
 
@@ -279,6 +283,8 @@ function PagosContent() {
       total: pago.total?.toString() || "",
       method: pago.method || "",
       estado: pago.estado,
+      fuente_pago: pago.fuente_pago || "particular",
+      obra_social_nombre: pago.obra_social_nombre || "",
     });
     setDialogOpen(true);
   };
@@ -287,11 +293,16 @@ function PagosContent() {
     e.preventDefault();
     setIsSaving(true);
     try {
+      const fuente = form.fuente_pago;
+      const osNombre = fuente === "obra_social" ? form.obra_social_nombre || undefined : undefined;
+
       if (editing) {
         await pagosService.update(editing.id, {
           total: form.total ? parseFloat(form.total) : undefined,
           method: form.method || undefined,
           estado: form.estado,
+          fuente_pago: fuente,
+          obra_social_nombre: osNombre,
         });
         toast.success("Pago actualizado");
       } else {
@@ -299,6 +310,8 @@ function PagosContent() {
           turno_id: form.turno_id,
           total: form.total ? parseFloat(form.total) : undefined,
           method: form.method || undefined,
+          fuente_pago: fuente,
+          obra_social_nombre: osNombre,
         });
         toast.success("Pago registrado");
       }
@@ -440,7 +453,7 @@ function PagosContent() {
       {resumen && (
         <div className={`grid gap-4 grid-cols-2 ${isAdmin ? "lg:grid-cols-4" : "lg:grid-cols-3"}`}>
           <KpiCard
-            label={isAdmin ? "Ingresos Aprobados" : "Pagos Aprobados"}
+            label={isAdmin ? "Ingresos Particular" : "Pagos Aprobados"}
             value={isAdmin ? formatCurrency(totalAprobados) : resumen.cantidad}
             sub={`${resumen.cantidad} pago${resumen.cantidad !== 1 ? "s" : ""} aprobado${resumen.cantidad !== 1 ? "s" : ""}`}
             icon={<CheckCircle2 className="h-5 w-5" />}
@@ -453,6 +466,15 @@ function PagosContent() {
             icon={<Clock className="h-5 w-5" />}
             variant="warm"
           />
+          {isAdmin && (
+            <KpiCard
+              label="Obra Social"
+              value={formatCurrency(resumen.total_obra_social || 0)}
+              sub={`${resumen.cantidad_obra_social || 0} pago${(resumen.cantidad_obra_social || 0) !== 1 ? "s" : ""} por OS`}
+              icon={<Heart className="h-5 w-5" />}
+              variant="primary"
+            />
+          )}
           <KpiCard
             label="Rechazados"
             value={isAdmin ? formatCurrency(totalRechazados) : cantRechazados}
@@ -460,15 +482,6 @@ function PagosContent() {
             icon={<XCircle className="h-5 w-5" />}
             variant="danger"
           />
-          {isAdmin && (
-            <KpiCard
-              label="Ticket Promedio"
-              value={formatCurrency(ticketPromedio)}
-              sub="promedio por pago aprobado"
-              icon={<TrendingUp className="h-5 w-5" />}
-              variant="primary"
-            />
-          )}
         </div>
       )}
 
@@ -599,6 +612,35 @@ function PagosContent() {
                 </div>
               )}
             </div>
+          </div>
+        </div>
+      )}
+
+      {/* Desglose Obra Social — solo admin */}
+      {isAdmin && resumen && (resumen.por_obra_social || []).length > 0 && (
+        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+          <div className="px-6 pt-6 pb-3 flex items-center gap-2">
+            <Building2 className="h-4 w-4 text-[var(--ht-primary)]" />
+            <div>
+              <h2 className="text-base font-semibold">Cobros por Obra Social</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">Caja aparte — no afecta el balance principal</p>
+            </div>
+          </div>
+          <div className="px-6 pb-6 grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
+            {resumen.por_obra_social.map((os) => (
+              <div key={os.obra_social} className="flex items-center justify-between rounded-xl border border-[var(--border-light)] bg-[var(--ht-primary)]/5 px-4 py-3">
+                <div className="flex items-center gap-2.5">
+                  <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--ht-primary)]/15">
+                    <Heart className="h-4 w-4 text-[var(--ht-primary)]" />
+                  </div>
+                  <div>
+                    <p className="text-sm font-semibold text-[var(--text-primary)] truncate max-w-[120px]">{os.obra_social}</p>
+                    <p className="text-[11px] text-muted-foreground">{os.cantidad} pago{os.cantidad !== 1 ? "s" : ""}</p>
+                  </div>
+                </div>
+                <span className="text-sm font-bold text-[var(--ht-primary)] tabular-nums">{formatCurrency(os.total)}</span>
+              </div>
+            ))}
           </div>
         </div>
       )}
@@ -834,18 +876,20 @@ function PagosContent() {
                         {formatCurrency(pago.total)}
                       </TableCell>}
                       <TableCell>
-                        {pago.method ? (
-                          <div className="flex items-center gap-1.5">
-                            <MethodIcon
-                              className={`h-3.5 w-3.5 ${methodConf?.color || "text-muted-foreground"}`}
-                            />
-                            <span className="text-sm">
-                              {methodConf?.label || pago.method}
+                        <div className="flex flex-col gap-1">
+                          {pago.method ? (
+                            <div className="flex items-center gap-1.5">
+                              <MethodIcon className={`h-3.5 w-3.5 ${methodConf?.color || "text-muted-foreground"}`} />
+                              <span className="text-sm">{methodConf?.label || pago.method}</span>
+                            </div>
+                          ) : "—"}
+                          {pago.fuente_pago === "obra_social" && (
+                            <span className="inline-flex items-center gap-1 rounded-md bg-[var(--ht-primary)]/10 px-1.5 py-0.5 text-[10px] font-semibold text-[var(--ht-primary)]">
+                              <Heart className="h-2.5 w-2.5" />
+                              OS{pago.obra_social_nombre ? `: ${pago.obra_social_nombre}` : ""}
                             </span>
-                          </div>
-                        ) : (
-                          "—"
-                        )}
+                          )}
+                        </div>
                       </TableCell>
                       <TableCell>
                         <StatusBadge status={pago.estado} />
@@ -1022,6 +1066,40 @@ function PagosContent() {
                 </SelectContent>
               </Select>
             </div>
+            {/* Fuente de pago */}
+            <div className="space-y-2">
+              <Label>Fuente de pago</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["particular", "obra_social"] as const).map((opt) => (
+                  <button
+                    key={opt}
+                    type="button"
+                    onClick={() => setForm({ ...form, fuente_pago: opt, obra_social_nombre: opt === "particular" ? "" : form.obra_social_nombre })}
+                    className={`flex items-center gap-2 rounded-xl border px-3 py-2.5 text-sm font-medium transition-all ${
+                      form.fuente_pago === opt
+                        ? "border-[var(--ht-primary)]/50 bg-[var(--ht-primary)]/8 text-[var(--ht-primary)] ring-1 ring-[var(--ht-primary)]/20"
+                        : "border-[var(--border-light)] text-muted-foreground hover:bg-muted/40"
+                    }`}
+                  >
+                    {opt === "particular" ? <Banknote className="h-4 w-4 shrink-0" /> : <Heart className="h-4 w-4 shrink-0" />}
+                    {opt === "particular" ? "Particular" : "Obra Social"}
+                  </button>
+                ))}
+              </div>
+            </div>
+            {form.fuente_pago === "obra_social" && (
+              <div className="space-y-2">
+                <Label htmlFor="obra_social_nombre">Nombre de la obra social *</Label>
+                <Input
+                  id="obra_social_nombre"
+                  value={form.obra_social_nombre}
+                  onChange={(e) => setForm({ ...form, obra_social_nombre: e.target.value })}
+                  placeholder="Ej: OSDE, Swiss Medical, IOMA..."
+                  required
+                />
+                <p className="text-[11px] text-muted-foreground">Este cobro no afecta el balance principal. Se registra en caja OS.</p>
+              </div>
+            )}
             {editing && (
               <div className="space-y-2">
                 <Label htmlFor="estado">Estado</Label>

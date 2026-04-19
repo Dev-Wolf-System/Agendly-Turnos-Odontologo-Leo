@@ -10,6 +10,8 @@ export interface Pago {
   estado: EstadoPago;
   method: string | null;
   external_reference: string | null;
+  fuente_pago: 'particular' | 'obra_social';
+  obra_social_nombre: string | null;
   created_at: string;
   turno?: {
     id: string;
@@ -42,11 +44,10 @@ export interface PagoFilters {
 export interface PagoResumen {
   total: number;
   cantidad: number;
-  por_metodo: {
-    method: string;
-    total: number;
-    cantidad: number;
-  }[];
+  total_obra_social: number;
+  cantidad_obra_social: number;
+  por_metodo: { method: string; total: number; cantidad: number }[];
+  por_obra_social: { obra_social: string; total: number; cantidad: number }[];
 }
 
 export interface CreatePagoPayload {
@@ -54,6 +55,8 @@ export interface CreatePagoPayload {
   total?: number;
   method?: string;
   external_reference?: string;
+  fuente_pago?: 'particular' | 'obra_social';
+  obra_social_nombre?: string;
 }
 
 export interface UpdatePagoPayload {
@@ -61,6 +64,8 @@ export interface UpdatePagoPayload {
   estado?: EstadoPago;
   method?: string;
   external_reference?: string;
+  fuente_pago?: 'particular' | 'obra_social';
+  obra_social_nombre?: string;
 }
 
 const pagosService = {
