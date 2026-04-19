@@ -1059,7 +1059,7 @@ export class AgentService {
           pending: `${frontendUrl}/billing/success`,
         },
         auto_return: 'approved',
-        notification_url: `${backendUrl}/billing/webhook`,
+        notification_url: `${backendUrl}/billing/webhook/clinica/${clinicaId}`,
       },
     });
 

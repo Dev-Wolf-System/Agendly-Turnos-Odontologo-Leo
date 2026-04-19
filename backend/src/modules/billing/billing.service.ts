@@ -135,7 +135,7 @@ export class BillingService {
           pending: `${frontendUrl}/billing/success`,
         },
         auto_return: 'approved',
-        notification_url: `${backendUrl}/billing/webhook`,
+        notification_url: `${backendUrl}/billing/webhook/clinica/${clinicaId}`,
       },
     });
 
@@ -249,6 +249,70 @@ export class BillingService {
       this.logger.log(`Sub ${subId} → plan ${newPlanId}, renovada hasta ${newFechaFin.toISOString().slice(0, 10)}`);
     } catch (err) {
       this.logger.error('Error procesando webhook MP', err);
+    }
+  }
+
+  /** Webhook para pagos de turnos — verifica con el token de la clínica */
+  async processWebhookClinica(
+    body: any,
+    signature: string,
+    requestId: string,
+    clinicaId: string,
+  ): Promise<void> {
+    if (body.type !== 'payment') return;
+
+    const dataId = body?.data?.id;
+    if (!dataId) return;
+
+    try {
+      const mpConfig = await this.clinicaMpService.findByClinica(clinicaId);
+      if (!mpConfig) {
+        this.logger.warn(`Webhook clinica ${clinicaId}: sin config MP, ignorando`);
+        return;
+      }
+
+      const payment = new Payment(this.getMpForClinica(mpConfig.access_token));
+      const paymentData = await payment.get({ id: String(dataId) });
+
+      if (paymentData.status !== 'approved') {
+        this.logger.log(`Webhook clinica ${clinicaId}: pago ${dataId} con estado ${paymentData.status}, ignorando`);
+        return;
+      }
+
+      const externalRef = paymentData.external_reference ?? '';
+      if (!externalRef.startsWith('pago_')) {
+        this.logger.warn(`Webhook clinica: external_reference inesperado: ${externalRef}`);
+        return;
+      }
+
+      const pagoId = externalRef.replace('pago_', '');
+      await this.pagoRepo.update(pagoId, {
+        estado: EstadoPago.APROBADO,
+        external_reference: String(paymentData.id),
+      });
+
+      const pagoCompleto = await this.pagoRepo.findOne({
+        where: { id: pagoId },
+        relations: ['turno'],
+      });
+
+      if (pagoCompleto?.turno?.clinica_id) {
+        const paciente = (pagoCompleto.turno as any)?.paciente;
+        const nombrePaciente = paciente
+          ? `${paciente.nombre} ${paciente.apellido}`
+          : 'Paciente';
+        await this.notificacionesService.crear(
+          pagoCompleto.turno.clinica_id,
+          TipoNotificacion.PAGO_APROBADO,
+          'Pago aprobado',
+          `${nombrePaciente} — $${Number(pagoCompleto.total).toLocaleString('es-AR')} aprobado vía Mercado Pago`,
+          { pago_id: pagoCompleto.id, turno_id: pagoCompleto.turno_id },
+        );
+      }
+
+      this.logger.log(`Webhook clinica ${clinicaId}: pago turno ${pagoId} aprobado — MP ID ${paymentData.id}`);
+    } catch (err) {
+      this.logger.error(`Error procesando webhook clinica ${clinicaId}`, err);
     }
   }
 

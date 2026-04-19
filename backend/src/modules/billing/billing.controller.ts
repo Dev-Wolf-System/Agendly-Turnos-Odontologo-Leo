@@ -23,6 +23,7 @@ export class BillingController {
     return { ok: true };
   }
 
+  /** Webhook para pagos de suscripción (usa token global del SaaS) */
   @Public()
   @HttpCode(200)
   @Post('webhook')
@@ -33,6 +34,26 @@ export class BillingController {
     @Req() _req: Request,
   ) {
     await this.billingService.processWebhook(body, signature, requestId);
+    return { ok: true };
+  }
+
+  /** Webhook para pagos de turnos (usa token de la clínica) */
+  @Public()
+  @Get('webhook/clinica/:clinicaId')
+  webhookClinicaHealthCheck() {
+    return { ok: true };
+  }
+
+  @Public()
+  @HttpCode(200)
+  @Post('webhook/clinica/:clinicaId')
+  async handleWebhookClinica(
+    @Param('clinicaId', ParseUUIDPipe) clinicaId: string,
+    @Body() body: any,
+    @Headers('x-signature') signature: string,
+    @Headers('x-request-id') requestId: string,
+  ) {
+    await this.billingService.processWebhookClinica(body, signature, requestId, clinicaId);
     return { ok: true };
   }
 
