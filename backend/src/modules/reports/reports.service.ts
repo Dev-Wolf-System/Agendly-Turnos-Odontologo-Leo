@@ -491,10 +491,11 @@ export class ReportsService {
     hastaDate.setHours(23, 59, 59, 999);
 
     // Recolectar datos — cada sección es independiente para no abortar si una falla
-    const [turnosData, pacientesData, clinica] = await Promise.all([
+    const [turnosData, pacientesData, clinica, insightsData] = await Promise.all([
       this.getTurnosReport(clinicaId, desde, hasta).catch(() => null),
       this.getPacientesReport(clinicaId).catch(() => null),
       this.clinicaRepository.findOne({ where: { id: clinicaId } }).catch(() => null),
+      this.getInsights(clinicaId, desde, hasta).catch(() => null),
     ]);
 
     let totalFacturado = 0;
@@ -580,6 +581,25 @@ FACTURACIÓN:
         desde: desdeDate.toISOString().split('T')[0],
         hasta: hastaDate.toISOString().split('T')[0],
       },
+      kpis: {
+        totalTurnos: turnosTotal,
+        completados: turnosData?.por_estado?.['completado'] ?? 0,
+        cancelados: turnosData?.por_estado?.['cancelado'] ?? 0,
+        cancelacionesPct: turnosData?.cancelaciones_pct ?? 0,
+        tasaAsistencia: insightsData?.tasa_completados ?? 0,
+        tasaRetencion: insightsData?.tasa_retencion ?? 0,
+        totalPacientes: pacientesData?.total ?? 0,
+        nuevosPacientes: pacientesData?.nuevos_este_mes ?? 0,
+        totalFacturado,
+        totalOS,
+        totalParticular: totalFacturado - totalOS,
+        profesionales: profesionales.length,
+        topProfesional: topProf ? `${topProf.nombre} (${topProf.total} turnos)` : null,
+        porMes: turnosData?.por_mes ?? [],
+        distribucionDia: insightsData?.distribucion_por_dia ?? [],
+        diaPico: insightsData?.dia_pico ?? null,
+        horaPico: insightsData?.hora_pico ?? null,
+      },
     };
   }
 
@@ -588,57 +608,183 @@ FACTURACIÓN:
     texto: string,
     rango: { desde: string; hasta: string },
   ): Promise<Buffer> {
-    const clinica = await this.clinicaRepository.findOne({ where: { id: clinicaId } });
+    const [clinica, turnosData, pacientesData, insightsData] = await Promise.all([
+      this.clinicaRepository.findOne({ where: { id: clinicaId } }).catch(() => null),
+      this.getTurnosReport(clinicaId, rango.desde, rango.hasta).catch(() => null),
+      this.getPacientesReport(clinicaId).catch(() => null),
+      this.getInsights(clinicaId, rango.desde, rango.hasta).catch(() => null),
+    ]);
+
+    let totalFacturado = 0;
+    let totalOS = 0;
+    try {
+      const desdeDate = rango.desde ? new Date(rango.desde) : new Date();
+      const hastaDate = rango.hasta ? new Date(rango.hasta) : new Date();
+      desdeDate.setHours(0, 0, 0, 0);
+      hastaDate.setHours(23, 59, 59, 999);
+      const pagosRaw = await this.pagoRepository
+        .createQueryBuilder('p')
+        .where('p.clinica_id = :clinicaId', { clinicaId })
+        .andWhere('p.created_at >= :desde', { desde: desdeDate })
+        .andWhere('p.created_at <= :hasta', { hasta: hastaDate })
+        .select(['p.total', 'p.estado', 'p.fuente_pago'])
+        .getMany();
+      totalFacturado = pagosRaw.filter(p => p.estado === EstadoPago.APROBADO).reduce((s, p) => s + Number(p.total ?? 0), 0);
+      totalOS = pagosRaw.filter(p => p.estado === EstadoPago.APROBADO && p.fuente_pago === 'obra_social').reduce((s, p) => s + Number(p.total ?? 0), 0);
+    } catch { /* sin datos de facturación */ }
+
+    const NAVY = '#1E3A5F';
+    const VIOLET = '#6D28D9';
+    const LIGHT_BG = '#F8F9FC';
+    const W = 595.28;
+    const MARGIN = 45;
+    const CONTENT_W = W - MARGIN * 2;
 
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const doc = new PDFDocument({ margin: 50, size: 'A4' });
-
+      const doc = new PDFDocument({ margin: MARGIN, size: 'A4', autoFirstPage: true });
       doc.on('data', (chunk: Buffer) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      // Membrete superior
-      const accentColor = '#1E3A5F';
-      doc.rect(0, 0, doc.page.width, 90).fill(accentColor);
-      doc.fillColor('white').fontSize(20).font('Helvetica-Bold')
-        .text(clinica?.nombre?.toUpperCase() || 'CLÍNICA', 50, 28, { align: 'center' });
-      doc.fontSize(10).font('Helvetica')
-        .text([clinica?.direccion, clinica?.email].filter(Boolean).join('  |  '), 50, 55, { align: 'center' });
+      // ── ENCABEZADO ──
+      doc.rect(0, 0, W, 80).fill(NAVY);
+      doc.rect(0, 80, W, 6).fill(VIOLET);
 
-      doc.moveDown(3);
+      const nombreClinica = clinica?.nombre?.toUpperCase() || 'CLÍNICA';
+      doc.fillColor('white').fontSize(18).font('Helvetica-Bold').text(nombreClinica, 0, 20, { align: 'center', width: W });
+      const subInfo = [clinica?.direccion, clinica?.email, clinica?.telefono].filter(Boolean).join('  ·  ');
+      if (subInfo) {
+        doc.fillColor('#CBD5E1').fontSize(9).font('Helvetica').text(subInfo, 0, 46, { align: 'center', width: W });
+      }
 
-      // Título del informe
-      doc.fillColor(accentColor).fontSize(16).font('Helvetica-Bold')
-        .text('Informe de Gestión Clínica', { align: 'center' });
-      doc.fillColor('#555555').fontSize(11).font('Helvetica')
-        .text(`Período: ${rango.desde} — ${rango.hasta}`, { align: 'center' });
-      doc.moveDown(0.5);
-
-      // Línea separadora
-      doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).strokeColor(accentColor).lineWidth(1.5).stroke();
+      // ── TÍTULO ──
+      doc.moveDown(2.5);
+      doc.fillColor(NAVY).fontSize(15).font('Helvetica-Bold').text('Informe de Gestión Clínica', { align: 'center' });
+      doc.fillColor('#64748B').fontSize(10).font('Helvetica')
+        .text(`Período: ${rango.desde}  →  ${rango.hasta}`, { align: 'center' });
       doc.moveDown(1);
 
-      // Cuerpo del informe (markdown → texto plano)
-      const limpio = texto
-        .replace(/#{1,6}\s+/g, '')
-        .replace(/\*\*(.+?)\*\*/g, '$1')
-        .replace(/\*(.+?)\*/g, '$1')
-        .replace(/[-–]\s/g, '• ');
+      // ── KPI BOXES ──
+      const kpis = [
+        { label: 'Total Turnos', value: String(turnosData?.total ?? 0), color: '#3B82F6', bg: '#EFF6FF' },
+        { label: 'Tasa Asistencia', value: `${insightsData?.tasa_completados ?? 0}%`, color: '#10B981', bg: '#ECFDF5' },
+        { label: 'Total Pacientes', value: String(pacientesData?.total ?? 0), color: '#8B5CF6', bg: '#F5F3FF' },
+        { label: 'Facturado', value: `$${totalFacturado.toFixed(0)}`, color: '#F59E0B', bg: '#FFFBEB' },
+      ];
+      const boxW = (CONTENT_W - 12) / 4;
+      const boxH = 54;
+      const boxY = doc.y;
 
-      doc.fillColor('#222222').fontSize(11).font('Helvetica').text(limpio, {
-        align: 'justify',
-        lineGap: 4,
+      kpis.forEach((k, i) => {
+        const x = MARGIN + i * (boxW + 4);
+        doc.rect(x, boxY, boxW, boxH).fill(k.bg);
+        doc.rect(x, boxY, boxW, 3).fill(k.color);
+        doc.fillColor(k.color).fontSize(18).font('Helvetica-Bold').text(k.value, x, boxY + 10, { width: boxW, align: 'center' });
+        doc.fillColor('#64748B').fontSize(8).font('Helvetica').text(k.label, x, boxY + 33, { width: boxW, align: 'center' });
       });
 
-      // Pie de página
-      doc.moveDown(2);
-      doc.moveTo(50, doc.y).lineTo(doc.page.width - 50, doc.y).strokeColor('#CCCCCC').lineWidth(0.5).stroke();
-      doc.moveDown(0.5);
-      doc.fillColor('#888888').fontSize(9)
-        .text(`Generado por Avax Health · ${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}`, {
-          align: 'center',
+      doc.y = boxY + boxH + 14;
+
+      // ── FILA ADICIONAL: 3 métricas secundarias ──
+      const metricas = [
+        { label: 'Nuevos pacientes', value: String(pacientesData?.nuevos_este_mes ?? 0) },
+        { label: 'Tasa retención', value: `${insightsData?.tasa_retencion ?? 0}%` },
+        { label: 'Cobrado x OS', value: `$${totalOS.toFixed(0)}` },
+        { label: 'Profesionales', value: String(turnosData?.por_profesional?.length ?? 0) },
+        { label: 'Cancelaciones', value: `${turnosData?.cancelaciones_pct ?? 0}%` },
+        { label: 'Cobrado particular', value: `$${(totalFacturado - totalOS).toFixed(0)}` },
+      ];
+      const mW = (CONTENT_W - 10) / 3;
+      const mY = doc.y;
+      [0, 1, 2].forEach(col => {
+        const idx1 = col;
+        const idx2 = col + 3;
+        const x = MARGIN + col * (mW + 5);
+        doc.rect(x, mY, mW, 38).fill(LIGHT_BG);
+        doc.fillColor('#1E293B').fontSize(11).font('Helvetica-Bold').text(metricas[idx1].value, x, mY + 5, { width: mW, align: 'center' });
+        doc.fillColor('#94A3B8').fontSize(7.5).font('Helvetica').text(metricas[idx1].label, x, mY + 20, { width: mW, align: 'center' });
+        // segunda fila de métricas
+        const mY2 = mY + 42;
+        doc.rect(x, mY2, mW, 38).fill(LIGHT_BG);
+        doc.fillColor('#1E293B').fontSize(11).font('Helvetica-Bold').text(metricas[idx2].value, x, mY2 + 5, { width: mW, align: 'center' });
+        doc.fillColor('#94A3B8').fontSize(7.5).font('Helvetica').text(metricas[idx2].label, x, mY2 + 20, { width: mW, align: 'center' });
+      });
+      doc.y = mY + 38 + 42 + 16;
+
+      // ── MINI GRÁFICO: Distribución por día ──
+      const distDia = insightsData?.distribucion_por_dia?.filter(d => ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].includes(d.dia)) ?? [];
+      if (distDia.length > 0 && distDia.some(d => d.total > 0)) {
+        doc.fillColor(NAVY).fontSize(10).font('Helvetica-Bold').text('Turnos por día de la semana', MARGIN, doc.y);
+        doc.moveDown(0.4);
+        const chartY = doc.y;
+        const chartH = 45;
+        const maxVal = Math.max(...distDia.map(d => d.total), 1);
+        const barW = Math.floor((CONTENT_W - (distDia.length - 1) * 4) / distDia.length);
+
+        distDia.forEach((d, i) => {
+          const x = MARGIN + i * (barW + 4);
+          const barH = Math.max(2, Math.round((d.total / maxVal) * chartH));
+          const barY = chartY + chartH - barH;
+          doc.rect(x, barY, barW, barH).fill(VIOLET);
+          doc.fillColor('#94A3B8').fontSize(7).font('Helvetica')
+            .text(d.dia.substring(0, 3), x, chartY + chartH + 3, { width: barW, align: 'center' });
+          if (d.total > 0) {
+            doc.fillColor('#1E293B').fontSize(7).text(String(d.total), x, barY - 10, { width: barW, align: 'center' });
+          }
         });
+        doc.y = chartY + chartH + 18;
+        doc.moveDown(0.8);
+      }
+
+      // Separador antes del texto
+      doc.moveTo(MARGIN, doc.y).lineTo(W - MARGIN, doc.y).strokeColor('#E2E8F0').lineWidth(1).stroke();
+      doc.moveDown(0.8);
+
+      // ── CUERPO MARKDOWN ESTRUCTURADO ──
+      const lines = texto.split('\n');
+      for (const line of lines) {
+        if (doc.y > 740) { doc.addPage(); }
+
+        const h2 = line.match(/^##\s+(.+)/);
+        const h3 = line.match(/^###\s+(.+)/);
+        const bullet = line.match(/^[-*]\s+(.+)/);
+        const trimmed = line.trim();
+
+        if (h2) {
+          doc.moveDown(0.5);
+          doc.rect(MARGIN, doc.y, CONTENT_W, 20).fill(NAVY);
+          doc.fillColor('white').fontSize(10).font('Helvetica-Bold')
+            .text(h2[1].toUpperCase(), MARGIN + 8, doc.y - 16, { width: CONTENT_W - 16 });
+          doc.y += 6;
+          doc.moveDown(0.3);
+        } else if (h3) {
+          doc.moveDown(0.3);
+          doc.fillColor(VIOLET).fontSize(10).font('Helvetica-Bold').text(h3[1], MARGIN);
+          doc.moveDown(0.2);
+        } else if (bullet) {
+          const rendered = bullet[1].replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
+          doc.fillColor('#374151').fontSize(10).font('Helvetica')
+            .text(`• ${rendered}`, MARGIN + 8, doc.y, { width: CONTENT_W - 8, lineGap: 2 });
+        } else if (trimmed.length > 0) {
+          const rendered = trimmed.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
+          doc.fillColor('#1E293B').fontSize(10).font('Helvetica')
+            .text(rendered, MARGIN, doc.y, { width: CONTENT_W, align: 'justify', lineGap: 2 });
+          doc.moveDown(0.3);
+        } else {
+          doc.moveDown(0.3);
+        }
+      }
+
+      // ── PIE DE PÁGINA ──
+      doc.moveDown(1.5);
+      const pieY = Math.min(doc.y, 790);
+      doc.moveTo(MARGIN, pieY).lineTo(W - MARGIN, pieY).strokeColor('#E2E8F0').lineWidth(0.5).stroke();
+      doc.fillColor('#94A3B8').fontSize(8).font('Helvetica')
+        .text(
+          `Generado por Avax Health  ·  ${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}`,
+          MARGIN, pieY + 6, { width: CONTENT_W, align: 'center' },
+        );
 
       doc.end();
     });

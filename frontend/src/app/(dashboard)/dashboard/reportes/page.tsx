@@ -6,6 +6,7 @@ import reportsService, {
   PacientesReportData,
   InsightsData,
   InformeIaData,
+  InformeIaKpis,
 } from "@/services/reports.service";
 import { RoleGuard } from "@/components/guards/role-guard";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -425,16 +426,16 @@ export default function ReportesPage() {
             </div>
 
             <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-              {/* Header de la card */}
-              <div className="flex items-start justify-between gap-4 p-5 border-b">
+              {/* Header */}
+              <div className="flex items-start justify-between gap-4 p-5 border-b bg-gradient-to-r from-violet-500/5 to-transparent">
                 <div className="flex items-start gap-3">
                   <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10">
                     <Sparkles className="h-5 w-5 text-violet-600" />
                   </div>
                   <div>
-                    <h3 className="text-sm font-semibold">Informe narrativo generado por IA</h3>
+                    <h3 className="text-sm font-semibold">Informe ejecutivo generado por IA</h3>
                     <p className="text-xs text-muted-foreground mt-0.5">
-                      GPT-4o analiza los datos del período y genera un resumen ejecutivo con observaciones y recomendaciones.
+                      GPT-4o analiza los datos del período y genera KPIs, gráficos y recomendaciones.
                     </p>
                   </div>
                 </div>
@@ -445,61 +446,48 @@ export default function ReportesPage() {
                   size="sm"
                 >
                   {generandoInforme ? (
-                    <>
-                      <RefreshCw className="h-4 w-4 animate-spin" />
-                      Generando...
-                    </>
+                    <><RefreshCw className="h-4 w-4 animate-spin" />Generando...</>
                   ) : (
-                    <>
-                      <Sparkles className="h-4 w-4" />
-                      {informeIa ? "Regenerar" : "Generar informe"}
-                    </>
+                    <><Sparkles className="h-4 w-4" />{informeIa ? "Regenerar" : "Generar informe"}</>
                   )}
                 </Button>
               </div>
 
-              {/* Contenido */}
+              {/* Loading */}
               {generandoInforme && (
-                <div className="p-6 space-y-3">
+                <div className="p-6 space-y-4">
                   <div className="flex items-center gap-3 text-sm text-muted-foreground">
                     <RefreshCw className="h-4 w-4 animate-spin text-violet-500" />
-                    <span>Analizando datos y redactando informe... (puede tardar 10-20 segundos)</span>
+                    <span>Analizando datos y redactando informe... (puede tardar 15-20 segundos)</span>
                   </div>
-                  <div className="space-y-2">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-5/6" />
-                    <Skeleton className="h-4 w-4/6" />
-                    <Skeleton className="h-4 w-full mt-4" />
+                  <div className="grid grid-cols-4 gap-3">
+                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+                  </div>
+                  <div className="space-y-2 pt-2">
+                    <Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-4/6" /><Skeleton className="h-4 w-full mt-3" />
                     <Skeleton className="h-4 w-3/4" />
                   </div>
                 </div>
               )}
 
+              {/* Contenido */}
               {!generandoInforme && informeIa && (
                 <>
-                  <div className="p-6 prose prose-sm max-w-none dark:prose-invert
+                  <InformeKpis kpis={informeIa.kpis} />
+                  <div className="px-6 pb-2 pt-4 prose prose-sm max-w-none dark:prose-invert
                     prose-headings:text-foreground prose-headings:font-semibold
                     prose-p:text-muted-foreground prose-li:text-muted-foreground
-                    prose-strong:text-foreground prose-h2:text-base prose-h3:text-sm">
+                    prose-strong:text-foreground prose-h2:text-sm prose-h2:uppercase
+                    prose-h2:tracking-wide prose-h2:text-violet-700 dark:prose-h2:text-violet-400
+                    prose-h3:text-sm prose-h3:text-foreground">
                     <ReactMarkdown>{informeIa.texto}</ReactMarkdown>
                   </div>
                   <div className="flex items-center justify-end gap-2 px-5 py-3 border-t bg-muted/30">
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl gap-2"
-                      onClick={handleCopiarInforme}
-                    >
-                      <Copy className="h-3.5 w-3.5" />
-                      Copiar
+                    <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={handleCopiarInforme}>
+                      <Copy className="h-3.5 w-3.5" />Copiar
                     </Button>
-                    <Button
-                      variant="outline"
-                      size="sm"
-                      className="rounded-xl gap-2"
-                      onClick={handleDescargarPdf}
-                      disabled={descargandoPdf}
-                    >
+                    <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={handleDescargarPdf} disabled={descargandoPdf}>
                       <FileText className="h-3.5 w-3.5" />
                       {descargandoPdf ? "Descargando..." : "Descargar PDF"}
                     </Button>
@@ -510,7 +498,7 @@ export default function ReportesPage() {
               {!generandoInforme && !informeIa && (
                 <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-muted-foreground">
                   <Sparkles className="h-8 w-8 opacity-30" />
-                  <p className="text-sm">Hacé clic en "Generar informe" para obtener un análisis ejecutivo del período seleccionado.</p>
+                  <p className="text-sm">Hacé clic en "Generar informe" para obtener un análisis ejecutivo con KPIs y recomendaciones.</p>
                 </div>
               )}
             </div>
@@ -661,3 +649,148 @@ export default function ReportesPage() {
     </RoleGuard>
   );
 }
+
+// ── Componente KPIs del Informe IA ──
+function InformeKpis({ kpis }: { kpis: InformeIaKpis }) {
+  const diasSemana = kpis.distribucionDia.filter(d =>
+    ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].includes(d.dia)
+  );
+  const porMesChart = kpis.porMes.slice(-6).map(m => ({
+    mes: m.mes.substring(5),
+    turnos: m.total,
+  }));
+
+  const mainKpis = [
+    {
+      label: "Total Turnos",
+      value: kpis.totalTurnos,
+      sub: `${kpis.completados} completados`,
+      color: "text-blue-600",
+      bg: "bg-blue-50 dark:bg-blue-950/30",
+      border: "border-blue-200 dark:border-blue-800",
+      icon: <Calendar className="h-4 w-4 text-blue-500" />,
+    },
+    {
+      label: "Tasa Asistencia",
+      value: `${kpis.tasaAsistencia}%`,
+      sub: `${kpis.cancelados} cancelados`,
+      color: "text-emerald-600",
+      bg: "bg-emerald-50 dark:bg-emerald-950/30",
+      border: "border-emerald-200 dark:border-emerald-800",
+      icon: <CheckCircle className="h-4 w-4 text-emerald-500" />,
+    },
+    {
+      label: "Pacientes",
+      value: kpis.totalPacientes,
+      sub: `+${kpis.nuevosPacientes} nuevos`,
+      color: "text-violet-600",
+      bg: "bg-violet-50 dark:bg-violet-950/30",
+      border: "border-violet-200 dark:border-violet-800",
+      icon: <Users className="h-4 w-4 text-violet-500" />,
+    },
+    {
+      label: "Facturado",
+      value: `$${kpis.totalFacturado.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`,
+      sub: kpis.totalOS > 0 ? `OS: $${kpis.totalOS.toLocaleString("es-AR", { maximumFractionDigits: 0 })}` : "Sin datos OS",
+      color: "text-amber-600",
+      bg: "bg-amber-50 dark:bg-amber-950/30",
+      border: "border-amber-200 dark:border-amber-800",
+      icon: <TrendingUp className="h-4 w-4 text-amber-500" />,
+    },
+  ];
+
+  return (
+    <div className="px-5 pt-5 pb-4 space-y-4 border-b">
+      {/* KPI cards row */}
+      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
+        {mainKpis.map((k) => (
+          <div key={k.label} className={`rounded-lg border p-3 ${k.bg} ${k.border}`}>
+            <div className="flex items-center justify-between mb-1">
+              <span className="text-xs text-muted-foreground">{k.label}</span>
+              {k.icon}
+            </div>
+            <p className={`text-xl font-bold ${k.color}`}>{k.value}</p>
+            <p className="text-xs text-muted-foreground mt-0.5">{k.sub}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Métricas secundarias */}
+      <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
+        {[
+          { label: "Retención", value: `${kpis.tasaRetencion}%` },
+          { label: "Cancelaciones", value: `${kpis.cancelacionesPct}%` },
+          { label: "Profesionales", value: kpis.profesionales },
+          { label: "Nuevos pacientes", value: kpis.nuevosPacientes },
+          { label: "Cobrado OS", value: `$${kpis.totalOS.toLocaleString("es-AR", { maximumFractionDigits: 0 })}` },
+          { label: "Particular", value: `$${kpis.totalParticular.toLocaleString("es-AR", { maximumFractionDigits: 0 })}` },
+        ].map((m) => (
+          <div key={m.label} className="rounded-lg bg-muted/50 px-3 py-2 text-center">
+            <p className="text-sm font-semibold">{m.value}</p>
+            <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{m.label}</p>
+          </div>
+        ))}
+      </div>
+
+      {/* Charts row */}
+      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
+        {/* Turnos por mes */}
+        {porMesChart.length > 1 && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+              <BarChart2 className="h-3.5 w-3.5" />Evolución mensual
+            </p>
+            <ResponsiveContainer width="100%" height={90}>
+              <AreaChart data={porMesChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <defs>
+                  <linearGradient id="iaGrad" x1="0" y1="0" x2="0" y2="1">
+                    <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3} />
+                    <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
+                  </linearGradient>
+                </defs>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="mes" tick={{ fontSize: 9 }} />
+                <YAxis tick={{ fontSize: 9 }} />
+                <Tooltip contentStyle={{ fontSize: 11 }} />
+                <Area type="monotone" dataKey="turnos" stroke="#7C3AED" fill="url(#iaGrad)" strokeWidth={2} />
+              </AreaChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+
+        {/* Turnos por día de la semana */}
+        {diasSemana.some(d => d.total > 0) && (
+          <div>
+            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
+              <Activity className="h-3.5 w-3.5" />Distribución semanal
+              {kpis.diaPico && <span className="ml-auto text-violet-600 font-medium">Pico: {kpis.diaPico}</span>}
+            </p>
+            <ResponsiveContainer width="100%" height={90}>
+              <BarChart data={diasSemana} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
+                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                <XAxis dataKey="dia" tickFormatter={(v: string) => v.substring(0, 3)} tick={{ fontSize: 9 }} />
+                <YAxis tick={{ fontSize: 9 }} />
+                <Tooltip contentStyle={{ fontSize: 11 }} />
+                <Bar dataKey="total" fill="#7C3AED" radius={[3, 3, 0, 0]} />
+              </BarChart>
+            </ResponsiveContainer>
+          </div>
+        )}
+      </div>
+
+      {/* Top profesional */}
+      {kpis.topProfesional && (
+        <div className="flex items-center gap-2 rounded-lg bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800 px-4 py-2">
+          <Star className="h-4 w-4 text-violet-500 shrink-0" />
+          <span className="text-xs text-muted-foreground">Profesional más activo:</span>
+          <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">{kpis.topProfesional}</span>
+          {kpis.diaPico && (
+            <><span className="text-xs text-muted-foreground ml-2">·  Día pico:</span>
+            <span className="text-xs font-semibold">{kpis.diaPico}</span></>
+          )}
+        </div>
+      )}
+    </div>
+  );
+}
+

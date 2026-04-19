@@ -22,9 +22,30 @@ export interface TurnosReportData {
   rango: { desde: string; hasta: string };
 }
 
+export interface InformeIaKpis {
+  totalTurnos: number;
+  completados: number;
+  cancelados: number;
+  cancelacionesPct: number;
+  tasaAsistencia: number;
+  tasaRetencion: number;
+  totalPacientes: number;
+  nuevosPacientes: number;
+  totalFacturado: number;
+  totalOS: number;
+  totalParticular: number;
+  profesionales: number;
+  topProfesional: string | null;
+  porMes: { mes: string; total: number }[];
+  distribucionDia: { dia: string; total: number }[];
+  diaPico: string | null;
+  horaPico: string | null;
+}
+
 export interface InformeIaData {
   texto: string;
   rango: { desde: string; hasta: string };
+  kpis: InformeIaKpis;
 }
 
 export interface PacientesReportData {
