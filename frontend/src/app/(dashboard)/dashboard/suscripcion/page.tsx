@@ -275,7 +275,7 @@ function SuscripcionContent() {
       setPlanes(pagados);
       if (pagados.length > 0) setSelectedPlanId(pagados[0].id);
     }).catch(() => {});
-  }, [fetchSubscription, fetchTickets, fetchPagos]);
+  }, [fetchSubscription, fetchTickets]);
 
   // ─── Checkout MP ───
   const handleCheckout = async (planId?: string) => {
