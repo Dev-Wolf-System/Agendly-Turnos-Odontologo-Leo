@@ -2,8 +2,7 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as ExcelJS from 'exceljs';
-// eslint-disable-next-line @typescript-eslint/no-require-imports
-const PDFDocument = require('pdfkit') as typeof import('pdfkit').default;
+import PDFDocument = require('pdfkit');
 import { Turno } from '../turnos/entities/turno.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
 import { Pago } from '../pagos/entities/pago.entity';
