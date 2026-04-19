@@ -42,6 +42,7 @@ import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
 import { useClinica } from "@/components/providers/clinica-provider";
+import { useAuth } from "@/components/providers/auth-provider";
 import {
   Building2,
   Clock,
@@ -202,7 +203,7 @@ type TabKey = "clinica" | "horarios" | "tratamientos" | "equipo" | "integracione
 
 export default function ConfiguracionPage() {
   return (
-    <RoleGuard allowedRoles={["admin"]}>
+    <RoleGuard allowedRoles={["admin", "turnos_only"]}>
       <ConfiguracionContent />
     </RoleGuard>
   );
@@ -215,6 +216,8 @@ function ConfiguracionContent() {
   const [users, setUsers] = useState<User[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { reload: reloadClinicaCtx } = useClinica();
+  const { user } = useAuth();
+  const isTurnosOnly = user?.role === "turnos_only";
 
   const loadData = useCallback(async () => {
     try {
@@ -239,16 +242,17 @@ function ConfiguracionContent() {
     loadData();
   }, [loadData]);
 
-  const tabs: { key: TabKey; label: string; icon: typeof Building2 }[] = [
+  const allTabs: { key: TabKey; label: string; icon: typeof Building2; onlyAdmin?: boolean }[] = [
     { key: "clinica", label: "Clínica", icon: Building2 },
     { key: "horarios", label: "Horarios", icon: Clock },
-    { key: "tratamientos", label: "Tratamientos", icon: Stethoscope },
+    { key: "tratamientos", label: "Tratamientos", icon: Stethoscope, onlyAdmin: true },
     { key: "equipo", label: "Equipo", icon: Users },
     { key: "integraciones", label: "Integraciones", icon: Webhook },
     { key: "whatsapp", label: "WhatsApp / IA", icon: Bot },
-    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard },
-    { key: "pagos", label: "Pagos", icon: CreditCard },
+    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, onlyAdmin: true },
+    { key: "pagos", label: "Pagos", icon: CreditCard, onlyAdmin: true },
   ];
+  const tabs = allTabs.filter((t) => !isTurnosOnly || !t.onlyAdmin);
 
   if (isLoading || !clinica) {
     return (

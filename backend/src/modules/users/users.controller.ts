@@ -34,7 +34,7 @@ export class UsersController {
   }
 
   @Post()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TURNOS_ONLY)
   @UseGuards(PlanLimitGuard)
   @CheckPlanLimit('max_usuarios')
   create(
@@ -45,7 +45,7 @@ export class UsersController {
   }
 
   @Patch(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TURNOS_ONLY)
   update(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentClinica() clinicaId: string,
@@ -55,7 +55,7 @@ export class UsersController {
   }
 
   @Delete(':id')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TURNOS_ONLY)
   remove(
     @Param('id', ParseUUIDPipe) id: string,
     @CurrentClinica() clinicaId: string,

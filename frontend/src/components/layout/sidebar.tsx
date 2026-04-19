@@ -102,9 +102,9 @@ const navGroups: NavGroup[] = [
   {
     label: "Cuenta",
     items: [
-      { name: "Soporte", href: "/dashboard/soporte", icon: LifeBuoy, roles: ["professional", "assistant"] },
-      { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheck, roles: ["admin"] },
-      { name: "Configuración", href: "/dashboard/configuracion", icon: Settings, roles: ["admin"] },
+      { name: "Soporte", href: "/dashboard/soporte", icon: LifeBuoy, roles: ["professional", "assistant", "turnos_only"] },
+      { name: "Mi Suscripción", href: "/dashboard/suscripcion", icon: BadgeCheck, roles: ["admin", "turnos_only"] },
+      { name: "Configuración", href: "/dashboard/configuracion", icon: Settings, roles: ["admin", "turnos_only"] },
     ],
   },
 ];
@@ -114,6 +114,7 @@ const ROLE_LABEL: Record<string, string> = {
   admin: "Administrador",
   professional: "Profesional",
   assistant: "Secretaría",
+  turnos_only: "Agenda",
 };
 
 /* ─── Sidebar Component ─── */

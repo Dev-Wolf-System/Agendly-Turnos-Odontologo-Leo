@@ -209,7 +209,7 @@ function CardSkeleton({ height = "h-[300px]" }: { height?: string }) {
 // ════════════════════════════════════════════════════════════════════
 export default function SuscripcionPage() {
   return (
-    <RoleGuard allowedRoles={["admin"]}>
+    <RoleGuard allowedRoles={["admin", "turnos_only"]}>
       <SuscripcionContent />
     </RoleGuard>
   );

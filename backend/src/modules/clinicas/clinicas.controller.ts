@@ -86,7 +86,7 @@ export class ClinicasController {
   }
 
   @Patch('me')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TURNOS_ONLY)
   updateMyClinica(
     @CurrentClinica() clinicaId: string,
     @Body() updateClinicaDto: UpdateClinicaDto,

@@ -19,7 +19,7 @@ export class HorarioProfesionalController {
   ) {}
 
   @Get()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TURNOS_ONLY)
   findAll(@CurrentClinica() clinicaId: string) {
     return this.horarioProfService.findByClinica(clinicaId);
   }
@@ -41,7 +41,7 @@ export class HorarioProfesionalController {
   }
 
   @Put()
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TURNOS_ONLY)
   upsert(
     @CurrentClinica() clinicaId: string,
     @Body() dto: UpsertHorarioProfesionalDto,
@@ -50,7 +50,7 @@ export class HorarioProfesionalController {
   }
 
   @Delete(':userId')
-  @Roles(UserRole.ADMIN)
+  @Roles(UserRole.ADMIN, UserRole.TURNOS_ONLY)
   remove(
     @CurrentClinica() clinicaId: string,
     @Param('userId', ParseUUIDPipe) userId: string,
