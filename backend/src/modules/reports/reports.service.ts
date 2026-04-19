@@ -2,6 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as ExcelJS from 'exceljs';
+import * as https from 'https';
+import * as http from 'http';
 import PDFDocument = require('pdfkit');
 import { Turno } from '../turnos/entities/turno.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
@@ -278,6 +280,18 @@ export class ReportsService {
     };
   }
 
+  private fetchImageBuffer(url: string): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const client = url.startsWith('https') ? https : http;
+      client.get(url, (res) => {
+        const chunks: Buffer[] = [];
+        res.on('data', (c: Buffer) => chunks.push(c));
+        res.on('end', () => resolve(Buffer.concat(chunks)));
+        res.on('error', reject);
+      }).on('error', reject);
+    });
+  }
+
   async getTurnosXlsx(
     clinicaId: string,
     desde?: string,
@@ -299,47 +313,109 @@ export class ReportsService {
     qb.andWhere('t.start_time <= :hasta', { hasta: hastaDate });
     if (profesionalId) qb.andWhere('t.user_id = :profesionalId', { profesionalId });
 
-    const turnos = await qb
-      .select(['t.id', 't.estado', 't.start_time', 't.end_time', 't.tipo_tratamiento', 't.notas', 'u.nombre', 'u.apellido', 'p.nombre', 'p.apellido', 'p.dni', 'p.obra_social'])
-      .orderBy('t.start_time', 'ASC')
-      .getMany();
+    const [turnos, clinica] = await Promise.all([
+      qb
+        .select(['t.id', 't.estado', 't.start_time', 't.end_time', 't.tipo_tratamiento', 't.notas', 'u.nombre', 'u.apellido', 'p.nombre', 'p.apellido', 'p.dni', 'p.obra_social'])
+        .orderBy('t.start_time', 'ASC')
+        .getMany(),
+      this.clinicaRepository.findOne({ where: { id: clinicaId } }),
+    ]);
 
-    const clinica = await this.clinicaRepository.findOne({ where: { id: clinicaId } });
     const wb = new ExcelJS.Workbook();
     wb.creator = clinica?.nombre || 'Avax Health';
     wb.created = new Date();
+    const ws = wb.addWorksheet('Turnos', { pageSetup: { fitToPage: true, paperSize: 9 } });
 
-    const ws = wb.addWorksheet('Turnos', { pageSetup: { fitToPage: true } });
+    const COLS = 10;
+    const ACCENT = 'FF1E3A5F';
+    const ACCENT_LIGHT = 'FFE8EDF3';
 
-    // Membrete en primeras filas
-    ws.mergeCells('A1:J1');
-    ws.getCell('A1').value = clinica?.nombre?.toUpperCase() || 'CLÍNICA';
-    ws.getCell('A1').font = { bold: true, size: 16, color: { argb: 'FF1E3A5F' } };
-    ws.getCell('A1').alignment = { horizontal: 'center' };
+    // Alturas de filas del membrete
+    ws.getRow(1).height = 12;  // espaciado top
+    ws.getRow(2).height = 36;  // logo / nombre
+    ws.getRow(3).height = 18;  // subtítulo (propietario)
+    ws.getRow(4).height = 16;  // dirección / email
+    ws.getRow(5).height = 16;  // período
+    ws.getRow(6).height = 8;   // separador
+    ws.getRow(7).height = 8;   // espaciado
 
-    ws.mergeCells('A2:J2');
-    ws.getCell('A2').value = [clinica?.direccion, clinica?.email].filter(Boolean).join(' | ');
-    ws.getCell('A2').font = { size: 10, color: { argb: 'FF555555' } };
-    ws.getCell('A2').alignment = { horizontal: 'center' };
+    // Anchos de columna
+    const colWidths = [12, 10, 10, 22, 12, 22, 13, 20, 20, 30];
+    colWidths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
 
-    ws.mergeCells('A3:J3');
-    const periodo = `Período: ${desdeDate.toLocaleDateString('es-AR')} al ${hastaDate.toLocaleDateString('es-AR')}`;
-    ws.getCell('A3').value = periodo;
-    ws.getCell('A3').font = { italic: true, size: 10 };
-    ws.getCell('A3').alignment = { horizontal: 'center' };
-    ws.addRow([]);
+    // Fondo degradado del membrete (filas 1-6)
+    for (let r = 1; r <= 6; r++) {
+      for (let c = 1; c <= COLS; c++) {
+        ws.getRow(r).getCell(c).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ACCENT } };
+      }
+    }
+
+    // Intentar insertar logo
+    let logoInserted = false;
+    if (clinica?.logo_url) {
+      try {
+        const imgBuf = await this.fetchImageBuffer(clinica.logo_url);
+        const ext = clinica.logo_url.toLowerCase().includes('.png') ? 'png' : 'jpeg';
+        const imgId = wb.addImage({ buffer: imgBuf, extension: ext });
+        ws.addImage(imgId, {
+          tl: { col: 0.3, row: 1.2 },
+          br: { col: 1.8, row: 4.8 },
+          editAs: 'oneCell',
+        });
+        logoInserted = true;
+      } catch {
+        // continúa sin logo
+      }
+    }
+
+    const nameCol = logoInserted ? 'C' : 'A';
+    const nameColEnd = `J`;
+
+    // Nombre de la clínica
+    ws.mergeCells(`${nameCol}2:${nameColEnd}2`);
+    const cellNombre = ws.getCell(`${nameCol}2`);
+    cellNombre.value = clinica?.nombre?.toUpperCase() || 'CLÍNICA';
+    cellNombre.font = { bold: true, size: 18, color: { argb: 'FFFFFFFF' }, name: 'Calibri' };
+    cellNombre.alignment = { horizontal: logoInserted ? 'left' : 'center', vertical: 'middle' };
+
+    // Propietario
+    if (clinica?.nombre_propietario) {
+      ws.mergeCells(`${nameCol}3:${nameColEnd}3`);
+      const cellProp = ws.getCell(`${nameCol}3`);
+      cellProp.value = clinica.nombre_propietario;
+      cellProp.font = { size: 11, color: { argb: 'FFB8CCE4' }, name: 'Calibri' };
+      cellProp.alignment = { horizontal: logoInserted ? 'left' : 'center', vertical: 'middle' };
+    }
+
+    // Dirección y email
+    ws.mergeCells(`${nameCol}4:${nameColEnd}4`);
+    const cellInfo = ws.getCell(`${nameCol}4`);
+    cellInfo.value = [clinica?.direccion, clinica?.email].filter(Boolean).join('   |   ');
+    cellInfo.font = { size: 10, color: { argb: 'FFD0DCEA' }, name: 'Calibri' };
+    cellInfo.alignment = { horizontal: logoInserted ? 'left' : 'center', vertical: 'middle' };
+
+    // Período
+    ws.mergeCells(`${nameCol}5:${nameColEnd}5`);
+    const cellPeriodo = ws.getCell(`${nameCol}5`);
+    cellPeriodo.value = `Período: ${desdeDate.toLocaleDateString('es-AR')} al ${hastaDate.toLocaleDateString('es-AR')}   ·   ${turnos.length} turno${turnos.length !== 1 ? 's' : ''}`;
+    cellPeriodo.font = { size: 10, italic: true, color: { argb: 'FFADC6DE' }, name: 'Calibri' };
+    cellPeriodo.alignment = { horizontal: logoInserted ? 'left' : 'center', vertical: 'middle' };
+
+    // Línea separadora (fila 6) — ya tiene fondo azul, se usa como barra decorativa
+    ws.addRow([]);  // fila 8 vacía
 
     // Cabecera de tabla
     const headerRow = ws.addRow(['Fecha', 'Hora inicio', 'Hora fin', 'Paciente', 'DNI', 'Profesional', 'Estado', 'Tratamiento', 'Obra Social', 'Notas']);
+    headerRow.height = 22;
     headerRow.eachCell((cell) => {
-      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: 'FF1E3A5F' } };
-      cell.font = { bold: true, color: { argb: 'FFFFFFFF' }, size: 10 };
-      cell.alignment = { horizontal: 'center' };
-      cell.border = { bottom: { style: 'thin', color: { argb: 'FF1E3A5F' } } };
+      cell.fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: ACCENT_LIGHT } };
+      cell.font = { bold: true, color: { argb: ACCENT }, size: 10, name: 'Calibri' };
+      cell.alignment = { horizontal: 'center', vertical: 'middle' };
+      cell.border = {
+        top: { style: 'medium', color: { argb: ACCENT } },
+        bottom: { style: 'thin', color: { argb: ACCENT } },
+      };
     });
-
-    const colWidths = [12, 10, 10, 22, 12, 22, 12, 20, 20, 30];
-    colWidths.forEach((w, i) => { ws.getColumn(i + 1).width = w; });
 
     const estadoColors: Record<string, string> = {
       completado: 'FFD4EDDA',
@@ -363,14 +439,27 @@ export class ReportsService {
         t.paciente?.obra_social || '',
         t.notas || '',
       ]);
+      row.height = 18;
       const bg = estadoColors[t.estado] || 'FFFFFFFF';
       row.getCell(7).fill = { type: 'pattern', pattern: 'solid', fgColor: { argb: bg } };
+      row.getCell(7).font = { size: 10, name: 'Calibri' };
+      row.eachCell((cell) => {
+        cell.border = { bottom: { style: 'hair', color: { argb: 'FFD0D5DD' } } };
+        if (!cell.font) cell.font = { size: 10, name: 'Calibri' };
+      });
     }
 
     // Fila resumen
     ws.addRow([]);
     const resumenRow = ws.addRow([`Total turnos: ${turnos.length}`, '', '', '', '', '', '', '', '', '']);
-    resumenRow.getCell(1).font = { bold: true };
+    resumenRow.getCell(1).font = { bold: true, size: 11, color: { argb: ACCENT }, name: 'Calibri' };
+
+    // Pie
+    ws.addRow([]);
+    const pieRow = ws.addRow([`Generado por Avax Health · ${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}`, '', '', '', '', '', '', '', '', '']);
+    ws.mergeCells(`A${pieRow.number}:J${pieRow.number}`);
+    pieRow.getCell(1).font = { size: 9, italic: true, color: { argb: 'FF888888' } };
+    pieRow.getCell(1).alignment = { horizontal: 'center' };
 
     return Buffer.from(await wb.xlsx.writeBuffer());
   }
