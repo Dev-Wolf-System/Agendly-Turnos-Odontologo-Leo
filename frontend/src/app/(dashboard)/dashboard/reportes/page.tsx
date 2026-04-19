@@ -224,7 +224,7 @@ export default function ReportesPage() {
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", fontSize: 12 }}
-                  formatter={(v: number) => [v, "Turnos"]}
+                  formatter={(v) => [v ?? 0, "Turnos"]}
                 />
                 <Bar dataKey="turnos" fill="var(--ht-primary)" radius={[4, 4, 0, 0]} />
               </BarChart>
@@ -309,7 +309,7 @@ export default function ReportesPage() {
                 <YAxis tick={{ fontSize: 12 }} allowDecimals={false} />
                 <Tooltip
                   contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", fontSize: 12 }}
-                  formatter={(v: number) => [v, "Nuevos pacientes"]}
+                  formatter={(v) => [v ?? 0, "Nuevos pacientes"]}
                 />
                 <Bar dataKey="nuevos" fill="var(--ht-accent)" radius={[4, 4, 0, 0]} />
               </BarChart>
