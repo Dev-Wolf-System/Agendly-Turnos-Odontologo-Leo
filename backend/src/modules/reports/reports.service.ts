@@ -490,44 +490,61 @@ export class ReportsService {
     desdeDate.setHours(0, 0, 0, 0);
     hastaDate.setHours(23, 59, 59, 999);
 
+    // Recolectar datos — cada sección es independiente para no abortar si una falla
     const [turnosData, pacientesData, clinica] = await Promise.all([
-      this.getTurnosReport(clinicaId, desde, hasta),
-      this.getPacientesReport(clinicaId),
-      this.clinicaRepository.findOne({ where: { id: clinicaId } }),
+      this.getTurnosReport(clinicaId, desde, hasta).catch(() => null),
+      this.getPacientesReport(clinicaId).catch(() => null),
+      this.clinicaRepository.findOne({ where: { id: clinicaId } }).catch(() => null),
     ]);
 
-    const pagosRaw = await this.pagoRepository
-      .createQueryBuilder('p')
-      .where('p.clinica_id = :clinicaId', { clinicaId })
-      .andWhere('p.created_at >= :desde', { desde: desdeDate })
-      .andWhere('p.created_at <= :hasta', { hasta: hastaDate })
-      .select(['p.total', 'p.estado', 'p.fuente_pago'])
-      .getMany();
+    let totalFacturado = 0;
+    let totalOS = 0;
+    try {
+      const pagosRaw = await this.pagoRepository
+        .createQueryBuilder('p')
+        .where('p.clinica_id = :clinicaId', { clinicaId })
+        .andWhere('p.created_at >= :desde', { desde: desdeDate })
+        .andWhere('p.created_at <= :hasta', { hasta: hastaDate })
+        .select(['p.total', 'p.estado', 'p.fuente_pago'])
+        .getMany();
 
-    const totalFacturado = pagosRaw
-      .filter(p => p.estado === EstadoPago.APROBADO)
-      .reduce((sum, p) => sum + Number(p.total), 0);
-    const totalOS = pagosRaw
-      .filter(p => p.estado === EstadoPago.APROBADO && p.fuente_pago === 'obra_social')
-      .reduce((sum, p) => sum + Number(p.total), 0);
+      totalFacturado = pagosRaw
+        .filter(p => p.estado === EstadoPago.APROBADO)
+        .reduce((sum, p) => sum + Number(p.total ?? 0), 0);
+      totalOS = pagosRaw
+        .filter(p => p.estado === EstadoPago.APROBADO && p.fuente_pago === 'obra_social')
+        .reduce((sum, p) => sum + Number(p.total ?? 0), 0);
+    } catch {
+      // sin datos de facturación — continúa con ceros
+    }
+
+    const turnosTotal = turnosData?.total ?? 0;
+    const profesionales = turnosData?.por_profesional ?? [];
+    const topProf = [...profesionales].sort((a, b) => b.total - a.total)[0];
+
+    const obrasSociales = pacientesData?.por_obra_social ?? [];
+    const conCobertura = obrasSociales
+      .filter(o => o.obra_social !== 'Sin cobertura')
+      .reduce((s, o) => s + o.total, 0);
+    const topOS = obrasSociales.slice(0, 3).map(o => `${o.obra_social} (${o.total})`).join(', ') || 'Sin datos';
 
     const datosSummary = `
 Clínica: ${clinica?.nombre || 'N/D'}
 Período analizado: ${desdeDate.toLocaleDateString('es-AR')} al ${hastaDate.toLocaleDateString('es-AR')}
 
 TURNOS:
-- Total: ${turnosData.total}
-- Completados: ${turnosData.por_estado['completado'] || 0}
-- Cancelados: ${turnosData.por_estado['cancelado'] || 0} (${turnosData.cancelaciones_pct}%)
-- Pendientes: ${turnosData.por_estado['pendiente'] || 0}
-- Profesionales activos: ${turnosData.por_profesional.length}
-- Más activo: ${turnosData.por_profesional.sort((a, b) => b.total - a.total)[0]?.nombre ?? 'N/D'} (${turnosData.por_profesional.sort((a, b) => b.total - a.total)[0]?.total ?? 0} turnos)
+- Total: ${turnosTotal}
+- Completados: ${turnosData?.por_estado?.['completado'] ?? 0}
+- Cancelados: ${turnosData?.por_estado?.['cancelado'] ?? 0} (${turnosData?.cancelaciones_pct ?? 0}%)
+- Pendientes: ${turnosData?.por_estado?.['pendiente'] ?? 0}
+- Profesionales activos: ${profesionales.length}
+${topProf ? `- Más activo: ${topProf.nombre} (${topProf.total} turnos)` : '- Sin profesionales registrados'}
 
 PACIENTES:
-- Total en sistema: ${pacientesData.total}
-- Nuevos este mes: ${pacientesData.nuevos_este_mes}
-- Con cobertura médica: ${pacientesData.por_obra_social.filter(o => o.obra_social !== 'Sin cobertura').reduce((s, o) => s + o.total, 0)}
-- Principales obras sociales: ${pacientesData.por_obra_social.slice(0, 3).map(o => `${o.obra_social} (${o.total})`).join(', ')}
+- Total en sistema: ${pacientesData?.total ?? 0}
+- Nuevos este período: ${pacientesData?.nuevos_este_mes ?? 0}
+- Con cobertura médica: ${conCobertura}
+- Principales coberturas: ${topOS}
 
 FACTURACIÓN:
 - Total cobrado: $${totalFacturado.toFixed(2)}
@@ -541,11 +558,14 @@ FACTURACIÓN:
         {
           role: 'system',
           content:
-            'Eres un asistente experto en gestión de clínicas y consultorios médicos. Analizás datos operativos y generás informes ejecutivos claros, en español argentino, orientados a ayudar al director o dueño de la clínica a tomar decisiones. Usás un tono profesional pero cercano. Estructurás el informe con secciones: Resumen ejecutivo, Análisis de turnos, Pacientes, Facturación, Observaciones y Recomendaciones. Usás markdown (##, **, listas con -) para el formato.',
+            'Eres un asistente experto en gestión de clínicas y consultorios médicos. Analizás datos operativos y generás informes ejecutivos claros, en español argentino. ' +
+            'IMPORTANTE: Generás el informe con los datos disponibles, sean pocos, muchos o ninguno. Si hay datos limitados o ceros, igual generás un informe útil indicando que el período tiene poca actividad registrada y ofrecés recomendaciones generales de gestión. ' +
+            'Nunca rechazás generar el informe por falta de datos. ' +
+            'Usás secciones: ## Resumen ejecutivo, ## Turnos, ## Pacientes, ## Facturación, ## Observaciones y recomendaciones. Usás markdown (##, **, listas con -).',
         },
         {
           role: 'user',
-          content: `Generá un informe de gestión clínica basándote en estos datos:\n\n${datosSummary}`,
+          content: `Generá un informe de gestión clínica basándote en estos datos del sistema:\n\n${datosSummary}`,
         },
       ],
       max_tokens: 1200,
