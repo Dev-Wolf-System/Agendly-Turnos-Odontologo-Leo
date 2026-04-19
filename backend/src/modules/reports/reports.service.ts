@@ -364,7 +364,8 @@ export class ReportsService {
       try {
         const imgBuf = await this.fetchImageBuffer(clinica.logo_url);
         const ext = clinica.logo_url.toLowerCase().includes('.png') ? 'png' : 'jpeg';
-        const imgId = wb.addImage({ buffer: Buffer.from(imgBuf), extension: ext });
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const imgId = wb.addImage({ buffer: imgBuf as any, extension: ext });
         ws.addImage(imgId, {
           tl: { col: 0.3, row: 1.2 } as never,
           br: { col: 1.8, row: 4.8 } as never,
