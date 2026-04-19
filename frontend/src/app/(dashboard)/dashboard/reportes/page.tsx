@@ -5,6 +5,7 @@ import reportsService, {
   TurnosReportData,
   PacientesReportData,
   InsightsData,
+  InformeIaData,
 } from "@/services/reports.service";
 import { RoleGuard } from "@/components/guards/role-guard";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -46,7 +47,12 @@ import {
   Activity,
   Lightbulb,
   Star,
+  Sparkles,
+  RefreshCw,
+  Copy,
+  FileText,
 } from "lucide-react";
+import ReactMarkdown from "react-markdown";
 
 type Rango = "este_mes" | "mes_anterior" | "3_meses" | "6_meses";
 
@@ -88,6 +94,9 @@ export default function ReportesPage() {
   const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
+  const [informeIa, setInformeIa] = useState<InformeIaData | null>(null);
+  const [generandoInforme, setGenerandoInforme] = useState(false);
+  const [descargandoPdf, setDescargandoPdf] = useState(false);
 
   const load = useCallback(async () => {
     setLoading(true);
@@ -111,6 +120,38 @@ export default function ReportesPage() {
   useEffect(() => {
     load();
   }, [load]);
+
+  const handleGenerarInforme = async () => {
+    setGenerandoInforme(true);
+    try {
+      const { desde, hasta } = getRango(rango);
+      const data = await reportsService.generarInformeIa({ desde, hasta });
+      setInformeIa(data);
+    } catch {
+      toast.error("Error al generar el informe IA");
+    } finally {
+      setGenerandoInforme(false);
+    }
+  };
+
+  const handleDescargarPdf = async () => {
+    if (!informeIa) return;
+    setDescargandoPdf(true);
+    try {
+      await reportsService.downloadInformePdf(informeIa.texto, informeIa.rango);
+      toast.success("PDF descargado");
+    } catch {
+      toast.error("Error al descargar el PDF");
+    } finally {
+      setDescargandoPdf(false);
+    }
+  };
+
+  const handleCopiarInforme = () => {
+    if (!informeIa) return;
+    navigator.clipboard.writeText(informeIa.texto);
+    toast.success("Informe copiado al portapapeles");
+  };
 
   const handleExport = async () => {
     setExporting(true);
@@ -369,6 +410,111 @@ export default function ReportesPage() {
             <Skeleton className="h-64 w-full rounded-xl" />
             <Skeleton className="h-48 w-full rounded-xl" />
           </div>
+        )}
+
+        {/* ── SECCIÓN INFORME IA ── */}
+        {!loading && (
+          <>
+            <div className="flex items-center gap-3 pt-2">
+              <div className="h-px flex-1 bg-border" />
+              <div className="flex items-center gap-1.5 rounded-full bg-violet-500/10 px-3 py-1">
+                <Sparkles className="h-3.5 w-3.5 text-violet-600" />
+                <span className="text-xs font-semibold text-violet-600 uppercase tracking-wide">Informe IA</span>
+              </div>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              {/* Header de la card */}
+              <div className="flex items-start justify-between gap-4 p-5 border-b">
+                <div className="flex items-start gap-3">
+                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10">
+                    <Sparkles className="h-5 w-5 text-violet-600" />
+                  </div>
+                  <div>
+                    <h3 className="text-sm font-semibold">Informe narrativo generado por IA</h3>
+                    <p className="text-xs text-muted-foreground mt-0.5">
+                      GPT-4o analiza los datos del período y genera un resumen ejecutivo con observaciones y recomendaciones.
+                    </p>
+                  </div>
+                </div>
+                <Button
+                  onClick={handleGenerarInforme}
+                  disabled={generandoInforme}
+                  className="shrink-0 rounded-xl gap-2 bg-violet-600 hover:bg-violet-700 text-white"
+                  size="sm"
+                >
+                  {generandoInforme ? (
+                    <>
+                      <RefreshCw className="h-4 w-4 animate-spin" />
+                      Generando...
+                    </>
+                  ) : (
+                    <>
+                      <Sparkles className="h-4 w-4" />
+                      {informeIa ? "Regenerar" : "Generar informe"}
+                    </>
+                  )}
+                </Button>
+              </div>
+
+              {/* Contenido */}
+              {generandoInforme && (
+                <div className="p-6 space-y-3">
+                  <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                    <RefreshCw className="h-4 w-4 animate-spin text-violet-500" />
+                    <span>Analizando datos y redactando informe... (puede tardar 10-20 segundos)</span>
+                  </div>
+                  <div className="space-y-2">
+                    <Skeleton className="h-4 w-full" />
+                    <Skeleton className="h-4 w-5/6" />
+                    <Skeleton className="h-4 w-4/6" />
+                    <Skeleton className="h-4 w-full mt-4" />
+                    <Skeleton className="h-4 w-3/4" />
+                  </div>
+                </div>
+              )}
+
+              {!generandoInforme && informeIa && (
+                <>
+                  <div className="p-6 prose prose-sm max-w-none dark:prose-invert
+                    prose-headings:text-foreground prose-headings:font-semibold
+                    prose-p:text-muted-foreground prose-li:text-muted-foreground
+                    prose-strong:text-foreground prose-h2:text-base prose-h3:text-sm">
+                    <ReactMarkdown>{informeIa.texto}</ReactMarkdown>
+                  </div>
+                  <div className="flex items-center justify-end gap-2 px-5 py-3 border-t bg-muted/30">
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl gap-2"
+                      onClick={handleCopiarInforme}
+                    >
+                      <Copy className="h-3.5 w-3.5" />
+                      Copiar
+                    </Button>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      className="rounded-xl gap-2"
+                      onClick={handleDescargarPdf}
+                      disabled={descargandoPdf}
+                    >
+                      <FileText className="h-3.5 w-3.5" />
+                      {descargandoPdf ? "Descargando..." : "Descargar PDF"}
+                    </Button>
+                  </div>
+                </>
+              )}
+
+              {!generandoInforme && !informeIa && (
+                <div className="flex flex-col items-center justify-center gap-3 py-12 text-center text-muted-foreground">
+                  <Sparkles className="h-8 w-8 opacity-30" />
+                  <p className="text-sm">Hacé clic en "Generar informe" para obtener un análisis ejecutivo del período seleccionado.</p>
+                </div>
+              )}
+            </div>
+          </>
         )}
 
         {/* ── SECCIÓN INSIGHTS ── */}

@@ -22,6 +22,11 @@ export interface TurnosReportData {
   rango: { desde: string; hasta: string };
 }
 
+export interface InformeIaData {
+  texto: string;
+  rango: { desde: string; hasta: string };
+}
+
 export interface PacientesReportData {
   total: number;
   nuevos_este_mes: number;
@@ -72,6 +77,9 @@ const reportsService = {
     a.click();
     URL.revokeObjectURL(url);
   },
+
+  generarInformeIa: (params?: { desde?: string; hasta?: string }) =>
+    api.post<InformeIaData>("/reports/informe-ia", null, { params }).then((r) => r.data),
 
   downloadInformePdf: async (
     texto: string,

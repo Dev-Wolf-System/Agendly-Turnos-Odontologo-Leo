@@ -1,9 +1,11 @@
 import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
 import * as ExcelJS from 'exceljs';
 import * as https from 'https';
 import * as http from 'http';
+import OpenAI from 'openai';
 import PDFDocument = require('pdfkit');
 import { Turno } from '../turnos/entities/turno.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
@@ -12,6 +14,8 @@ import { Clinica } from '../clinicas/entities/clinica.entity';
 
 @Injectable()
 export class ReportsService {
+  private openai: OpenAI;
+
   constructor(
     @InjectRepository(Turno)
     private readonly turnoRepository: Repository<Turno>,
@@ -21,7 +25,10 @@ export class ReportsService {
     private readonly pagoRepository: Repository<Pago>,
     @InjectRepository(Clinica)
     private readonly clinicaRepository: Repository<Clinica>,
-  ) {}
+    private readonly configService: ConfigService,
+  ) {
+    this.openai = new OpenAI({ apiKey: this.configService.get<string>('OPENAI_API_KEY') });
+  }
 
   async getTurnosReport(
     clinicaId: string,
@@ -462,6 +469,89 @@ export class ReportsService {
     pieRow.getCell(1).alignment = { horizontal: 'center' };
 
     return Buffer.from(await wb.xlsx.writeBuffer());
+  }
+
+  async generarInformeIa(
+    clinicaId: string,
+    desde?: string,
+    hasta?: string,
+  ): Promise<{ texto: string; rango: { desde: string; hasta: string } }> {
+    const desdeDate = desde ? new Date(desde) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const hastaDate = hasta ? new Date(hasta) : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
+    desdeDate.setHours(0, 0, 0, 0);
+    hastaDate.setHours(23, 59, 59, 999);
+
+    const [turnosData, pacientesData, clinica] = await Promise.all([
+      this.getTurnosReport(clinicaId, desde, hasta),
+      this.getPacientesReport(clinicaId),
+      this.clinicaRepository.findOne({ where: { id: clinicaId } }),
+    ]);
+
+    const pagosRaw = await this.pagoRepository
+      .createQueryBuilder('p')
+      .where('p.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('p.created_at >= :desde', { desde: desdeDate })
+      .andWhere('p.created_at <= :hasta', { hasta: hastaDate })
+      .select(['p.monto', 'p.estado', 'p.fuente_pago'])
+      .getMany();
+
+    const totalFacturado = pagosRaw
+      .filter(p => p.estado === 'completado')
+      .reduce((sum, p) => sum + Number(p.monto), 0);
+    const totalOS = pagosRaw
+      .filter(p => p.estado === 'completado' && p.fuente_pago === 'obra_social')
+      .reduce((sum, p) => sum + Number(p.monto), 0);
+
+    const datosSummary = `
+Clínica: ${clinica?.nombre || 'N/D'}
+Período analizado: ${desdeDate.toLocaleDateString('es-AR')} al ${hastaDate.toLocaleDateString('es-AR')}
+
+TURNOS:
+- Total: ${turnosData.total}
+- Completados: ${turnosData.por_estado['completado'] || 0}
+- Cancelados: ${turnosData.por_estado['cancelado'] || 0} (${turnosData.cancelaciones_pct}%)
+- Pendientes: ${turnosData.por_estado['pendiente'] || 0}
+- Profesionales activos: ${turnosData.por_profesional.length}
+- Más activo: ${turnosData.por_profesional.sort((a, b) => b.total - a.total)[0]?.nombre ?? 'N/D'} (${turnosData.por_profesional.sort((a, b) => b.total - a.total)[0]?.total ?? 0} turnos)
+
+PACIENTES:
+- Total en sistema: ${pacientesData.total}
+- Nuevos este mes: ${pacientesData.nuevos_este_mes}
+- Con cobertura médica: ${pacientesData.por_obra_social.filter(o => o.obra_social !== 'Sin cobertura').reduce((s, o) => s + o.total, 0)}
+- Principales obras sociales: ${pacientesData.por_obra_social.slice(0, 3).map(o => `${o.obra_social} (${o.total})`).join(', ')}
+
+FACTURACIÓN:
+- Total cobrado: $${totalFacturado.toFixed(2)}
+- Por obra social: $${totalOS.toFixed(2)} (${totalFacturado > 0 ? Math.round((totalOS / totalFacturado) * 100) : 0}%)
+- Particular: $${(totalFacturado - totalOS).toFixed(2)}
+`.trim();
+
+    const completion = await this.openai.chat.completions.create({
+      model: 'gpt-4o-mini',
+      messages: [
+        {
+          role: 'system',
+          content:
+            'Eres un asistente experto en gestión de clínicas y consultorios médicos. Analizás datos operativos y generás informes ejecutivos claros, en español argentino, orientados a ayudar al director o dueño de la clínica a tomar decisiones. Usás un tono profesional pero cercano. Estructurás el informe con secciones: Resumen ejecutivo, Análisis de turnos, Pacientes, Facturación, Observaciones y Recomendaciones. Usás markdown (##, **, listas con -) para el formato.',
+        },
+        {
+          role: 'user',
+          content: `Generá un informe de gestión clínica basándote en estos datos:\n\n${datosSummary}`,
+        },
+      ],
+      max_tokens: 1200,
+      temperature: 0.6,
+    });
+
+    const texto = completion.choices[0]?.message?.content ?? 'No se pudo generar el informe.';
+
+    return {
+      texto,
+      rango: {
+        desde: desdeDate.toISOString().split('T')[0],
+        hasta: hastaDate.toISOString().split('T')[0],
+      },
+    };
   }
 
   async getInformeIaPdf(
