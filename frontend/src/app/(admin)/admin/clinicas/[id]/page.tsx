@@ -174,7 +174,7 @@ export default function AdminClinicaDetailPage() {
         webhook_url: mpForm.webhook_url || undefined,
       });
       setMpConfigured(true);
-      setMpForm({ access_token: "", public_key: "" });
+      setMpForm((p) => ({ ...p, access_token: "", public_key: "" }));
     } catch (err: any) {
       setMpError(err?.response?.data?.message || "Error al guardar");
     } finally {
