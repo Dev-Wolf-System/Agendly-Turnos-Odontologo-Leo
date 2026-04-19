@@ -484,7 +484,7 @@ export class ReportsService {
     clinicaId: string,
     desde?: string,
     hasta?: string,
-  ): Promise<{ texto: string; rango: { desde: string; hasta: string } }> {
+  ): Promise<{ texto: string; rango: { desde: string; hasta: string }; kpis: Record<string, unknown> }> {
     const desdeDate = desde ? new Date(desde) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const hastaDate = hasta ? new Date(hasta) : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
     desdeDate.setHours(0, 0, 0, 0);
@@ -653,7 +653,7 @@ FACTURACIÓN:
 
       const nombreClinica = clinica?.nombre?.toUpperCase() || 'CLÍNICA';
       doc.fillColor('white').fontSize(18).font('Helvetica-Bold').text(nombreClinica, 0, 20, { align: 'center', width: W });
-      const subInfo = [clinica?.direccion, clinica?.email, clinica?.telefono].filter(Boolean).join('  ·  ');
+      const subInfo = [clinica?.direccion, clinica?.email, clinica?.cel].filter(Boolean).join('  ·  ');
       if (subInfo) {
         doc.fillColor('#CBD5E1').fontSize(9).font('Helvetica').text(subInfo, 0, 46, { align: 'center', width: W });
       }
