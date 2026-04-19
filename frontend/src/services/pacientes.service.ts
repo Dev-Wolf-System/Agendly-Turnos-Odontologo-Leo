@@ -28,6 +28,9 @@ export interface Paciente {
   cel: string | null;
   email: string | null;
   fecha_nacimiento: string | null;
+  obra_social: string | null;
+  nro_afiliado: string | null;
+  plan_os: string | null;
   created_at: string;
 }
 
@@ -38,6 +41,9 @@ export interface CreatePacientePayload {
   cel?: string;
   email?: string;
   fecha_nacimiento?: string;
+  obra_social?: string;
+  nro_afiliado?: string;
+  plan_os?: string;
 }
 
 export interface UpdatePacientePayload {
@@ -47,6 +53,9 @@ export interface UpdatePacientePayload {
   cel?: string;
   email?: string;
   fecha_nacimiento?: string;
+  obra_social?: string;
+  nro_afiliado?: string;
+  plan_os?: string;
 }
 
 export interface FichaTurno {

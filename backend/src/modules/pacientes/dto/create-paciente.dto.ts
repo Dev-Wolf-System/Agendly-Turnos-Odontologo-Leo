@@ -27,4 +27,16 @@ export class CreatePacienteDto {
   @IsString()
   @IsOptional()
   fecha_nacimiento?: string;
+
+  @IsString()
+  @IsOptional()
+  obra_social?: string;
+
+  @IsString()
+  @IsOptional()
+  nro_afiliado?: string;
+
+  @IsString()
+  @IsOptional()
+  plan_os?: string;
 }

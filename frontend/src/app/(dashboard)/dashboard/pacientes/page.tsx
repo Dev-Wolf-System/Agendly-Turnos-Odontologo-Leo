@@ -100,6 +100,9 @@ export default function PacientesPage() {
     cel: "",
     email: "",
     fecha_nacimiento: "",
+    obra_social: "",
+    nro_afiliado: "",
+    plan_os: "",
   });
 
   const loadPacientes = useCallback(async () => {
@@ -129,7 +132,7 @@ export default function PacientesPage() {
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ dni: "", nombre: "", apellido: "", cel: "", email: "", fecha_nacimiento: "" });
+    setForm({ dni: "", nombre: "", apellido: "", cel: "", email: "", fecha_nacimiento: "", obra_social: "", nro_afiliado: "", plan_os: "" });
     setDialogOpen(true);
   };
 
@@ -142,6 +145,9 @@ export default function PacientesPage() {
       cel: paciente.cel || "",
       email: paciente.email || "",
       fecha_nacimiento: paciente.fecha_nacimiento || "",
+      obra_social: paciente.obra_social || "",
+      nro_afiliado: paciente.nro_afiliado || "",
+      plan_os: paciente.plan_os || "",
     });
     setDialogOpen(true);
   };
@@ -163,6 +169,9 @@ export default function PacientesPage() {
           cel: form.cel || undefined,
           email: form.email || undefined,
           fecha_nacimiento: form.fecha_nacimiento || undefined,
+          obra_social: form.obra_social || undefined,
+          nro_afiliado: form.nro_afiliado || undefined,
+          plan_os: form.plan_os || undefined,
         });
         toast.success("Paciente actualizado");
       } else {
@@ -174,6 +183,9 @@ export default function PacientesPage() {
         if (form.cel) payload.cel = form.cel;
         if (form.email) payload.email = form.email;
         if (form.fecha_nacimiento) payload.fecha_nacimiento = form.fecha_nacimiento;
+        if (form.obra_social) payload.obra_social = form.obra_social;
+        if (form.nro_afiliado) payload.nro_afiliado = form.nro_afiliado;
+        if (form.plan_os) payload.plan_os = form.plan_os;
         await pacientesService.create(payload);
         toast.success("Paciente creado");
       }
@@ -493,7 +505,7 @@ export default function PacientesPage() {
 
       {/* Dialog Crear/Editar */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent className="sm:max-w-[425px]">
+        <DialogContent className="sm:max-w-[500px]">
           <DialogHeader>
             <DialogTitle>
               {editing ? "Editar Paciente" : "Nuevo Paciente"}
@@ -569,6 +581,43 @@ export default function PacientesPage() {
                 placeholder="paciente@email.com"
               />
             </div>
+
+            {/* Cobertura Médica */}
+            <div className="pt-2">
+              <p className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-3">Cobertura Médica</p>
+              <div className="space-y-3">
+                <div className="space-y-2">
+                  <Label htmlFor="obra_social">Obra Social / Prepaga</Label>
+                  <Input
+                    id="obra_social"
+                    value={form.obra_social}
+                    onChange={(e) => setForm({ ...form, obra_social: e.target.value })}
+                    placeholder="OSDE, Swiss Medical, etc."
+                  />
+                </div>
+                <div className="grid grid-cols-2 gap-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="nro_afiliado">Nro. Afiliado</Label>
+                    <Input
+                      id="nro_afiliado"
+                      value={form.nro_afiliado}
+                      onChange={(e) => setForm({ ...form, nro_afiliado: e.target.value })}
+                      placeholder="123456789"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="plan_os">Plan</Label>
+                    <Input
+                      id="plan_os"
+                      value={form.plan_os}
+                      onChange={(e) => setForm({ ...form, plan_os: e.target.value })}
+                      placeholder="310 / Preferred / etc."
+                    />
+                  </div>
+                </div>
+              </div>
+            </div>
+
             <DialogFooter>
               <Button
                 type="button"

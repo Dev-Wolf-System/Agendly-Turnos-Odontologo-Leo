@@ -313,6 +313,18 @@ export default function FichaPacientePage() {
                         {paciente.email}
                       </span>
                     )}
+                    {paciente.obra_social && (
+                      <span className="flex items-center gap-1.5">
+                        <CreditCard className="h-3.5 w-3.5" />
+                        {paciente.obra_social}
+                        {paciente.nro_afiliado && (
+                          <span className="text-xs text-muted-foreground/70">#{paciente.nro_afiliado}</span>
+                        )}
+                        {paciente.plan_os && (
+                          <span className="text-xs text-muted-foreground/70">· {paciente.plan_os}</span>
+                        )}
+                      </span>
+                    )}
                   </div>
                 </div>
 

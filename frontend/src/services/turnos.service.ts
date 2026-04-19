@@ -44,6 +44,9 @@ export interface Turno {
     apellido: string;
     dni: string;
     cel: string | null;
+    obra_social: string | null;
+    nro_afiliado: string | null;
+    plan_os: string | null;
   };
   user?: {
     id: string;

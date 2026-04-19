@@ -25,6 +25,15 @@ export class Paciente extends TenantBaseEntity {
   @Column({ type: 'date', nullable: true })
   fecha_nacimiento: string;
 
+  @Column({ type: 'text', nullable: true })
+  obra_social: string;
+
+  @Column({ type: 'text', nullable: true })
+  nro_afiliado: string;
+
+  @Column({ type: 'text', nullable: true })
+  plan_os: string;
+
   @ManyToOne(() => Clinica, (clinica) => clinica.pacientes)
   @JoinColumn({ name: 'clinica_id' })
   clinica: Clinica;
