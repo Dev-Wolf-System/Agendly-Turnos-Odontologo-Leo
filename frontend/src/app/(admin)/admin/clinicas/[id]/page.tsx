@@ -59,7 +59,7 @@ export default function AdminClinicaDetailPage() {
 
   // Mercado Pago state
   const [mpConfigured, setMpConfigured] = useState(false);
-  const [mpForm, setMpForm] = useState({ access_token: "", public_key: "" });
+  const [mpForm, setMpForm] = useState({ access_token: "", public_key: "", webhook_url: "" });
   const [isSavingMp, setIsSavingMp] = useState(false);
   const [mpError, setMpError] = useState("");
 
@@ -80,7 +80,10 @@ export default function AdminClinicaDetailPage() {
       .finally(() => setLoading(false));
 
     api.get(`/admin/clinicas/${id}/mp`)
-      .then((res) => setMpConfigured(res.data.configurado ?? false))
+      .then((res) => {
+        setMpConfigured(res.data.configurado ?? false);
+        setMpForm((p) => ({ ...p, webhook_url: res.data.webhook_url ?? "" }));
+      })
       .catch(() => setMpConfigured(false));
   };
 
@@ -168,6 +171,7 @@ export default function AdminClinicaDetailPage() {
       await api.put(`/admin/clinicas/${id}/mp`, {
         access_token: mpForm.access_token,
         public_key: mpForm.public_key || undefined,
+        webhook_url: mpForm.webhook_url || undefined,
       });
       setMpConfigured(true);
       setMpForm({ access_token: "", public_key: "" });
@@ -548,6 +552,17 @@ export default function AdminClinicaDetailPage() {
                   placeholder="APP_USR-..."
                   className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-[var(--ht-primary)]/20 transition-all"
                 />
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">URL Webhook link de pago <span className="opacity-60">(opcional)</span></label>
+                <input
+                  type="text"
+                  value={mpForm.webhook_url}
+                  onChange={(e) => setMpForm((p) => ({ ...p, webhook_url: e.target.value }))}
+                  placeholder="https://n8n.tudominio.com/webhook/..."
+                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-[var(--ht-primary)]/20 transition-all"
+                />
+                <p className="text-[11px] text-muted-foreground">La clínica podrá activar/desactivar el envío desde su panel, pero no modificar la URL.</p>
               </div>
             </div>
 

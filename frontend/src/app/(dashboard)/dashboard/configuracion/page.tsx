@@ -2277,17 +2277,14 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
   const [status, setStatus] = useState<ClinicaMpStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({ webhook_url: "", webhook_activo: false });
+  const [form, setForm] = useState({ webhook_activo: false });
 
   const loadStatus = useCallback(async () => {
     try {
       const data = await clinicaMpService.getStatus();
       setStatus(data);
       if (data.configurado) {
-        setForm({
-          webhook_url: data.webhook_url ?? "",
-          webhook_activo: data.webhook_activo ?? false,
-        });
+        setForm({ webhook_activo: data.webhook_activo ?? false });
       }
     } catch {
       // silently fail
@@ -2306,7 +2303,6 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
     setSaving(true);
     try {
       await clinicaMpService.updateWebhook({
-        webhook_url: form.webhook_url || undefined,
         webhook_activo: form.webhook_activo,
       });
       toast.success("Configuración de pagos guardada");
@@ -2351,18 +2347,15 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
         <div>
           <p className="text-sm font-medium">Webhook de link de pago</p>
           <p className="text-xs text-muted-foreground mt-0.5">
-            Cuando el agente genere un link de pago, lo enviará a esta URL (ej: workflow de n8n que lo manda por WhatsApp).
+            Cuando el agente genere un link de pago, lo enviará automáticamente al webhook configurado por el equipo de Avax Health.
           </p>
         </div>
 
-        <div className="space-y-1.5">
-          <Label>URL del Webhook</Label>
-          <Input
-            placeholder="https://n8n.tudominio.com/webhook/..."
-            value={form.webhook_url}
-            onChange={(e) => setForm((p) => ({ ...p, webhook_url: e.target.value }))}
-          />
-        </div>
+        {status?.configurado && !status?.webhook_url && (
+          <p className="text-xs text-amber-600 dark:text-amber-400">
+            El equipo de Avax Health aún no configuró la URL del webhook para tu clínica.
+          </p>
+        )}
 
         <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
           <div>
@@ -2372,7 +2365,7 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
           <Switch
             checked={form.webhook_activo}
             onCheckedChange={(v) => setForm((p) => ({ ...p, webhook_activo: v }))}
-            disabled={!form.webhook_url && !status?.webhook_url}
+            disabled={!status?.webhook_url}
           />
         </div>
       </div>
