@@ -633,30 +633,58 @@ FACTURACIÓN:
       totalOS = pagosRaw.filter(p => p.estado === EstadoPago.APROBADO && p.fuente_pago === 'obra_social').reduce((s, p) => s + Number(p.total ?? 0), 0);
     } catch { /* sin datos de facturación */ }
 
-    const NAVY = '#1E3A5F';
-    const VIOLET = '#6D28D9';
-    const LIGHT_BG = '#F8F9FC';
-    const W = 595.28;
-    const MARGIN = 45;
-    const CONTENT_W = W - MARGIN * 2;
+    const PRIMARY      = '#0EA5E9';
+    const PRIMARY_DARK = '#0369A1';
+    const ACCENT       = '#10B981';
+    const DANGER       = '#EF4444';
+    const WARNING      = '#F59E0B';
+    const INFO         = '#3B82F6';
+    const GRAY_50      = '#F8FAFC';
+    const GRAY_TEXT    = '#475569';
+    const GRAY_LIGHT   = '#94A3B8';
+    const DARK_TEXT    = '#0F172A';
+    const W            = 595.28;
+    const MARGIN       = 40;
+    const CW           = W - MARGIN * 2;
 
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
-      const doc = new PDFDocument({ margin: MARGIN, size: 'A4', autoFirstPage: true });
+      const doc = new PDFDocument({ margin: 0, size: 'A4', autoFirstPage: true });
       doc.on('data', (chunk: Buffer) => chunks.push(chunk));
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      // ── ENCABEZADO ──
-      doc.rect(0, 0, W, 80).fill(NAVY);
-      doc.rect(0, 80, W, 6).fill(VIOLET);
+      const checkPage = (needed = 60) => {
+        if (doc.y > 842 - needed - 40) { doc.addPage(); doc.y = MARGIN; }
+      };
 
-      const nombreClinica = clinica?.nombre?.toUpperCase() || 'CLÍNICA';
-      doc.fillColor('white').fontSize(18).font('Helvetica-Bold').text(nombreClinica, 0, 20, { align: 'center', width: W });
-      const subInfo = [clinica?.direccion, clinica?.email, clinica?.cel].filter(Boolean).join('  ·  ');
-      if (subInfo) {
-        doc.fillColor('#CBD5E1').fontSize(9).font('Helvetica').text(subInfo, 0, 46, { align: 'center', width: W });
+      // ─── BANNER ────────────────────────────────────────────────────
+      const BH = 90;
+      doc.rect(0, 0, W, BH).fill(PRIMARY_DARK);
+      doc.rect(0, BH, W, 3).fill(ACCENT);
+
+      doc.fillColor('#B0CEDE').fontSize(7.5).font('Helvetica')
+        .text('INFORME DE GESTIÓN CLÍNICA  ·  AVAX HEALTH', MARGIN, 13, { width: CW - 120 });
+
+      const clinicName = clinica?.nombre || 'Clínica';
+      doc.fillColor('white').fontSize(20).font('Helvetica-Bold')
+        .text(clinicName, MARGIN, 26, { width: CW - 120 });
+
+      const contact = [clinica?.direccion, clinica?.email].filter(Boolean).join('  ·  ');
+      if (contact) {
+        doc.fillColor('#8EC8E8').fontSize(7.5).font('Helvetica')
+          .text(contact, MARGIN, 54, { width: CW - 120 });
       }
+
+      // Period badge
+      doc.rect(W - MARGIN - 108, 16, 106, 60).fill('#1060A0');
+      doc.circle(W - MARGIN - 96, 30, 4).fill(ACCENT);
+      doc.fillColor('white').fontSize(8).font('Helvetica-Bold')
+        .text('ACTIVO', W - MARGIN - 88, 26, { width: 82 });
+      doc.fillColor('#A8D8F0').fontSize(8).font('Helvetica')
+        .text(`${rango.desde || ''}  →  ${rango.hasta || ''}`, W - MARGIN - 88, 39, { width: 82 });
+
+      doc.y = BH + 3 + 20;
 
       // ── TÍTULO ──
       doc.moveDown(2.5);

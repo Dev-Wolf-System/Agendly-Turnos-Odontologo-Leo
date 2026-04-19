@@ -475,13 +475,36 @@ export default function ReportesPage() {
               {!generandoInforme && informeIa && (
                 <>
                   <InformeKpis kpis={informeIa.kpis} />
-                  <div className="px-6 pb-2 pt-4 prose prose-sm max-w-none dark:prose-invert
-                    prose-headings:text-foreground prose-headings:font-semibold
-                    prose-p:text-muted-foreground prose-li:text-muted-foreground
-                    prose-strong:text-foreground prose-h2:text-sm prose-h2:uppercase
-                    prose-h2:tracking-wide prose-h2:text-violet-700 dark:prose-h2:text-violet-400
-                    prose-h3:text-sm prose-h3:text-foreground">
-                    <ReactMarkdown>{informeIa.texto}</ReactMarkdown>
+                  <div className="px-6 pb-2 pt-4">
+                    <ReactMarkdown
+                      components={{
+                        h2: ({ children }) => (
+                          <h2 className="text-xs font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-400 mt-6 mb-2 pb-1 border-b border-border first:mt-0">
+                            {children}
+                          </h2>
+                        ),
+                        h3: ({ children }) => (
+                          <h3 className="text-sm font-semibold text-foreground mt-3 mb-1.5">{children}</h3>
+                        ),
+                        p: ({ children }) => (
+                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">{children}</p>
+                        ),
+                        ul: ({ children }) => (
+                          <ul className="space-y-1.5 mb-3 ml-1">{children}</ul>
+                        ),
+                        li: ({ children }) => (
+                          <li className="flex gap-2 text-sm text-muted-foreground">
+                            <span className="text-violet-500 shrink-0 mt-0.5">•</span>
+                            <span>{children}</span>
+                          </li>
+                        ),
+                        strong: ({ children }) => (
+                          <strong className="font-semibold text-foreground">{children}</strong>
+                        ),
+                      }}
+                    >
+                      {informeIa.texto}
+                    </ReactMarkdown>
                   </div>
                   <div className="flex items-center justify-end gap-2 px-5 py-3 border-t bg-muted/30">
                     <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={handleCopiarInforme}>
