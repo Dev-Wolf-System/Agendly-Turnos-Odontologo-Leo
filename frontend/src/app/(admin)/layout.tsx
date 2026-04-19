@@ -234,7 +234,7 @@ function AdminContent({ children }: { children: React.ReactNode }) {
       {/* Main content */}
       <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
         {/* Header */}
-        <header className="flex h-16 items-center justify-between border-b border-[var(--border-light)] px-4 sm:px-8 shrink-0 bg-white/80 dark:bg-[#0F172A]/80 backdrop-blur-xl">
+        <header className="flex h-16 items-center justify-between border-b border-[var(--border-light)] px-4 sm:px-8 shrink-0 bg-[var(--background)]">
           <div className="flex items-center gap-4">
             <button
               onClick={() => setMobileOpen(true)}

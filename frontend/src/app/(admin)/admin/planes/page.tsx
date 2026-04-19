@@ -346,17 +346,18 @@ export default function AdminPlanesPage() {
         </div>
       )}
 
-      {/* ── Slide-over panel ── */}
+      {/* ── Modal centrado ── */}
       {showPanel && (
         <>
           {/* Backdrop */}
           <div
-            className="fixed inset-0 z-40 bg-black/55 animate-in fade-in duration-200"
+            className="fixed inset-0 z-40 bg-black/60 animate-in fade-in duration-200"
             onClick={closePanel}
           />
 
-          {/* Panel */}
-          <div className="fixed inset-y-0 right-0 z-50 flex w-full max-w-[520px] flex-col bg-[var(--background)] shadow-2xl border-l border-[var(--border-light)] animate-in slide-in-from-right duration-300">
+          {/* Modal */}
+          <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+          <div className="flex w-full max-w-[560px] max-h-[90vh] flex-col bg-[var(--background)] rounded-2xl shadow-2xl border border-[var(--border-light)] animate-in zoom-in-95 fade-in duration-200">
             {/* Header */}
             <div className="flex items-center justify-between border-b border-[var(--border-light)] bg-[var(--muted)]/30 px-6 py-4 shrink-0">
               <div className="flex items-center gap-2.5">
@@ -569,6 +570,7 @@ export default function AdminPlanesPage() {
                 </button>
               </div>
             </form>
+          </div>
           </div>
         </>
       )}

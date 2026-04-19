@@ -35,6 +35,15 @@ export class ReportsController {
     res.send('\uFEFF' + csv);
   }
 
+  @Get('insights')
+  getInsights(
+    @CurrentClinica() clinicaId: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
+    return this.reportsService.getInsights(clinicaId, desde, hasta);
+  }
+
   @Get('turnos/xlsx')
   async getTurnosXlsx(
     @CurrentClinica() clinicaId: string,

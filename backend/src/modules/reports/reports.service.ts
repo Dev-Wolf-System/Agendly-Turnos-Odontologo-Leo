@@ -212,6 +212,72 @@ export class ReportsService {
     return { total, nuevos_este_mes, por_obra_social, nuevos_por_mes };
   }
 
+  async getInsights(clinicaId: string, desde?: string, hasta?: string) {
+    const desdeDate = desde ? new Date(desde) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const hastaDate = hasta ? new Date(hasta) : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
+    desdeDate.setHours(0, 0, 0, 0);
+    hastaDate.setHours(23, 59, 59, 999);
+
+    const turnos = await this.turnoRepository
+      .createQueryBuilder('t')
+      .leftJoin('t.user', 'u')
+      .leftJoin('t.paciente', 'p')
+      .where('t.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('t.start_time >= :desde', { desde: desdeDate })
+      .andWhere('t.start_time <= :hasta', { hasta: hastaDate })
+      .select(['t.id', 't.estado', 't.start_time', 't.user_id', 'p.id', 'u.nombre', 'u.apellido'])
+      .getMany();
+
+    const DIAS = ['Domingo', 'Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes', 'Sábado'];
+    const porDia: Record<number, number> = {};
+    const porHora: Record<number, number> = {};
+    const pacientesConTurno = new Map<string, number>();
+
+    for (const t of turnos) {
+      const dia = t.start_time.getDay();
+      const hora = t.start_time.getHours();
+      porDia[dia] = (porDia[dia] || 0) + 1;
+      porHora[hora] = (porHora[hora] || 0) + 1;
+      if (t.paciente?.id) {
+        pacientesConTurno.set(t.paciente.id, (pacientesConTurno.get(t.paciente.id) || 0) + 1);
+      }
+    }
+
+    const distribucion_por_dia = DIAS.map((nombre, idx) => ({ dia: nombre, total: porDia[idx] || 0 }));
+
+    const distribucion_por_hora = Array.from({ length: 10 }, (_, i) => {
+      const h = i + 8;
+      return { hora: `${h}:00`, total: porHora[h] || 0 };
+    });
+
+    const dia_pico = distribucion_por_dia.reduce((max, d) => d.total > max.total ? d : max, { dia: '', total: 0 });
+    const hora_pico_entry = distribucion_por_hora.reduce((max, h) => h.total > max.total ? h : max, { hora: '', total: 0 });
+
+    const pacientesRecurrentes = [...pacientesConTurno.values()].filter(c => c > 1).length;
+    const totalPacientesUnicos = pacientesConTurno.size;
+    const tasa_retencion = totalPacientesUnicos > 0 ? Math.round((pacientesRecurrentes / totalPacientesUnicos) * 100) : 0;
+
+    const diasHabiles = Math.max(1, Math.ceil((hastaDate.getTime() - desdeDate.getTime()) / (1000 * 60 * 60 * 24 * 7 / 5)));
+    const promedio_turnos_dia = parseFloat((turnos.length / diasHabiles).toFixed(1));
+
+    const completados = turnos.filter(t => t.estado === 'completado').length;
+    const cancelados = turnos.filter(t => t.estado === 'cancelado').length;
+    const tasa_completados = turnos.length > 0 ? Math.round((completados / turnos.length) * 100) : 0;
+
+    return {
+      distribucion_por_dia,
+      distribucion_por_hora,
+      dia_pico: dia_pico.dia,
+      hora_pico: hora_pico_entry.hora,
+      tasa_retencion,
+      promedio_turnos_dia,
+      tasa_completados,
+      cancelados_total: cancelados,
+      pacientes_unicos: totalPacientesUnicos,
+      pacientes_recurrentes: pacientesRecurrentes,
+    };
+  }
+
   async getTurnosXlsx(
     clinicaId: string,
     desde?: string,

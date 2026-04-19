@@ -4,6 +4,7 @@ import { useCallback, useEffect, useState } from "react";
 import reportsService, {
   TurnosReportData,
   PacientesReportData,
+  InsightsData,
 } from "@/services/reports.service";
 import { RoleGuard } from "@/components/guards/role-guard";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -25,6 +26,10 @@ import {
   CartesianGrid,
   Tooltip,
   ResponsiveContainer,
+  LineChart,
+  Line,
+  Area,
+  AreaChart,
 } from "recharts";
 import {
   Calendar,
@@ -36,6 +41,11 @@ import {
   BarChart2,
   UserCheck,
   Heart,
+  Clock,
+  Repeat2,
+  Activity,
+  Lightbulb,
+  Star,
 } from "lucide-react";
 
 type Rango = "este_mes" | "mes_anterior" | "3_meses" | "6_meses";
@@ -75,6 +85,7 @@ export default function ReportesPage() {
   const [rango, setRango] = useState<Rango>("este_mes");
   const [turnosData, setTurnosData] = useState<TurnosReportData | null>(null);
   const [pacientesData, setPacientesData] = useState<PacientesReportData | null>(null);
+  const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
 
@@ -82,12 +93,14 @@ export default function ReportesPage() {
     setLoading(true);
     try {
       const { desde, hasta } = getRango(rango);
-      const [turnos, pacientes] = await Promise.all([
+      const [turnos, pacientes, insights] = await Promise.all([
         reportsService.getTurnos({ desde, hasta }),
         reportsService.getPacientes(),
+        reportsService.getInsights({ desde, hasta }),
       ]);
       setTurnosData(turnos);
       setPacientesData(pacientes);
+      setInsightsData(insights);
     } catch {
       toast.error("Error al cargar reportes");
     } finally {
@@ -356,6 +369,147 @@ export default function ReportesPage() {
             <Skeleton className="h-64 w-full rounded-xl" />
             <Skeleton className="h-48 w-full rounded-xl" />
           </div>
+        )}
+
+        {/* ── SECCIÓN INSIGHTS ── */}
+        {!loading && insightsData && (
+          <>
+            {/* Divider */}
+            <div className="flex items-center gap-3 pt-2">
+              <div className="h-px flex-1 bg-border" />
+              <div className="flex items-center gap-1.5 rounded-full bg-[var(--ht-primary)]/10 px-3 py-1">
+                <Activity className="h-3.5 w-3.5 text-[var(--ht-primary)]" />
+                <span className="text-xs font-semibold text-[var(--ht-primary)] uppercase tracking-wide">Insights</span>
+              </div>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            {/* KPIs de salud */}
+            <div>
+              <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide mb-3 flex items-center gap-2">
+                <Star className="h-4 w-4" />
+                Salud de la clínica
+              </h2>
+              <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+                <KpiCard
+                  label="Tasa de retención"
+                  value={`${insightsData.tasa_retencion}%`}
+                  icon={<Repeat2 className="h-5 w-5" />}
+                  variant="primary"
+                />
+                <KpiCard
+                  label="Turnos completados"
+                  value={`${insightsData.tasa_completados}%`}
+                  icon={<CheckCircle className="h-5 w-5" />}
+                  variant="accent"
+                />
+                <KpiCard
+                  label="Promedio / día hábil"
+                  value={insightsData.promedio_turnos_dia}
+                  icon={<Calendar className="h-5 w-5" />}
+                  variant="primary"
+                />
+                <KpiCard
+                  label="Pacientes únicos"
+                  value={insightsData.pacientes_unicos}
+                  icon={<Users className="h-5 w-5" />}
+                  variant="accent"
+                />
+              </div>
+            </div>
+
+            {/* Callouts automáticos */}
+            {(insightsData.dia_pico || insightsData.hora_pico) && (
+              <div className="grid grid-cols-1 sm:grid-cols-3 gap-3">
+                {insightsData.dia_pico && (
+                  <div className="rounded-xl border border-[var(--ht-primary)]/20 bg-[var(--ht-primary)]/5 p-4 flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--ht-primary)]/15">
+                      <Lightbulb className="h-4 w-4 text-[var(--ht-primary)]" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-[var(--ht-primary)]">Día más activo</p>
+                      <p className="text-sm font-bold text-[var(--text-primary)] mt-0.5">{insightsData.dia_pico}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Mayor demanda de turnos</p>
+                    </div>
+                  </div>
+                )}
+                {insightsData.hora_pico && (
+                  <div className="rounded-xl border border-[var(--ht-accent)]/20 bg-[var(--ht-accent)]/5 p-4 flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-[var(--ht-accent)]/15">
+                      <Clock className="h-4 w-4 text-[var(--ht-accent-dark)]" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-[var(--ht-accent-dark)]">Hora pico</p>
+                      <p className="text-sm font-bold text-[var(--text-primary)] mt-0.5">{insightsData.hora_pico}</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Mayor concentración de turnos</p>
+                    </div>
+                  </div>
+                )}
+                {insightsData.pacientes_recurrentes > 0 && (
+                  <div className="rounded-xl border border-emerald-500/20 bg-emerald-500/5 p-4 flex items-start gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-emerald-500/15">
+                      <Repeat2 className="h-4 w-4 text-emerald-600" />
+                    </div>
+                    <div>
+                      <p className="text-xs font-semibold text-emerald-600">Fidelización</p>
+                      <p className="text-sm font-bold text-[var(--text-primary)] mt-0.5">{insightsData.pacientes_recurrentes} pacientes</p>
+                      <p className="text-[11px] text-muted-foreground mt-0.5">Volvieron al menos una vez</p>
+                    </div>
+                  </div>
+                )}
+              </div>
+            )}
+
+            {/* Distribución por día de la semana */}
+            {insightsData.distribucion_por_dia.some(d => d.total > 0) && (
+              <div className="rounded-xl border bg-card p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <BarChart2 className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold">Demanda por día de la semana</h3>
+                </div>
+                <ResponsiveContainer width="100%" height={160}>
+                  <BarChart data={insightsData.distribucion_por_dia} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="dia" tick={{ fontSize: 11 }} tickFormatter={(v) => v.slice(0, 3)} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", fontSize: 12 }}
+                      formatter={(v) => [v ?? 0, "Turnos"]}
+                    />
+                    <Bar dataKey="total" fill="var(--ht-primary)" radius={[4, 4, 0, 0]} />
+                  </BarChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+
+            {/* Distribución por hora */}
+            {insightsData.distribucion_por_hora.some(h => h.total > 0) && (
+              <div className="rounded-xl border bg-card p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Clock className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold">Turnos por franja horaria (8:00 – 17:00)</h3>
+                </div>
+                <ResponsiveContainer width="100%" height={160}>
+                  <AreaChart data={insightsData.distribucion_por_hora} margin={{ top: 0, right: 0, left: -25, bottom: 0 }}>
+                    <defs>
+                      <linearGradient id="gradHora" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="var(--ht-accent)" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="var(--ht-accent)" stopOpacity={0} />
+                      </linearGradient>
+                    </defs>
+                    <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
+                    <XAxis dataKey="hora" tick={{ fontSize: 11 }} />
+                    <YAxis tick={{ fontSize: 11 }} allowDecimals={false} />
+                    <Tooltip
+                      contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", fontSize: 12 }}
+                      formatter={(v) => [v ?? 0, "Turnos"]}
+                    />
+                    <Area type="monotone" dataKey="total" stroke="var(--ht-accent-dark)" fill="url(#gradHora)" strokeWidth={2} dot={{ r: 3 }} />
+                  </AreaChart>
+                </ResponsiveContainer>
+              </div>
+            )}
+          </>
         )}
       </div>
     </RoleGuard>

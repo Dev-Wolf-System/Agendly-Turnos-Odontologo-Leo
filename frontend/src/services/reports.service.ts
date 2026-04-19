@@ -1,5 +1,18 @@
 import api from "./api";
 
+export interface InsightsData {
+  distribucion_por_dia: { dia: string; total: number }[];
+  distribucion_por_hora: { hora: string; total: number }[];
+  dia_pico: string;
+  hora_pico: string;
+  tasa_retencion: number;
+  promedio_turnos_dia: number;
+  tasa_completados: number;
+  cancelados_total: number;
+  pacientes_unicos: number;
+  pacientes_recurrentes: number;
+}
+
 export interface TurnosReportData {
   total: number;
   por_estado: Record<string, number>;
@@ -27,6 +40,9 @@ const reportsService = {
     if (params?.profesional_id) qs.set("profesional_id", params.profesional_id);
     return `/reports/turnos/csv?${qs.toString()}`;
   },
+
+  getInsights: (params?: { desde?: string; hasta?: string }) =>
+    api.get<InsightsData>("/reports/insights", { params }).then((r) => r.data),
 
   getPacientes: () =>
     api.get<PacientesReportData>("/reports/pacientes").then((r) => r.data),
