@@ -43,6 +43,35 @@ const reportsService = {
     a.click();
     URL.revokeObjectURL(url);
   },
+
+  downloadXlsx: async (params?: { desde?: string; hasta?: string; profesional_id?: string }) => {
+    const res = await api.get<Blob>("/reports/turnos/xlsx", {
+      params,
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `turnos-${params?.desde || "all"}-${params?.hasta || "all"}.xlsx`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
+
+  downloadInformePdf: async (
+    texto: string,
+    params?: { desde?: string; hasta?: string },
+  ) => {
+    const res = await api.get<Blob>("/reports/informe-ia/pdf", {
+      params: { texto: encodeURIComponent(texto), ...params },
+      responseType: "blob",
+    });
+    const url = URL.createObjectURL(res.data);
+    const a = document.createElement("a");
+    a.href = url;
+    a.download = `informe-${params?.desde || "all"}-${params?.hasta || "all"}.pdf`;
+    a.click();
+    URL.revokeObjectURL(url);
+  },
 };
 
 export default reportsService;

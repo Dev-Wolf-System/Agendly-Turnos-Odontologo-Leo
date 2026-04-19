@@ -103,8 +103,8 @@ export default function ReportesPage() {
     setExporting(true);
     try {
       const { desde, hasta } = getRango(rango);
-      await reportsService.downloadCsv({ desde, hasta });
-      toast.success("CSV descargado");
+      await reportsService.downloadXlsx({ desde, hasta });
+      toast.success("Excel descargado");
     } catch {
       toast.error("Error al exportar");
     } finally {
@@ -160,7 +160,7 @@ export default function ReportesPage() {
               className="rounded-xl gap-2"
             >
               <Download className="h-4 w-4" />
-              {exporting ? "Exportando..." : "Exportar CSV"}
+              {exporting ? "Exportando..." : "Exportar Excel"}
             </Button>
           </div>
         </div>

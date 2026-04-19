@@ -35,6 +35,40 @@ export class ReportsController {
     res.send('\uFEFF' + csv);
   }
 
+  @Get('turnos/xlsx')
+  async getTurnosXlsx(
+    @CurrentClinica() clinicaId: string,
+    @Res() res: Response,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+    @Query('profesional_id') profesionalId?: string,
+  ) {
+    const buffer = await this.reportsService.getTurnosXlsx(clinicaId, desde, hasta, profesionalId);
+    const filename = `turnos-${desde || 'all'}-${hasta || 'all'}.xlsx`;
+    res.setHeader('Content-Type', 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
+  }
+
+  @Get('informe-ia/pdf')
+  async getInformeIaPdf(
+    @CurrentClinica() clinicaId: string,
+    @Res() res: Response,
+    @Query('texto') texto: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
+    const buffer = await this.reportsService.getInformeIaPdf(
+      clinicaId,
+      decodeURIComponent(texto || ''),
+      { desde: desde || '', hasta: hasta || '' },
+    );
+    const filename = `informe-${desde || 'all'}-${hasta || 'all'}.pdf`;
+    res.setHeader('Content-Type', 'application/pdf');
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.send(buffer);
+  }
+
   @Get('pacientes')
   getPacientesReport(@CurrentClinica() clinicaId: string) {
     return this.reportsService.getPacientesReport(clinicaId);
