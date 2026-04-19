@@ -79,7 +79,7 @@ const reportsService = {
   },
 
   generarInformeIa: (params?: { desde?: string; hasta?: string }) =>
-    api.post<InformeIaData>("/reports/informe-ia", null, { params }).then((r) => r.data),
+    api.get<InformeIaData>("/reports/informe-ia", { params }).then((r) => r.data),
 
   downloadInformePdf: async (
     texto: string,

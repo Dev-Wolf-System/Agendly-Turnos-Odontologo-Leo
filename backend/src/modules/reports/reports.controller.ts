@@ -1,4 +1,4 @@
-import { Controller, Get, Post, Query, Res } from '@nestjs/common';
+import { Controller, Get, Query, Res } from '@nestjs/common';
 import { Response } from 'express';
 import { ReportsService } from './reports.service';
 import { CurrentClinica } from '../../common/decorators';
@@ -59,7 +59,7 @@ export class ReportsController {
     res.send(buffer);
   }
 
-  @Post('informe-ia')
+  @Get('informe-ia')
   generarInformeIa(
     @CurrentClinica() clinicaId: string,
     @Query('desde') desde?: string,
