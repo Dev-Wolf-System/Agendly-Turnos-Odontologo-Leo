@@ -5,13 +5,14 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import {
   ArrowLeft, ChevronRight, Building2, Users, Heart,
-  Calendar, Clock, Info, Crown, Webhook, Trash2, XCircle,
+  Calendar, Clock, Info, Crown, Webhook, Trash2, XCircle, CreditCard,
 } from "lucide-react";
 import {
   getAdminClinicaById,
   updateAdminClinica,
   deleteAdminClinica,
 } from "@/services/admin.service";
+import api from "@/services/api";
 import type { AdminClinica } from "@/types";
 import { formatPhone } from "@/lib/utils";
 
@@ -56,13 +57,18 @@ export default function AdminClinicaDetailPage() {
   const [showEvolutionKey, setShowEvolutionKey] = useState(false);
   const [isSavingEvolution, setIsSavingEvolution] = useState(false);
 
+  // Mercado Pago state
+  const [mpConfigured, setMpConfigured] = useState(false);
+  const [mpForm, setMpForm] = useState({ access_token: "", public_key: "" });
+  const [isSavingMp, setIsSavingMp] = useState(false);
+  const [mpError, setMpError] = useState("");
+
   const loadClinica = () => {
     setLoading(true);
     setLoadError(null);
     getAdminClinicaById(id)
       .then((c) => {
         setClinica(c);
-        // Load webhooks from clinica data
         setWebhooks((c as any).webhooks || {});
         setEvolutionInstance((c as any).evolution_instance || "");
         setEvolutionApiKey((c as any).evolution_api_key || "");
@@ -72,6 +78,10 @@ export default function AdminClinicaDetailPage() {
         setLoadError(err?.response?.data?.message || "Error al cargar la clinica");
       })
       .finally(() => setLoading(false));
+
+    api.get(`/admin/clinicas/${id}/mp`)
+      .then((res) => setMpConfigured(res.data.configurado ?? false))
+      .catch(() => setMpConfigured(false));
   };
 
   useEffect(() => {
@@ -144,6 +154,37 @@ export default function AdminClinicaDetailPage() {
       console.error(err);
     } finally {
       setIsSavingEvolution(false);
+    }
+  };
+
+  const handleSaveMp = async () => {
+    if (!mpForm.access_token.trim()) {
+      setMpError("El Access Token es obligatorio");
+      return;
+    }
+    setMpError("");
+    setIsSavingMp(true);
+    try {
+      await api.put(`/admin/clinicas/${id}/mp`, {
+        access_token: mpForm.access_token,
+        public_key: mpForm.public_key || undefined,
+      });
+      setMpConfigured(true);
+      setMpForm({ access_token: "", public_key: "" });
+    } catch (err: any) {
+      setMpError(err?.response?.data?.message || "Error al guardar");
+    } finally {
+      setIsSavingMp(false);
+    }
+  };
+
+  const handleRemoveMp = async () => {
+    if (!confirm("¿Eliminar las credenciales de Mercado Pago de esta clínica?")) return;
+    try {
+      await api.delete(`/admin/clinicas/${id}/mp`);
+      setMpConfigured(false);
+    } catch (err) {
+      console.error(err);
     }
   };
 
@@ -451,6 +492,74 @@ export default function AdminClinicaDetailPage() {
             <p className="text-[11px] text-muted-foreground">
               Cada clinica puede tener su propia instancia de WhatsApp para el agente IA. La API Key es generalmente la misma para todas.
             </p>
+          </div>
+        </div>
+
+        {/* Mercado Pago */}
+        <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+          <div className="border-b px-5 py-3.5 bg-muted/20 flex items-center justify-between">
+            <h2 className="text-sm font-semibold flex items-center gap-2">
+              <CreditCard className="h-4 w-4 text-[var(--ht-primary)]" />
+              Mercado Pago
+            </h2>
+            <span className={`inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1 text-[11px] font-semibold ${mpConfigured ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400" : "bg-muted text-muted-foreground"}`}>
+              <span className={`h-1.5 w-1.5 rounded-full ${mpConfigured ? "bg-emerald-500" : "bg-muted-foreground/40"}`} />
+              {mpConfigured ? "Configurado" : "Sin configurar"}
+            </span>
+          </div>
+          <div className="p-5 space-y-4">
+            <p className="text-xs text-muted-foreground">
+              Credenciales de la cuenta de Mercado Pago de esta clínica. El Access Token nunca se devuelve — para actualizar ingresá uno nuevo.
+            </p>
+
+            {mpConfigured && (
+              <div className="flex items-center justify-between rounded-lg border border-emerald-200 dark:border-emerald-800 bg-emerald-50 dark:bg-emerald-950/20 px-4 py-2.5">
+                <span className="text-xs text-emerald-700 dark:text-emerald-400 font-medium">✓ Credenciales activas</span>
+                <button
+                  onClick={handleRemoveMp}
+                  className="text-xs text-red-500 hover:text-red-600 transition-colors"
+                >
+                  Eliminar
+                </button>
+              </div>
+            )}
+
+            <div className="space-y-3">
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">
+                  Access Token{mpConfigured && <span className="ml-1 opacity-60">(dejar vacío para no modificar)</span>}
+                </label>
+                <div className="relative">
+                  <input
+                    type="password"
+                    value={mpForm.access_token}
+                    onChange={(e) => setMpForm((p) => ({ ...p, access_token: e.target.value }))}
+                    placeholder={mpConfigured ? "••••••••••••••••" : "APP_USR-..."}
+                    className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-[var(--ht-primary)]/20 transition-all"
+                  />
+                </div>
+              </div>
+              <div className="space-y-1.5">
+                <label className="text-xs font-medium text-muted-foreground">Public Key <span className="opacity-60">(opcional)</span></label>
+                <input
+                  type="text"
+                  value={mpForm.public_key}
+                  onChange={(e) => setMpForm((p) => ({ ...p, public_key: e.target.value }))}
+                  placeholder="APP_USR-..."
+                  className="w-full rounded-lg border bg-background px-3 py-2 text-sm font-mono outline-none focus:ring-2 focus:ring-[var(--ht-primary)]/20 transition-all"
+                />
+              </div>
+            </div>
+
+            {mpError && <p className="text-xs text-red-500 font-medium">{mpError}</p>}
+
+            <button
+              onClick={handleSaveMp}
+              disabled={isSavingMp || (!mpForm.access_token && !mpConfigured)}
+              className="inline-flex items-center gap-1.5 rounded-lg bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-4 py-2 text-sm font-semibold text-white hover:opacity-90 transition-opacity shadow-sm disabled:opacity-40 disabled:cursor-not-allowed"
+            >
+              {isSavingMp ? "Guardando..." : "Guardar credenciales"}
+            </button>
           </div>
         </div>
 
