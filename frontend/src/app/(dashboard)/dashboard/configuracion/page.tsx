@@ -2331,7 +2331,6 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
         </p>
       </div>
 
-      {/* Estado de integración (solo lectura — lo configura el equipo de Avax Health) */}
       <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${status?.configurado ? "border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20" : "border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/20"}`}>
         <div className={`flex h-9 w-9 items-center justify-center rounded-full ${status?.configurado ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-amber-100 dark:bg-amber-900/40"}`}>
           <CreditCard className={`h-4 w-4 ${status?.configurado ? "text-emerald-600" : "text-amber-600"}`} />
@@ -2348,7 +2347,6 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
         </div>
       </div>
 
-      {/* Webhook */}
       <div className="space-y-4">
         <div>
           <p className="text-sm font-medium">Webhook de link de pago</p>
@@ -2359,35 +2357,23 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
 
         <div className="space-y-1.5">
           <Label>URL del Webhook</Label>
+          <Input
+            placeholder="https://n8n.tudominio.com/webhook/..."
+            value={form.webhook_url}
+            onChange={(e) => setForm((p) => ({ ...p, webhook_url: e.target.value }))}
+          />
+        </div>
 
-        <div className="space-y-3">
+        <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
           <div>
-            <p className="text-sm font-medium">Webhook de link de pago</p>
-            <p className="text-xs text-muted-foreground mt-0.5">
-              Cuando el agente genere un link de pago, lo enviará automáticamente a esta URL (ej: workflow de n8n).
-            </p>
+            <p className="text-sm font-medium">Activar envío automático</p>
+            <p className="text-xs text-muted-foreground">Enviar link de pago al webhook al generarlo</p>
           </div>
-
-          <div className="space-y-1.5">
-            <Label>URL del Webhook</Label>
-            <Input
-              placeholder="https://n8n.tudominio.com/webhook/..."
-              value={form.webhook_url}
-              onChange={(e) => setForm((p) => ({ ...p, webhook_url: e.target.value }))}
-            />
-          </div>
-
-          <div className="flex items-center justify-between rounded-lg border border-border px-4 py-3">
-            <div>
-              <p className="text-sm font-medium">Activar envío automático</p>
-              <p className="text-xs text-muted-foreground">Enviar link de pago al webhook al generarlo</p>
-            </div>
-            <Switch
-              checked={form.webhook_activo}
-              onCheckedChange={(v) => setForm((p) => ({ ...p, webhook_activo: v }))}
-              disabled={!form.webhook_url && !status?.webhook_url}
-            />
-          </div>
+          <Switch
+            checked={form.webhook_activo}
+            onCheckedChange={(v) => setForm((p) => ({ ...p, webhook_activo: v }))}
+            disabled={!form.webhook_url && !status?.webhook_url}
+          />
         </div>
       </div>
 
