@@ -15,7 +15,16 @@ import { EstadoPago } from '../../common/enums';
 
 @Injectable()
 export class ReportsService {
-  private openai: OpenAI;
+  private _openai: OpenAI | null = null;
+
+  private get openai(): OpenAI {
+    if (!this._openai) {
+      const apiKey = this.configService.get<string>('OPENAI_API_KEY');
+      if (!apiKey) throw new Error('OPENAI_API_KEY no configurada');
+      this._openai = new OpenAI({ apiKey });
+    }
+    return this._openai;
+  }
 
   constructor(
     @InjectRepository(Turno)
@@ -27,9 +36,7 @@ export class ReportsService {
     @InjectRepository(Clinica)
     private readonly clinicaRepository: Repository<Clinica>,
     private readonly configService: ConfigService,
-  ) {
-    this.openai = new OpenAI({ apiKey: this.configService.get<string>('OPENAI_API_KEY') });
-  }
+  ) {}
 
   async getTurnosReport(
     clinicaId: string,
