@@ -18,6 +18,13 @@ export class PlansService {
     return this.planRepository.find({ where, order: { orden: 'ASC', precio_mensual: 'ASC' } });
   }
 
+  async findAllForLanding(): Promise<Plan[]> {
+    return this.planRepository.find({
+      where: { is_active: true, show_in_landing: true },
+      order: { orden: 'ASC', precio_mensual: 'ASC' },
+    });
+  }
+
   async findByNombre(nombre: string): Promise<Plan | null> {
     return this.planRepository.findOne({ where: { nombre } });
   }

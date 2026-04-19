@@ -37,6 +37,12 @@ export class Plan extends BaseEntity {
   @Column({ type: 'boolean', default: true })
   is_active: boolean;
 
+  @Column({ type: 'boolean', default: true })
+  show_in_landing: boolean;
+
+  @Column({ type: 'text', default: 'admin' })
+  default_role: string;
+
   @OneToMany(() => Subscription, (sub) => sub.plan)
   subscriptions: Subscription[];
 }

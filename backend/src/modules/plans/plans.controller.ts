@@ -6,10 +6,10 @@ import { Public } from '../../common/decorators/public.decorator';
 export class PlansController {
   constructor(private readonly plansService: PlansService) {}
 
-  /** Público — devuelve planes activos ordenados para landing page */
+  /** Público — devuelve planes activos con show_in_landing=true para landing page */
   @Public()
   @Get()
   findActive() {
-    return this.plansService.findAll(true);
+    return this.plansService.findAllForLanding();
   }
 }

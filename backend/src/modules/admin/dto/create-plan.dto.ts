@@ -48,4 +48,12 @@ export class CreatePlanDto {
   @IsOptional()
   @IsBoolean()
   is_active?: boolean;
+
+  @IsOptional()
+  @IsBoolean()
+  show_in_landing?: boolean;
+
+  @IsOptional()
+  @IsString()
+  default_role?: string;
 }

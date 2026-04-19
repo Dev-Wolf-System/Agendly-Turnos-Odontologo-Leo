@@ -32,6 +32,8 @@ export interface Plan {
   is_default_trial: boolean;
   orden: number;
   is_active: boolean;
+  show_in_landing: boolean;
+  default_role: string;
   created_at: string;
 }
 
