@@ -2,9 +2,8 @@ import { Injectable } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import * as ExcelJS from 'exceljs';
-import * as PDFDocument from 'pdfkit';
-import * as https from 'https';
-import * as http from 'http';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PDFDocument = require('pdfkit') as typeof import('pdfkit').default;
 import { Turno } from '../turnos/entities/turno.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
 import { Pago } from '../pagos/entities/pago.entity';
@@ -308,7 +307,7 @@ export class ReportsService {
     const resumenRow = ws.addRow([`Total turnos: ${turnos.length}`, '', '', '', '', '', '', '', '', '']);
     resumenRow.getCell(1).font = { bold: true };
 
-    return wb.xlsx.writeBuffer() as Promise<Buffer>;
+    return Buffer.from(await wb.xlsx.writeBuffer());
   }
 
   async getInformeIaPdf(
