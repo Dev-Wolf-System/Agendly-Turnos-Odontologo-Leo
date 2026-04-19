@@ -37,6 +37,7 @@ import { FeatureFlagGuard } from './common/guards/feature-flag.guard';
 import { CommonModule } from './common/common.module';
 import { BillingModule } from './modules/billing/billing.module';
 import { ClinicaMpModule } from './modules/clinica-mp/clinica-mp.module';
+import { ReportsModule } from './modules/reports/reports.module';
 
 @Module({
   imports: [
@@ -69,6 +70,7 @@ import { ClinicaMpModule } from './modules/clinica-mp/clinica-mp.module';
     ArchivosMedicosModule,
     BillingModule,
     ClinicaMpModule,
+    ReportsModule,
   ],
   providers: [
     {
