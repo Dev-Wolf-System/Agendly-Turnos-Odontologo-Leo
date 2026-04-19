@@ -8,7 +8,6 @@ import subscriptionsService, {
   SubscriptionWithPlan,
 } from "@/services/subscriptions.service";
 import ticketsService, { Ticket, CreateTicketPayload } from "@/services/tickets.service";
-import pagosService, { Pago } from "@/services/pagos.service";
 import billingService from "@/services/billing.service";
 import { plansService } from "@/services/plans.service";
 import type { Plan } from "@/types";
@@ -31,14 +30,6 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
-import {
-  Table,
-  TableBody,
-  TableCell,
-  TableHead,
-  TableHeader,
-  TableRow,
-} from "@/components/ui/table";
 import { toast } from "sonner";
 import {
   CreditCard,
@@ -61,7 +52,6 @@ import {
   CheckCircle2,
   XCircle,
   Loader2,
-  ReceiptText,
   LifeBuoy,
 } from "lucide-react";
 import type { EstadoSubscription } from "@/types";
@@ -153,16 +143,6 @@ const prioridadLabels: Record<string, string> = {
   urgente: "Urgente",
 };
 
-// ─── Pagos estado colors ───
-const estadoPagoColors: Record<string, string> = {
-  aprobado:
-    "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400",
-  pendiente:
-    "bg-amber-100 text-amber-700 dark:bg-amber-900/30 dark:text-amber-400",
-  rechazado:
-    "bg-red-100 text-red-700 dark:bg-red-900/30 dark:text-red-400",
-};
-
 // ─── Helpers ───
 function formatDate(dateStr: string | null | undefined): string {
   if (!dateStr) return "—";
@@ -246,9 +226,6 @@ function SuscripcionContent() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [ticketsLoading, setTicketsLoading] = useState(true);
 
-  const [pagos, setPagos] = useState<Pago[]>([]);
-  const [pagosLoading, setPagosLoading] = useState(true);
-
   const [dialogOpen, setDialogOpen] = useState(false);
   const [creating, setCreating] = useState(false);
   const [newTicket, setNewTicket] = useState<CreateTicketPayload>({
@@ -290,23 +267,9 @@ function SuscripcionContent() {
     }
   }, []);
 
-  const fetchPagos = useCallback(async () => {
-    try {
-      setPagosLoading(true);
-      const data = await pagosService.getAll();
-      const items = Array.isArray(data) ? data : (data as any)?.data ?? [];
-      setPagos(items);
-    } catch {
-      setPagos([]);
-    } finally {
-      setPagosLoading(false);
-    }
-  }, []);
-
   useEffect(() => {
     fetchSubscription();
     fetchTickets();
-    fetchPagos();
     plansService.getActivePlans().then((data) => {
       const pagados = data.filter((p) => !p.is_default_trial && Number(p.precio_mensual) > 0);
       setPlanes(pagados);
@@ -428,7 +391,6 @@ function SuscripcionContent() {
           onClick={() => {
             fetchSubscription();
             fetchTickets();
-            fetchPagos();
           }}
           className="gap-2"
         >
@@ -536,7 +498,7 @@ function SuscripcionContent() {
         </div>
       )}
 
-      {/* ── Main Grid: Detalles + Pagos ── */}
+      {/* ── Detalles de Suscripción ── */}
       <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
         {/* Detalles de Suscripcion */}
         {subLoading ? (
@@ -763,88 +725,9 @@ function SuscripcionContent() {
           </div>
         )}
 
-        {/* Historial de Pagos */}
-        {pagosLoading ? (
-          <CardSkeleton height="h-[380px]" />
-        ) : (
-          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
-            <div className="px-6 pt-6 pb-4">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-gradient-to-br from-[var(--ht-accent)] to-[var(--ht-accent-dark)] flex items-center justify-center">
-                  <ReceiptText className="w-5 h-5 text-white" />
-                </div>
-                <div>
-                  <h2 className="text-lg font-semibold">
-                    Historial de Pagos
-                  </h2>
-                  <p className="text-sm text-muted-foreground">
-                    Últimos pagos registrados
-                  </p>
-                </div>
-              </div>
-            </div>
-            <div className="px-6 pb-6">
-              {pagos.length === 0 ? (
-                <div className="flex flex-col items-center justify-center py-10 text-center">
-                  <div className="w-14 h-14 rounded-xl bg-muted flex items-center justify-center mb-4">
-                    <CreditCard className="w-7 h-7 text-muted-foreground" />
-                  </div>
-                  <p className="text-sm font-medium">Sin pagos registrados</p>
-                  <p className="text-xs text-muted-foreground mt-1">
-                    Los pagos apareceran aqui cuando se registren
-                  </p>
-                </div>
-              ) : (
-                <div className="overflow-auto max-h-[280px] rounded-xl border">
-                  <Table>
-                    <TableHeader>
-                      <TableRow className="bg-muted/30">
-                        <TableHead className="text-xs">Fecha</TableHead>
-                        <TableHead className="text-xs">Concepto</TableHead>
-                        <TableHead className="text-xs text-right">
-                          Monto
-                        </TableHead>
-                        <TableHead className="text-xs">Estado</TableHead>
-                        <TableHead className="text-xs">Metodo</TableHead>
-                      </TableRow>
-                    </TableHeader>
-                    <TableBody>
-                      {pagos.slice(0, 10).map((pago) => (
-                        <TableRow key={pago.id}>
-                          <TableCell className="text-xs">
-                            {formatDate(pago.created_at)}
-                          </TableCell>
-                          <TableCell className="text-xs max-w-[120px] truncate">
-                            {pago.turno?.tipo_tratamiento ?? "Pago"}
-                          </TableCell>
-                          <TableCell className="text-xs text-right font-medium">
-                            {formatCurrency(pago.total)}
-                          </TableCell>
-                          <TableCell>
-                            <Badge
-                              className={`border-0 text-[10px] ${
-                                estadoPagoColors[pago.estado] ??
-                                estadoPagoColors.pendiente
-                              }`}
-                            >
-                              {pago.estado}
-                            </Badge>
-                          </TableCell>
-                          <TableCell className="text-xs capitalize">
-                            {pago.method ?? "—"}
-                          </TableCell>
-                        </TableRow>
-                      ))}
-                    </TableBody>
-                  </Table>
-                </div>
-              )}
-            </div>
-          </div>
-        )}
       </div>
 
-      {/* ── Soporte Tecnico ── */}
+      {/* ── Soporte Técnico ── */}
       {ticketsLoading ? (
         <CardSkeleton height="h-[350px]" />
       ) : (

@@ -17,7 +17,7 @@ import { UpdateWebhookDto } from './dto/update-webhook.dto';
 import { SuperAdminGuard } from '../../common/guards/super-admin.guard';
 import { CurrentUser } from '../../common/decorators';
 
-// ── Rutas para la clínica (admin de clínica gestiona sus propias credenciales) ──
+// ── Rutas para la clínica (solo webhook — credenciales solo vía superadmin) ──
 @Controller('clinica-mp')
 export class ClinicaMpController {
   constructor(private readonly service: ClinicaMpService) {}
@@ -27,22 +27,10 @@ export class ClinicaMpController {
     return this.service.getStatus(user.clinica_id);
   }
 
-  @Put()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  upsert(@CurrentUser() user: any, @Body() dto: UpsertClinicaMpDto) {
-    return this.service.upsert(user.clinica_id, dto);
-  }
-
   @Patch('webhook')
   @HttpCode(HttpStatus.NO_CONTENT)
   updateWebhook(@CurrentUser() user: any, @Body() dto: UpdateWebhookDto) {
     return this.service.updateWebhook(user.clinica_id, dto);
-  }
-
-  @Delete()
-  @HttpCode(HttpStatus.NO_CONTENT)
-  remove(@CurrentUser() user: any) {
-    return this.service.remove(user.clinica_id);
   }
 }
 

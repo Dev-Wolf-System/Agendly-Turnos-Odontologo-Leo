@@ -2277,24 +2277,17 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
   const [status, setStatus] = useState<ClinicaMpStatus | null>(null);
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
-  const [form, setForm] = useState({
-    access_token: "",
-    public_key: "",
-    webhook_url: "",
-    webhook_activo: false,
-  });
+  const [form, setForm] = useState({ webhook_url: "", webhook_activo: false });
 
   const loadStatus = useCallback(async () => {
     try {
       const data = await clinicaMpService.getStatus();
       setStatus(data);
       if (data.configurado) {
-        setForm((prev) => ({
-          ...prev,
-          public_key: data.public_key ?? "",
+        setForm({
           webhook_url: data.webhook_url ?? "",
           webhook_activo: data.webhook_activo ?? false,
-        }));
+        });
       }
     } catch {
       // silently fail
@@ -2303,49 +2296,25 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
     }
   }, []);
 
-  useEffect(() => {
-    loadStatus();
-  }, [loadStatus]);
+  useEffect(() => { loadStatus(); }, [loadStatus]);
 
   const handleSave = async () => {
-    if (!form.access_token && !status?.configurado) {
-      toast.error("Ingresá tu Access Token de Mercado Pago");
+    if (!status?.configurado) {
+      toast.error("Mercado Pago aún no está configurado. Contactá al equipo de Avax Health.");
       return;
     }
     setSaving(true);
     try {
-      if (form.access_token) {
-        await clinicaMpService.upsert({
-          access_token: form.access_token,
-          public_key: form.public_key || undefined,
-          webhook_url: form.webhook_url || undefined,
-          webhook_activo: form.webhook_activo,
-        });
-      } else {
-        await clinicaMpService.updateWebhook({
-          webhook_url: form.webhook_url || undefined,
-          webhook_activo: form.webhook_activo,
-        });
-      }
+      await clinicaMpService.updateWebhook({
+        webhook_url: form.webhook_url || undefined,
+        webhook_activo: form.webhook_activo,
+      });
       toast.success("Configuración de pagos guardada");
-      setForm((prev) => ({ ...prev, access_token: "" }));
       await loadStatus();
     } catch {
       toast.error("Error al guardar la configuración");
     } finally {
       setSaving(false);
-    }
-  };
-
-  const handleRemove = async () => {
-    if (!confirm("¿Desconectar Mercado Pago? Se eliminarán las credenciales guardadas.")) return;
-    try {
-      await clinicaMpService.remove();
-      toast.success("Mercado Pago desconectado");
-      setStatus({ configurado: false });
-      setForm({ access_token: "", public_key: "", webhook_url: "", webhook_activo: false });
-    } catch {
-      toast.error("Error al desconectar");
     }
   };
 
@@ -2356,71 +2325,40 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
   return (
     <div className="space-y-6">
       <div>
-        <h2 className="text-lg font-semibold">Mercado Pago</h2>
+        <h2 className="text-lg font-semibold">Pagos — Mercado Pago</h2>
         <p className="text-sm text-muted-foreground mt-0.5">
-          Configurá tu cuenta de Mercado Pago para cobrar turnos directamente a tus pacientes.
+          Activá el botón de pago y configurá el webhook para enviar el link automáticamente a tus pacientes.
         </p>
       </div>
 
-      {/* Estado actual */}
-      <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${status?.configurado ? "border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20" : "border-border bg-muted/30"}`}>
-        <div className={`flex h-9 w-9 items-center justify-center rounded-full ${status?.configurado ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-muted"}`}>
-          <CreditCard className={`h-4 w-4 ${status?.configurado ? "text-emerald-600" : "text-muted-foreground"}`} />
+      {/* Estado de integración (solo lectura — lo configura el equipo de Avax Health) */}
+      <div className={`flex items-center gap-3 rounded-xl border px-4 py-3 ${status?.configurado ? "border-emerald-500/30 bg-emerald-50 dark:bg-emerald-950/20" : "border-amber-300 dark:border-amber-700 bg-amber-50 dark:bg-amber-950/20"}`}>
+        <div className={`flex h-9 w-9 items-center justify-center rounded-full ${status?.configurado ? "bg-emerald-100 dark:bg-emerald-900/40" : "bg-amber-100 dark:bg-amber-900/40"}`}>
+          <CreditCard className={`h-4 w-4 ${status?.configurado ? "text-emerald-600" : "text-amber-600"}`} />
         </div>
-        <div>
+        <div className="flex-1">
           <p className="text-sm font-medium">
-            {status?.configurado ? "Mercado Pago conectado" : "Mercado Pago no configurado"}
+            {status?.configurado ? "Mercado Pago activado" : "Mercado Pago no configurado"}
           </p>
-          {status?.configurado && status.updated_at && (
-            <p className="text-xs text-muted-foreground">
-              Actualizado {new Date(status.updated_at).toLocaleDateString("es-AR")}
-            </p>
-          )}
+          <p className="text-xs text-muted-foreground">
+            {status?.configurado
+              ? "Las credenciales están configuradas por el equipo de Avax Health."
+              : "Contactá al equipo de Avax Health para activar los pagos de tu clínica."}
+          </p>
         </div>
-        {status?.configurado && (
-          <button
-            onClick={handleRemove}
-            className="ml-auto text-xs text-red-500 hover:text-red-600 transition-colors"
-          >
-            Desconectar
-          </button>
-        )}
       </div>
 
-      {/* Instrucciones */}
-      <div className="rounded-xl border border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-950/20 px-4 py-3 text-sm text-blue-700 dark:text-blue-300 space-y-1">
-        <p className="font-medium">¿Cómo obtener tus credenciales?</p>
-        <ol className="list-decimal list-inside space-y-0.5 text-xs opacity-90">
-          <li>Ingresá a <a href="https://www.mercadopago.com.ar/developers/panel" target="_blank" rel="noreferrer" className="underline inline-flex items-center gap-0.5">developers.mercadopago.com <ExternalLink className="h-3 w-3" /></a></li>
-          <li>Creá una aplicación o usá una existente</li>
-          <li>En "Credenciales de producción" copiá tu Access Token</li>
-        </ol>
-      </div>
-
-      {/* Formulario */}
+      {/* Webhook */}
       <div className="space-y-4">
-        <div className="space-y-1.5">
-          <Label>
-            Access Token {status?.configurado && <span className="text-xs text-muted-foreground ml-1">(dejar vacío para no modificar)</span>}
-          </Label>
-          <Input
-            type="password"
-            placeholder={status?.configurado ? "••••••••••••••••" : "APP_USR-..."}
-            value={form.access_token}
-            onChange={(e) => setForm((p) => ({ ...p, access_token: e.target.value }))}
-          />
+        <div>
+          <p className="text-sm font-medium">Webhook de link de pago</p>
+          <p className="text-xs text-muted-foreground mt-0.5">
+            Cuando el agente genere un link de pago, lo enviará a esta URL (ej: workflow de n8n que lo manda por WhatsApp).
+          </p>
         </div>
 
         <div className="space-y-1.5">
-          <Label>Public Key <span className="text-xs text-muted-foreground">(opcional)</span></Label>
-          <Input
-            placeholder={status?.configurado && status.public_key ? status.public_key : "APP_USR-..."}
-            value={form.public_key}
-            onChange={(e) => setForm((p) => ({ ...p, public_key: e.target.value }))}
-          />
-        </div>
-
-        <hr className="border-border" />
+          <Label>URL del Webhook</Label>
 
         <div className="space-y-3">
           <div>
