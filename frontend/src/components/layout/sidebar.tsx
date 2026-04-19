@@ -328,7 +328,7 @@ export function Sidebar() {
       {/* Mobile overlay */}
       {mobileOpen && (
         <div
-          className="fixed inset-0 z-40 bg-[#0F172A]/50 backdrop-blur-sm lg:hidden animate-in fade-in duration-200"
+          className="fixed inset-0 z-40 bg-[#0F172A]/65 lg:hidden animate-in fade-in duration-200"
           onClick={() => setMobileOpen(false)}
           aria-hidden="true"
         />

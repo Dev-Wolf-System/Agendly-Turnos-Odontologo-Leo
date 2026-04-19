@@ -725,13 +725,11 @@ function SuscripcionContent() {
           </div>
         )}
 
-      </div>
-
-      {/* ── Soporte Técnico ── */}
-      {ticketsLoading ? (
-        <CardSkeleton height="h-[350px]" />
-      ) : (
-        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+        {/* ── Soporte Técnico ── */}
+        {ticketsLoading ? (
+          <CardSkeleton height="h-[350px]" />
+        ) : (
+          <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
           <div className="px-6 pt-6 pb-4">
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -873,7 +871,9 @@ function SuscripcionContent() {
             )}
           </div>
         </div>
-      )}
+        )}
+
+      </div>
 
       {/* ── Dialog: Nuevo Ticket ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
