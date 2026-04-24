@@ -39,6 +39,7 @@ import { BillingModule } from './modules/billing/billing.module';
 import { ClinicaMpModule } from './modules/clinica-mp/clinica-mp.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ObrasSocialesModule } from './modules/obras-sociales/obras-sociales.module';
+import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
 
 @Module({
   imports: [
@@ -73,6 +74,7 @@ import { ObrasSocialesModule } from './modules/obras-sociales/obras-sociales.mod
     ClinicaMpModule,
     ReportsModule,
     ObrasSocialesModule,
+    ListaEsperaModule,
   ],
   providers: [
     {

@@ -9,11 +9,13 @@ import { TurnosService } from './turnos.service';
 import { TurnosController } from './turnos.controller';
 import { WebhookService } from '../../common/services/webhook.service';
 import { NotificacionesModule } from '../notificaciones/notificaciones.module';
+import { ListaEsperaModule } from '../lista-espera/lista-espera.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Turno, Pago, HistorialMedico, Clinica, Tratamiento]),
     NotificacionesModule,
+    ListaEsperaModule,
   ],
   controllers: [TurnosController],
   providers: [TurnosService, WebhookService],

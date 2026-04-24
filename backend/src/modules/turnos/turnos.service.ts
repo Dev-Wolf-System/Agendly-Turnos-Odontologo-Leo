@@ -18,6 +18,7 @@ import { UpdateTurnoDto } from './dto/update-turno.dto';
 import { EstadoTurno } from '../../common/enums';
 import { WebhookService } from '../../common/services/webhook.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
+import { ListaEsperaService } from '../lista-espera/lista-espera.service';
 
 @Injectable()
 export class TurnosService {
@@ -34,6 +35,7 @@ export class TurnosService {
     private readonly tratamientoRepository: Repository<Tratamiento>,
     private readonly webhookService: WebhookService,
     private readonly notificacionesService: NotificacionesService,
+    private readonly listaEsperaService: ListaEsperaService,
   ) {}
 
   async findAll(
@@ -222,6 +224,18 @@ export class TurnosService {
         full.id,
         full.user_id,
       ).catch(() => {});
+
+      // Al cancelar, notificar al primero de la lista de espera
+      if (updateTurnoDto.estado === EstadoTurno.CANCELADO) {
+        const profNombre = full.user
+          ? `${full.user.nombre} ${full.user.apellido}`
+          : '';
+        this.listaEsperaService.notificarSlotLibre(
+          clinicaId,
+          full.user_id,
+          { fecha: full.start_time.toISOString(), profesionalNombre: profNombre },
+        ).catch(() => {});
+      }
     }
 
     return full;

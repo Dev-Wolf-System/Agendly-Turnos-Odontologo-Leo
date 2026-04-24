@@ -19,6 +19,7 @@ import {
   ChevronsLeft,
   BarChart2,
   Shield,
+  Clock,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -89,6 +90,7 @@ const navGroups: NavGroup[] = [
       { name: "Dashboard", href: "/dashboard", icon: LayoutDashboard },
       { name: "Pacientes", href: "/dashboard/pacientes", icon: Users },
       { name: "Turnos", href: "/dashboard/turnos", icon: Calendar },
+      { name: "Lista de Espera", href: "/dashboard/lista-espera", icon: Clock, roles: ["admin", "assistant"] },
       { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardList, roles: ["admin", "professional"] },
       { name: "Pagos", href: "/dashboard/pagos", icon: CreditCard, roles: ["admin", "assistant"] },
     ],
