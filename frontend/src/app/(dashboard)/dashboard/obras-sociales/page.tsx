@@ -450,8 +450,8 @@ export default function ObrasSocialesPage() {
               <Input id="os-url" value={osForm.url} onChange={(e) => setOsForm({ ...osForm, url: e.target.value })} placeholder="https://..." />
             </div>
             <div className="flex items-center gap-3">
-              <Switch id="os-activo" checked={osForm.activo} onCheckedChange={(v) => setOsForm({ ...osForm, activo: v })} />
-              <Label htmlFor="os-activo">Activa</Label>
+              <Switch checked={osForm.activo} onCheckedChange={(v) => setOsForm({ ...osForm, activo: v })} />
+              <Label>Activa</Label>
             </div>
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>Cancelar</Button>
