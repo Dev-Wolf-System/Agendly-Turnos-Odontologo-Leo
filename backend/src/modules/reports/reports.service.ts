@@ -484,7 +484,7 @@ export class ReportsService {
     clinicaId: string,
     desde?: string,
     hasta?: string,
-  ): Promise<{ texto: string; rango: { desde: string; hasta: string }; kpis: Record<string, unknown> }> {
+  ): Promise<{ texto: string; clinicaNombre: string; rango: { desde: string; hasta: string }; kpis: Record<string, unknown> }> {
     const desdeDate = desde ? new Date(desde) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const hastaDate = hasta ? new Date(hasta) : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
     desdeDate.setHours(0, 0, 0, 0);
@@ -822,9 +822,8 @@ FACTURACIÓN:
       checkPage(60);
       const sumStartY = doc.y;
       const SUM_PADDING_LEFT = 14;
-      doc.rect(MARGIN, sumStartY, CW, 1).fill(C.bgInfo); // prefill to measure
-      // measure height
-      const sumTextHeight = doc.heightOfString(summaryText, { width: CW - SUM_PADDING_LEFT - 16, fontSize: 9.5 });
+      doc.fontSize(9.5);
+      const sumTextHeight = doc.heightOfString(summaryText, { width: CW - SUM_PADDING_LEFT - 16 });
       const sumH = sumTextHeight + 20;
       doc.rect(MARGIN, sumStartY, CW, sumH).fill(C.bgInfo);
       doc.rect(MARGIN, sumStartY, 4, sumH).fill(C.primary);
@@ -851,7 +850,8 @@ FACTURACIÓN:
           .lineTo(W - MARGIN, headerY + 13)
           .strokeColor(C.border).lineWidth(0.8).stroke();
         if (alertText) {
-          const alertW = doc.widthOfString(alertText, { fontSize: 7 }) + 14;
+          doc.fontSize(7);
+          const alertW = doc.widthOfString(alertText) + 14;
           const alertX = W - MARGIN - alertW;
           doc.roundedRect(alertX, headerY + 4, alertW, 14, 7).fill(C.bgDanger);
           doc.fillColor(C.danger).fontSize(7).font('Helvetica-Bold')
@@ -878,7 +878,8 @@ FACTURACIÓN:
         // Insight
         if (insightText) {
           const insY = doc.y;
-          const insH = doc.heightOfString(insightText, { width: CW - 20, fontSize: 8.5 }) + 14;
+          doc.fontSize(8.5);
+          const insH = doc.heightOfString(insightText, { width: CW - 20 }) + 14;
           doc.rect(MARGIN, insY, CW, insH).fill(C.bgCard);
           doc.rect(MARGIN, insY, 3, insH).fill(C.primary);
           doc.fillColor(C.textMuted).fontSize(8.5).font('Helvetica')
@@ -952,7 +953,8 @@ FACTURACIÓN:
         let recY = bodyY;
         recs.forEach((rec, idx) => {
           const num = String(idx + 1).padStart(2, '0');
-          const textH = doc.heightOfString(rec, { width: CW - 54, fontSize: 9 });
+          doc.fontSize(9);
+          const textH = doc.heightOfString(rec, { width: CW - 54 });
           const rowH  = Math.max(28, textH + 14);
 
           if (idx % 2 === 0) doc.rect(MARGIN, recY, CW, rowH).fill(C.bgCard);
