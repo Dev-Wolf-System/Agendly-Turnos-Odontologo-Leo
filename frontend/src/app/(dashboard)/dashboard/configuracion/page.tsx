@@ -15,10 +15,6 @@ import tratamientosService, {
 } from "@/services/tratamientos.service";
 import archivosMedicosService from "@/services/archivos-medicos.service";
 import clinicaMpService, { ClinicaMpStatus } from "@/services/clinica-mp.service";
-import obrasSocialesService, {
-  ObraSocial,
-  CreateObraSocialPayload,
-} from "@/services/obras-sociales.service";
 import usersService from "@/services/users.service";
 import horariosProfesionalService, {
   HorarioProfesional,
@@ -72,7 +68,6 @@ import {
   CheckCircle2,
   CreditCard,
   ExternalLink,
-  Briefcase,
 } from "lucide-react";
 
 // ─── Tipos ───
@@ -204,7 +199,7 @@ const COLORES_TRATAMIENTO = [
 ];
 
 // ─── Tabs ───
-type TabKey = "clinica" | "horarios" | "tratamientos" | "equipo" | "integraciones" | "whatsapp" | "dashboard" | "pagos" | "obras-sociales";
+type TabKey = "clinica" | "horarios" | "tratamientos" | "equipo" | "integraciones" | "whatsapp" | "dashboard" | "pagos";
 
 export default function ConfiguracionPage() {
   return (
@@ -219,7 +214,6 @@ function ConfiguracionContent() {
   const [clinica, setClinica] = useState<Clinica | null>(null);
   const [tratamientos, setTratamientos] = useState<Tratamiento[]>([]);
   const [users, setUsers] = useState<User[]>([]);
-  const [obrasSociales, setObrasSociales] = useState<ObraSocial[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { reload: reloadClinicaCtx } = useClinica();
   const { user } = useAuth();
@@ -228,16 +222,14 @@ function ConfiguracionContent() {
   const loadData = useCallback(async () => {
     try {
       setIsLoading(true);
-      const [c, t, u, os] = await Promise.all([
+      const [c, t, u] = await Promise.all([
         clinicaService.getMe(),
         tratamientosService.getAll(),
         usersService.getAll(),
-        obrasSocialesService.getAll(),
       ]);
       setClinica(c);
       setTratamientos(t);
       setUsers(u);
-      setObrasSociales(os);
       reloadClinicaCtx();
     } catch {
       toast.error("Error al cargar configuración");
@@ -259,7 +251,6 @@ function ConfiguracionContent() {
     { key: "whatsapp", label: "WhatsApp / IA", icon: Bot },
     { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, onlyAdmin: true },
     { key: "pagos", label: "Pagos", icon: CreditCard, onlyAdmin: true },
-    { key: "obras-sociales", label: "Obras Sociales", icon: Briefcase, onlyAdmin: true },
   ];
   const tabs = allTabs.filter((t) => !isTurnosOnly || !t.onlyAdmin);
 
@@ -346,9 +337,6 @@ function ConfiguracionContent() {
 
       {activeTab === "pagos" && (
         <TabPagos clinicaId={clinica.id} />
-      )}
-      {activeTab === "obras-sociales" && (
-        <TabObrasSociales obrasSociales={obrasSociales} onUpdate={loadData} />
       )}
     </div>
   );
@@ -2394,260 +2382,3 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
   );
 }
 
-// ─── Tab Obras Sociales ───
-function TabObrasSociales({
-  obrasSociales,
-  onUpdate,
-}: {
-  obrasSociales: ObraSocial[];
-  onUpdate: () => void;
-}) {
-  const [dialogOpen, setDialogOpen] = useState(false);
-  const [deleteDialogOpen, setDeleteDialogOpen] = useState(false);
-  const [editing, setEditing] = useState<ObraSocial | null>(null);
-  const [deleting, setDeleting] = useState<ObraSocial | null>(null);
-  const [isSaving, setIsSaving] = useState(false);
-  const emptyForm = { nombre: "", codigo: "", url: "", telefono: "", email: "", activo: true };
-  const [form, setForm] = useState(emptyForm);
-
-  const openCreate = () => {
-    setEditing(null);
-    setForm(emptyForm);
-    setDialogOpen(true);
-  };
-
-  const openEdit = (os: ObraSocial) => {
-    setEditing(os);
-    setForm({
-      nombre: os.nombre ?? "",
-      codigo: os.codigo ?? "",
-      url: os.url ?? "",
-      telefono: os.telefono ?? "",
-      email: os.email ?? "",
-      activo: os.activo,
-    });
-    setDialogOpen(true);
-  };
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setIsSaving(true);
-    try {
-      const payload: CreateObraSocialPayload = {
-        nombre: form.nombre,
-        codigo: form.codigo || undefined,
-        url: form.url || undefined,
-        telefono: form.telefono || undefined,
-        email: form.email || undefined,
-        activo: form.activo,
-      };
-      if (editing) {
-        await obrasSocialesService.update(editing.id, payload);
-        toast.success("Obra social actualizada");
-      } else {
-        await obrasSocialesService.create(payload);
-        toast.success("Obra social creada");
-      }
-      setDialogOpen(false);
-      onUpdate();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message ?? "Error al guardar";
-      toast.error(Array.isArray(msg) ? msg[0] : msg);
-    } finally {
-      setIsSaving(false);
-    }
-  };
-
-  const handleDelete = async () => {
-    if (!deleting) return;
-    try {
-      await obrasSocialesService.delete(deleting.id);
-      toast.success("Obra social eliminada");
-      setDeleteDialogOpen(false);
-      setDeleting(null);
-      onUpdate();
-    } catch (err: unknown) {
-      const msg = (err as { response?: { data?: { message?: string | string[] } } })?.response?.data?.message ?? "Error al eliminar";
-      toast.error(Array.isArray(msg) ? msg[0] : msg);
-    }
-  };
-
-  const handleToggleActive = async (os: ObraSocial) => {
-    try {
-      await obrasSocialesService.update(os.id, { activo: !os.activo });
-      onUpdate();
-    } catch {
-      toast.error("Error al cambiar estado");
-    }
-  };
-
-  return (
-    <>
-      <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
-        <div className="px-6 pt-6 pb-4">
-          <div className="flex items-center justify-between">
-            <div>
-              <h2 className="flex items-center gap-2 text-base font-semibold">
-                <Briefcase className="h-5 w-5" />
-                Obras Sociales / Prepagas
-              </h2>
-              <p className="text-sm text-muted-foreground mt-0.5">
-                Registrá las obras sociales y prepagas que atiendés
-              </p>
-            </div>
-            <Button
-              onClick={openCreate}
-              className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white shadow-[var(--shadow-primary)] transition-all"
-            >
-              <Plus className="h-4 w-4" />
-              Nueva
-            </Button>
-          </div>
-        </div>
-
-        <div className="px-6 pb-6">
-          {obrasSociales.length === 0 ? (
-            <div className="flex flex-col items-center justify-center py-12 text-center">
-              <div className="flex h-16 w-16 items-center justify-center rounded-xl bg-muted mb-4">
-                <Briefcase className="h-8 w-8 text-muted-foreground" />
-              </div>
-              <h3 className="text-base font-semibold">Sin obras sociales configuradas</h3>
-              <p className="text-sm text-muted-foreground mt-1 max-w-sm">
-                Registrá las obras sociales y prepagas que atiendés para facilitar la gestión de pacientes.
-              </p>
-              <Button onClick={openCreate} className="mt-4 gap-2">
-                <Plus className="h-4 w-4" />
-                Agregar obra social
-              </Button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {obrasSociales.map((os) => (
-                <div
-                  key={os.id}
-                  className="flex items-center justify-between p-4 rounded-lg border bg-background hover:bg-muted/50 transition-colors"
-                >
-                  <div className="flex-1">
-                    <p className="font-medium text-sm">{os.nombre}</p>
-                    <div className="flex gap-3 mt-0.5">
-                      {os.codigo && (
-                        <span className="text-xs text-muted-foreground">Cód: {os.codigo}</span>
-                      )}
-                      {os.telefono && (
-                        <span className="text-xs text-muted-foreground">Tel: {os.telefono}</span>
-                      )}
-                    </div>
-                  </div>
-                  <div className="flex items-center gap-2">
-                    <Switch
-                      checked={os.activo}
-                      onCheckedChange={() => handleToggleActive(os)}
-                    />
-                    <Button variant="ghost" size="sm" onClick={() => openEdit(os)}>
-                      <Pencil className="h-4 w-4" />
-                    </Button>
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={() => { setDeleting(os); setDeleteDialogOpen(true); }}
-                    >
-                      <Trash2 className="h-4 w-4" />
-                    </Button>
-                  </div>
-                </div>
-              ))}
-            </div>
-          )}
-        </div>
-      </div>
-
-      {/* Dialog crear / editar */}
-      <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>{editing ? "Editar Obra Social" : "Nueva Obra Social"}</DialogTitle>
-          </DialogHeader>
-          <form onSubmit={handleSubmit} className="space-y-4">
-            <div>
-              <Label>Nombre *</Label>
-              <Input
-                value={form.nombre}
-                onChange={(e) => setForm({ ...form, nombre: e.target.value })}
-                placeholder="Ej: OSDE, Swiss Medical, IOMA..."
-                required
-              />
-            </div>
-            <div>
-              <Label>Código</Label>
-              <Input
-                value={form.codigo}
-                onChange={(e) => setForm({ ...form, codigo: e.target.value })}
-                placeholder="Ej: 050"
-              />
-            </div>
-            <div>
-              <Label>Teléfono</Label>
-              <Input
-                value={form.telefono}
-                onChange={(e) => setForm({ ...form, telefono: e.target.value })}
-                placeholder="+54 11 4xxx-xxxx"
-              />
-            </div>
-            <div>
-              <Label>Email</Label>
-              <Input
-                type="email"
-                value={form.email}
-                onChange={(e) => setForm({ ...form, email: e.target.value })}
-                placeholder="contacto@obrasocial.com"
-              />
-            </div>
-            <div>
-              <Label>Sitio web</Label>
-              <Input
-                value={form.url}
-                onChange={(e) => setForm({ ...form, url: e.target.value })}
-                placeholder="https://..."
-              />
-            </div>
-            <div className="flex items-center gap-2">
-              <Switch
-                checked={form.activo}
-                onCheckedChange={(v) => setForm({ ...form, activo: v })}
-              />
-              <Label>Activo</Label>
-            </div>
-            <DialogFooter>
-              <Button variant="outline" type="button" onClick={() => setDialogOpen(false)}>
-                Cancelar
-              </Button>
-              <Button type="submit" disabled={isSaving}>
-                {isSaving ? "Guardando..." : "Guardar"}
-              </Button>
-            </DialogFooter>
-          </form>
-        </DialogContent>
-      </Dialog>
-
-      {/* Dialog eliminar */}
-      <Dialog open={deleteDialogOpen} onOpenChange={setDeleteDialogOpen}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Eliminar Obra Social</DialogTitle>
-            <DialogDescription>
-              ¿Confirmas que querés eliminar &ldquo;{deleting?.nombre}&rdquo;? Esta acción no se puede deshacer.
-            </DialogDescription>
-          </DialogHeader>
-          <DialogFooter>
-            <Button variant="outline" onClick={() => setDeleteDialogOpen(false)}>
-              Cancelar
-            </Button>
-            <Button variant="destructive" onClick={handleDelete}>
-              Eliminar
-            </Button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
-    </>
-  );
-}

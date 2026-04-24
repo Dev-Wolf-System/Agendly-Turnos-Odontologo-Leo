@@ -29,6 +29,8 @@ export class PagosController {
     @Query('method') method?: string,
     @Query('desde') desde?: string,
     @Query('hasta') hasta?: string,
+    @Query('fuente_pago') fuente_pago?: string,
+    @Query('obra_social_id') obra_social_id?: string,
     @Query('page') page?: string,
     @Query('limit') limit?: string,
     @Query('sortBy') sortBy?: string,
@@ -42,6 +44,8 @@ export class PagosController {
     if (method) filters.method = method;
     if (desde) filters.desde = desde;
     if (hasta) filters.hasta = hasta;
+    if (fuente_pago) filters.fuente_pago = fuente_pago as any;
+    if (obra_social_id) filters.obra_social_id = obra_social_id;
 
     return this.pagosService.findAll(clinicaId, filters, {
       page: page ? parseInt(page) : undefined,

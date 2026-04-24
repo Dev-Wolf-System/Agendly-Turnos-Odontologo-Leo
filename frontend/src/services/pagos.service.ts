@@ -42,6 +42,8 @@ export interface PagoFilters {
   desde?: string;
   hasta?: string;
   turno_id?: string;
+  fuente_pago?: 'particular' | 'obra_social';
+  obra_social_id?: string;
 }
 
 export interface PagoResumen {

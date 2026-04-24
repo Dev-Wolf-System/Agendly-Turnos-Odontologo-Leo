@@ -61,6 +61,12 @@ export class PagosService {
     if (filters?.hasta) {
       qb.andWhere('p.created_at <= :hasta', { hasta: `${filters.hasta}T23:59:59` });
     }
+    if (filters?.fuente_pago) {
+      qb.andWhere('p.fuente_pago = :fuente_pago', { fuente_pago: filters.fuente_pago });
+    }
+    if (filters?.obra_social_id) {
+      qb.andWhere('p.obra_social_id = :obra_social_id', { obra_social_id: filters.obra_social_id });
+    }
 
     const total = await qb.getCount();
 

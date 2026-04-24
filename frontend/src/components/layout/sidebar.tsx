@@ -18,6 +18,7 @@ import {
   LogOut,
   ChevronsLeft,
   BarChart2,
+  Shield,
   type LucideIcon,
 } from "lucide-react";
 import { cn } from "@/lib/utils";
@@ -96,6 +97,7 @@ const navGroups: NavGroup[] = [
     label: "Gestión",
     items: [
       { name: "Reportes", href: "/dashboard/reportes", icon: BarChart2, roles: ["admin"] },
+      { name: "Obras Sociales", href: "/dashboard/obras-sociales", icon: Shield, roles: ["admin"] },
       { name: "Inventario", href: "/dashboard/inventario", icon: Package, roles: ["admin"] },
       { name: "Proveedores", href: "/dashboard/proveedores", icon: Truck, roles: ["admin"] },
       { name: "Sucursales", href: "/dashboard/sucursales", icon: Building2, roles: ["admin"], feature: "multi_sucursal" },
