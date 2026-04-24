@@ -577,6 +577,7 @@ FACTURACIÓN:
 
     return {
       texto,
+      clinicaNombre: clinica?.nombre || '',
       rango: {
         desde: desdeDate.toISOString().split('T')[0],
         hasta: hastaDate.toISOString().split('T')[0],
@@ -633,19 +634,62 @@ FACTURACIÓN:
       totalOS = pagosRaw.filter(p => p.estado === EstadoPago.APROBADO && p.fuente_pago === 'obra_social').reduce((s, p) => s + Number(p.total ?? 0), 0);
     } catch { /* sin datos de facturación */ }
 
-    const PRIMARY      = '#0EA5E9';
-    const PRIMARY_DARK = '#0369A1';
-    const ACCENT       = '#10B981';
-    const DANGER       = '#EF4444';
-    const WARNING      = '#F59E0B';
-    const INFO         = '#3B82F6';
-    const GRAY_50      = '#F8FAFC';
-    const GRAY_TEXT    = '#475569';
-    const GRAY_LIGHT   = '#94A3B8';
-    const DARK_TEXT    = '#0F172A';
-    const W            = 595.28;
-    const MARGIN       = 40;
-    const CW           = W - MARGIN * 2;
+    // ── Parseo del Markdown en secciones ──
+    type MdSection = { title: string; bullets: string[]; paragraphs: string[] };
+    const mdSections: MdSection[] = [];
+    let cur: MdSection | null = null;
+    for (const line of texto.split('\n')) {
+      const h2 = line.match(/^##\s+(.+)/);
+      if (h2) {
+        if (cur) mdSections.push(cur);
+        cur = { title: h2[1].trim(), bullets: [], paragraphs: [] };
+      } else if (cur) {
+        const bullet = line.match(/^[-*]\s+(.+)/);
+        if (bullet) {
+          cur.bullets.push(bullet[1].replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1').trim());
+        } else if (line.trim()) {
+          cur.paragraphs.push(line.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1').trim());
+        }
+      }
+    }
+    if (cur) mdSections.push(cur);
+
+    const findSection = (keyword: string) => mdSections.find(s => s.title.toLowerCase().includes(keyword));
+    const resumenSec   = findSection('resumen');
+    const turnosSec    = findSection('turno');
+    const pacientesSec = findSection('paciente');
+    const factSec      = findSection('factura');
+    const recsSec      = findSection('recomendac') ?? findSection('observac');
+
+    // ── Colores del design system ──
+    const C = {
+      primary:     '#0EA5E9',
+      primaryDark: '#0369A1',
+      accent:      '#10B981',
+      accentDark:  '#059669',
+      danger:      '#EF4444',
+      warning:     '#F59E0B',
+      text:        '#0F172A',
+      textSec:     '#334155',
+      textMuted:   '#64748B',
+      border:      '#E2E8F0',
+      bgCard:      '#F8FAFC',
+      bgInfo:      '#EFF6FF',
+      bgSuccess:   '#ECFDF5',
+      bgDanger:    '#FEF2F2',
+      bgWarning:   '#FFFBEB',
+      infoBorder:  '#BAE6FD',
+    };
+
+    const W      = 595.28;
+    const MARGIN = 36;
+    const CW     = W - MARGIN * 2;
+    const TODAY  = new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' });
+
+    const fmtDate = (s: string) => {
+      const [y, m, d] = s.split('-').map(Number);
+      return new Date(y, m - 1, d).toLocaleDateString('es-AR', { day: 'numeric', month: 'long', year: 'numeric' });
+    };
 
     return new Promise((resolve, reject) => {
       const chunks: Buffer[] = [];
@@ -654,165 +698,289 @@ FACTURACIÓN:
       doc.on('end', () => resolve(Buffer.concat(chunks)));
       doc.on('error', reject);
 
-      const checkPage = (needed = 60) => {
-        if (doc.y > 842 - needed - 40) { doc.addPage(); doc.y = MARGIN; }
+      const checkPage = (needed = 80) => {
+        if (doc.y > 842 - needed) { doc.addPage(); doc.y = MARGIN; }
       };
 
       // ─── BANNER ────────────────────────────────────────────────────
-      const BH = 90;
-      doc.rect(0, 0, W, BH).fill(PRIMARY_DARK);
-      doc.rect(0, BH, W, 3).fill(ACCENT);
+      const BH = 100;
+      doc.rect(0, 0, W, BH).fill(C.primaryDark);
 
-      doc.fillColor('#B0CEDE').fontSize(7.5).font('Helvetica')
-        .text('INFORME DE GESTIÓN CLÍNICA  ·  AVAX HEALTH', MARGIN, 13, { width: CW - 120 });
+      // Decorative circles
+      doc.circle(W - 10, -20, 80).fill('#0A4F78');
+      doc.circle(W * 0.4, BH + 20, 60).fill('#0A4F78');
 
       const clinicName = clinica?.nombre || 'Clínica';
-      doc.fillColor('white').fontSize(20).font('Helvetica-Bold')
-        .text(clinicName, MARGIN, 26, { width: CW - 120 });
+      const periodo = rango.desde && rango.hasta
+        ? `Período analizado: ${fmtDate(rango.desde)} – ${fmtDate(rango.hasta)}`
+        : '';
 
-      const contact = [clinica?.direccion, clinica?.email].filter(Boolean).join('  ·  ');
-      if (contact) {
-        doc.fillColor('#8EC8E8').fontSize(7.5).font('Helvetica')
-          .text(contact, MARGIN, 54, { width: CW - 120 });
+      doc.fillColor('rgba(255,255,255,0.6)').fontSize(7.5).font('Helvetica')
+        .text('INFORME DE GESTIÓN CLÍNICA', MARGIN, 16, { width: CW, characterSpacing: 1.5 });
+
+      doc.fillColor('white').fontSize(22).font('Helvetica-Bold')
+        .text(clinicName, MARGIN, 28, { width: CW - 20, lineBreak: false });
+
+      if (periodo) {
+        doc.fillColor('rgba(255,255,255,0.72)').fontSize(9).font('Helvetica')
+          .text(periodo, MARGIN, 57, { width: CW });
       }
 
-      // Period badge
-      doc.rect(W - MARGIN - 108, 16, 106, 60).fill('#1060A0');
-      doc.circle(W - MARGIN - 96, 30, 4).fill(ACCENT);
-      doc.fillColor('white').fontSize(8).font('Helvetica-Bold')
-        .text('ACTIVO', W - MARGIN - 88, 26, { width: 82 });
-      doc.fillColor('#A8D8F0').fontSize(8).font('Helvetica')
-        .text(`${rango.desde || ''}  →  ${rango.hasta || ''}`, W - MARGIN - 88, 39, { width: 82 });
+      // Badge
+      const badgeX = MARGIN;
+      const badgeY = 73;
+      doc.roundedRect(badgeX, badgeY, 200, 17, 8).fill('rgba(255,255,255,0.15)');
+      doc.circle(badgeX + 11, badgeY + 8.5, 3).fill(C.accent);
+      doc.fillColor('rgba(255,255,255,0.85)').fontSize(7.5).font('Helvetica')
+        .text(`Generado por Avax Health  ·  ${TODAY}`, badgeX + 18, badgeY + 4, { width: 180 });
 
-      doc.y = BH + 3 + 20;
+      doc.y = BH + 16;
 
-      // ── TÍTULO ──
-      doc.moveDown(2.5);
-      doc.fillColor(NAVY).fontSize(15).font('Helvetica-Bold').text('Informe de Gestión Clínica', { align: 'center' });
-      doc.fillColor('#64748B').fontSize(10).font('Helvetica')
-        .text(`Período: ${rango.desde}  →  ${rango.hasta}`, { align: 'center' });
-      doc.moveDown(1);
+      // ─── LABEL SECCIÓN KPIs ────────────────────────────────────────
+      doc.fillColor(C.textMuted).fontSize(7.5).font('Helvetica')
+        .text('INDICADORES DEL PERÍODO', MARGIN, doc.y, { width: CW, characterSpacing: 1 });
+      doc.y += 12;
 
-      // ── KPI BOXES ──
-      const kpis = [
-        { label: 'Total Turnos', value: String(turnosData?.total ?? 0), color: '#3B82F6', bg: '#EFF6FF' },
-        { label: 'Tasa Asistencia', value: `${insightsData?.tasa_completados ?? 0}%`, color: '#10B981', bg: '#ECFDF5' },
-        { label: 'Total Pacientes', value: String(pacientesData?.total ?? 0), color: '#8B5CF6', bg: '#F5F3FF' },
-        { label: 'Facturado', value: `$${totalFacturado.toFixed(0)}`, color: '#F59E0B', bg: '#FFFBEB' },
+      // ─── KPI GRID 3×2 ─────────────────────────────────────────────
+      const tasaAsist  = insightsData?.tasa_completados ?? 0;
+      const tasaRet    = insightsData?.tasa_retencion ?? 0;
+      const totalProf  = turnosData?.por_profesional?.length ?? 0;
+      const totalPac   = pacientesData?.total ?? 0;
+      const nuevosPac  = pacientesData?.nuevos_este_mes ?? 0;
+      const totTurnos  = turnosData?.total ?? 0;
+      const completados = turnosData?.por_estado?.['completado'] ?? 0;
+
+      type KpiType = 'info' | 'success' | 'danger' | 'warning' | 'neutral';
+      const kpiTypeColor: Record<KpiType, string> = {
+        info:    C.primary,
+        success: C.accent,
+        danger:  C.danger,
+        warning: C.warning,
+        neutral: '#CBD5E1',
+      };
+      const kpiTypeBg: Record<KpiType, string> = {
+        info:    C.bgInfo,
+        success: C.bgSuccess,
+        danger:  C.bgDanger,
+        warning: C.bgWarning,
+        neutral: C.bgCard,
+      };
+
+      const kpiCards: { label: string; value: string; sub: string; type: KpiType }[] = [
+        { label: 'Total turnos',    value: String(totTurnos),
+          sub: 'Programados',       type: 'info' },
+        { label: 'Tasa asistencia', value: `${tasaAsist}%`,
+          sub: `${completados} completados`,
+          type: tasaAsist === 0 ? 'danger' : tasaAsist >= 50 ? 'success' : 'warning' },
+        { label: 'Pacientes',       value: String(totalPac),
+          sub: `${nuevosPac} nuevo${nuevosPac !== 1 ? 's' : ''} este período`,
+          type: 'neutral' },
+        { label: 'Facturado',       value: `$${totalFacturado.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`,
+          sub: totalFacturado === 0 ? 'Sin ingresos' : `OS: $${totalOS.toLocaleString('es-AR', { maximumFractionDigits: 0 })}`,
+          type: totalFacturado === 0 ? 'danger' : 'success' },
+        { label: 'Profesionales',   value: String(totalProf),
+          sub: 'Activos en el período', type: 'info' },
+        { label: 'Retención',       value: `${tasaRet}%`,
+          sub: 'Pacientes recurrentes',
+          type: tasaRet === 0 ? 'danger' : tasaRet < 30 ? 'warning' : 'success' },
       ];
-      const boxW = (CONTENT_W - 12) / 4;
-      const boxH = 54;
-      const boxY = doc.y;
 
-      kpis.forEach((k, i) => {
-        const x = MARGIN + i * (boxW + 4);
-        doc.rect(x, boxY, boxW, boxH).fill(k.bg);
-        doc.rect(x, boxY, boxW, 3).fill(k.color);
-        doc.fillColor(k.color).fontSize(18).font('Helvetica-Bold').text(k.value, x, boxY + 10, { width: boxW, align: 'center' });
-        doc.fillColor('#64748B').fontSize(8).font('Helvetica').text(k.label, x, boxY + 33, { width: boxW, align: 'center' });
+      const colCount = 3;
+      const gap = 6;
+      const kpiW = (CW - gap * (colCount - 1)) / colCount;
+      const kpiH = 64;
+      const kpiStartY = doc.y;
+
+      kpiCards.forEach((k, i) => {
+        const col = i % colCount;
+        const row = Math.floor(i / colCount);
+        const x = MARGIN + col * (kpiW + gap);
+        const y = kpiStartY + row * (kpiH + gap);
+
+        doc.rect(x, y, kpiW, kpiH).fill(kpiTypeBg[k.type]);
+        doc.rect(x, y, kpiW, 3).fill(kpiTypeColor[k.type]);
+
+        doc.fillColor(C.textMuted).fontSize(7).font('Helvetica')
+          .text(k.label.toUpperCase(), x + 8, y + 10, { width: kpiW - 16, characterSpacing: 0.5 });
+
+        const isValueDark = k.type === 'danger';
+        doc.fillColor(isValueDark ? C.danger : k.type === 'success' ? C.accentDark : C.text)
+          .fontSize(20).font('Helvetica-Bold')
+          .text(k.value, x + 8, y + 22, { width: kpiW - 16, lineBreak: false });
+
+        doc.fillColor(C.textMuted).fontSize(7.5).font('Helvetica')
+          .text(k.sub, x + 8, y + 46, { width: kpiW - 16, lineBreak: false });
       });
 
-      doc.y = boxY + boxH + 14;
+      doc.y = kpiStartY + 2 * (kpiH + gap) + 14;
 
-      // ── FILA ADICIONAL: 3 métricas secundarias ──
-      const metricas = [
-        { label: 'Nuevos pacientes', value: String(pacientesData?.nuevos_este_mes ?? 0) },
-        { label: 'Tasa retención', value: `${insightsData?.tasa_retencion ?? 0}%` },
-        { label: 'Cobrado x OS', value: `$${totalOS.toFixed(0)}` },
-        { label: 'Profesionales', value: String(turnosData?.por_profesional?.length ?? 0) },
-        { label: 'Cancelaciones', value: `${turnosData?.cancelaciones_pct ?? 0}%` },
-        { label: 'Cobrado particular', value: `$${(totalFacturado - totalOS).toFixed(0)}` },
-      ];
-      const mW = (CONTENT_W - 10) / 3;
-      const mY = doc.y;
-      [0, 1, 2].forEach(col => {
-        const idx1 = col;
-        const idx2 = col + 3;
-        const x = MARGIN + col * (mW + 5);
-        doc.rect(x, mY, mW, 38).fill(LIGHT_BG);
-        doc.fillColor('#1E293B').fontSize(11).font('Helvetica-Bold').text(metricas[idx1].value, x, mY + 5, { width: mW, align: 'center' });
-        doc.fillColor('#94A3B8').fontSize(7.5).font('Helvetica').text(metricas[idx1].label, x, mY + 20, { width: mW, align: 'center' });
-        // segunda fila de métricas
-        const mY2 = mY + 42;
-        doc.rect(x, mY2, mW, 38).fill(LIGHT_BG);
-        doc.fillColor('#1E293B').fontSize(11).font('Helvetica-Bold').text(metricas[idx2].value, x, mY2 + 5, { width: mW, align: 'center' });
-        doc.fillColor('#94A3B8').fontSize(7.5).font('Helvetica').text(metricas[idx2].label, x, mY2 + 20, { width: mW, align: 'center' });
-      });
-      doc.y = mY + 38 + 42 + 16;
+      // ─── SUMMARY BOX ──────────────────────────────────────────────
+      const summaryText = resumenSec
+        ? [...resumenSec.paragraphs, ...resumenSec.bullets.map(b => `• ${b}`)].join(' ')
+        : 'El informe resume la actividad clínica del período analizado.';
 
-      // ── MINI GRÁFICO: Distribución por día ──
-      const distDia = insightsData?.distribucion_por_dia?.filter(d => ['Lunes', 'Martes', 'Miércoles', 'Jueves', 'Viernes'].includes(d.dia)) ?? [];
-      if (distDia.length > 0 && distDia.some(d => d.total > 0)) {
-        doc.fillColor(NAVY).fontSize(10).font('Helvetica-Bold').text('Turnos por día de la semana', MARGIN, doc.y);
-        doc.moveDown(0.4);
-        const chartY = doc.y;
-        const chartH = 45;
-        const maxVal = Math.max(...distDia.map(d => d.total), 1);
-        const barW = Math.floor((CONTENT_W - (distDia.length - 1) * 4) / distDia.length);
+      checkPage(60);
+      const sumStartY = doc.y;
+      const SUM_PADDING_LEFT = 14;
+      doc.rect(MARGIN, sumStartY, CW, 1).fill(C.bgInfo); // prefill to measure
+      // measure height
+      const sumTextHeight = doc.heightOfString(summaryText, { width: CW - SUM_PADDING_LEFT - 16, fontSize: 9.5 });
+      const sumH = sumTextHeight + 20;
+      doc.rect(MARGIN, sumStartY, CW, sumH).fill(C.bgInfo);
+      doc.rect(MARGIN, sumStartY, 4, sumH).fill(C.primary);
+      doc.fillColor(C.textSec).fontSize(9.5).font('Helvetica')
+        .text(summaryText, MARGIN + SUM_PADDING_LEFT, sumStartY + 10, { width: CW - SUM_PADDING_LEFT - 16, lineGap: 3 });
+      doc.y = sumStartY + sumH + 14;
 
-        distDia.forEach((d, i) => {
-          const x = MARGIN + i * (barW + 4);
-          const barH = Math.max(2, Math.round((d.total / maxVal) * chartH));
-          const barY = chartY + chartH - barH;
-          doc.rect(x, barY, barW, barH).fill(VIOLET);
-          doc.fillColor('#94A3B8').fontSize(7).font('Helvetica')
-            .text(d.dia.substring(0, 3), x, chartY + chartH + 3, { width: barW, align: 'center' });
-          if (d.total > 0) {
-            doc.fillColor('#1E293B').fontSize(7).text(String(d.total), x, barY - 10, { width: barW, align: 'center' });
-          }
-        });
-        doc.y = chartY + chartH + 18;
-        doc.moveDown(0.8);
-      }
+      // ─── HELPER: dibujar sección ───────────────────────────────────
+      const drawSection = (
+        title: string,
+        accentColor: string,
+        rows: { key: string; val: string }[],
+        insightText?: string,
+        alertText?: string,
+      ) => {
+        checkPage(rows.length * 22 + 60);
 
-      // Separador antes del texto
-      doc.moveTo(MARGIN, doc.y).lineTo(W - MARGIN, doc.y).strokeColor('#E2E8F0').lineWidth(1).stroke();
-      doc.moveDown(0.8);
-
-      // ── CUERPO MARKDOWN ESTRUCTURADO ──
-      const lines = texto.split('\n');
-      for (const line of lines) {
-        if (doc.y > 740) { doc.addPage(); }
-
-        const h2 = line.match(/^##\s+(.+)/);
-        const h3 = line.match(/^###\s+(.+)/);
-        const bullet = line.match(/^[-*]\s+(.+)/);
-        const trimmed = line.trim();
-
-        if (h2) {
-          doc.moveDown(0.5);
-          doc.rect(MARGIN, doc.y, CONTENT_W, 20).fill(NAVY);
-          doc.fillColor('white').fontSize(10).font('Helvetica-Bold')
-            .text(h2[1].toUpperCase(), MARGIN + 8, doc.y - 16, { width: CONTENT_W - 16 });
-          doc.y += 6;
-          doc.moveDown(0.3);
-        } else if (h3) {
-          doc.moveDown(0.3);
-          doc.fillColor(VIOLET).fontSize(10).font('Helvetica-Bold').text(h3[1], MARGIN);
-          doc.moveDown(0.2);
-        } else if (bullet) {
-          const rendered = bullet[1].replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
-          doc.fillColor('#374151').fontSize(10).font('Helvetica')
-            .text(`• ${rendered}`, MARGIN + 8, doc.y, { width: CONTENT_W - 8, lineGap: 2 });
-        } else if (trimmed.length > 0) {
-          const rendered = trimmed.replace(/\*\*(.+?)\*\*/g, '$1').replace(/\*(.+?)\*/g, '$1');
-          doc.fillColor('#1E293B').fontSize(10).font('Helvetica')
-            .text(rendered, MARGIN, doc.y, { width: CONTENT_W, align: 'justify', lineGap: 2 });
-          doc.moveDown(0.3);
-        } else {
-          doc.moveDown(0.3);
+        // Header
+        const headerY = doc.y;
+        doc.rect(MARGIN, headerY, 24, 24).fill(accentColor + '22');
+        doc.fillColor(accentColor).fontSize(10).font('Helvetica-Bold')
+          .text(title, MARGIN + 32, headerY + 6, { width: CW - 32 - 4, lineBreak: false });
+        doc.moveTo(MARGIN + 32 + doc.widthOfString(title) + 8, headerY + 13)
+          .lineTo(W - MARGIN, headerY + 13)
+          .strokeColor(C.border).lineWidth(0.8).stroke();
+        if (alertText) {
+          const alertW = doc.widthOfString(alertText, { fontSize: 7 }) + 14;
+          const alertX = W - MARGIN - alertW;
+          doc.roundedRect(alertX, headerY + 4, alertW, 14, 7).fill(C.bgDanger);
+          doc.fillColor(C.danger).fontSize(7).font('Helvetica-Bold')
+            .text(alertText, alertX + 7, headerY + 7, { width: alertW - 14, lineBreak: false });
         }
+        doc.y = headerY + 32;
+
+        // Body rows
+        const bodyY = doc.y;
+        const rowH  = 22;
+        const totalBodyH = rows.length * rowH;
+        doc.rect(MARGIN, bodyY, CW, totalBodyH).strokeColor(C.border).lineWidth(0.5).stroke();
+
+        rows.forEach((r, idx) => {
+          const ry = bodyY + idx * rowH;
+          if (idx % 2 === 0) doc.rect(MARGIN, ry, CW, rowH).fill(C.bgCard);
+          doc.fillColor(C.textSec).fontSize(9).font('Helvetica')
+            .text(r.key, MARGIN + 10, ry + 6, { width: CW * 0.58, lineBreak: false });
+          doc.fillColor(C.text).fontSize(9).font('Helvetica-Bold')
+            .text(r.val, MARGIN + CW * 0.62, ry + 6, { width: CW * 0.36, align: 'right', lineBreak: false });
+        });
+        doc.y = bodyY + totalBodyH + 6;
+
+        // Insight
+        if (insightText) {
+          const insY = doc.y;
+          const insH = doc.heightOfString(insightText, { width: CW - 20, fontSize: 8.5 }) + 14;
+          doc.rect(MARGIN, insY, CW, insH).fill(C.bgCard);
+          doc.rect(MARGIN, insY, 3, insH).fill(C.primary);
+          doc.fillColor(C.textMuted).fontSize(8.5).font('Helvetica')
+            .text(insightText, MARGIN + 10, insY + 7, { width: CW - 20, lineGap: 2 });
+          doc.y = insY + insH + 12;
+        } else {
+          doc.y += 8;
+        }
+      };
+
+      // ─── TURNOS ───────────────────────────────────────────────────
+      const canceladosPct = turnosData?.cancelaciones_pct ?? 0;
+      const pendientes    = turnosData?.por_estado?.['pendiente'] ?? 0;
+      const cancelados    = turnosData?.por_estado?.['cancelado'] ?? 0;
+      const topProf       = [...(turnosData?.por_profesional ?? [])].sort((a, b) => b.total - a.total)[0];
+
+      const turnosRows: { key: string; val: string }[] = [
+        { key: 'Total programados', val: String(totTurnos) },
+        { key: 'Completados',       val: String(completados) },
+        { key: 'Cancelados',        val: `${cancelados} (${canceladosPct}%)` },
+        { key: 'Pendientes',        val: String(pendientes) },
+        ...(topProf ? [{ key: 'Profesional más activo', val: `${topProf.nombre} (${topProf.total} turnos)` }] : []),
+      ];
+      const turnosInsight = turnosSec?.paragraphs[0] ?? turnosSec?.bullets[0];
+      drawSection('Turnos', C.primary, turnosRows, turnosInsight);
+
+      // ─── PACIENTES ────────────────────────────────────────────────
+      const obrasSociales = pacientesData?.por_obra_social ?? [];
+      const conCobertura  = obrasSociales.filter(o => o.obra_social !== 'Sin cobertura').reduce((s, o) => s + o.total, 0);
+      const topOS         = obrasSociales[0]?.obra_social ?? 'Sin datos';
+
+      const pacRows: { key: string; val: string }[] = [
+        { key: 'Total en sistema',      val: String(totalPac) },
+        { key: 'Nuevos este período',   val: String(nuevosPac) },
+        { key: 'Con cobertura médica',  val: String(conCobertura) },
+        { key: 'Cobertura principal',   val: topOS },
+      ];
+      const pacInsight = pacientesSec?.paragraphs[0] ?? pacientesSec?.bullets[0];
+      drawSection('Pacientes', C.accent, pacRows, pacInsight);
+
+      // ─── FACTURACIÓN ──────────────────────────────────────────────
+      const totalParticular = totalFacturado - totalOS;
+      const osPct = totalFacturado > 0 ? Math.round((totalOS / totalFacturado) * 100) : 0;
+
+      const factRows: { key: string; val: string }[] = [
+        { key: 'Total cobrado',    val: `$${totalFacturado.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+        { key: 'Por obra social',  val: `$${totalOS.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} (${osPct}%)` },
+        { key: 'Cobro particular', val: `$${totalParticular.toLocaleString('es-AR', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+      ];
+      const factInsight = factSec?.paragraphs[0] ?? factSec?.bullets[0];
+      const factAlert   = totalFacturado === 0 ? 'ATENCION' : undefined;
+      drawSection('Facturacion', C.danger, factRows, factInsight, factAlert);
+
+      // ─── RECOMENDACIONES ──────────────────────────────────────────
+      const recs = recsSec?.bullets ?? [];
+      if (recs.length > 0) {
+        checkPage(recs.length * 28 + 50);
+
+        const headerY = doc.y;
+        doc.rect(MARGIN, headerY, 24, 24).fill(C.warning + '22');
+        doc.fillColor(C.warning).fontSize(10).font('Helvetica-Bold')
+          .text('Recomendaciones', MARGIN + 32, headerY + 6, { width: CW - 32, lineBreak: false });
+        doc.moveTo(MARGIN + 32 + doc.widthOfString('Recomendaciones') + 8, headerY + 13)
+          .lineTo(W - MARGIN, headerY + 13)
+          .strokeColor(C.border).lineWidth(0.8).stroke();
+        doc.y = headerY + 32;
+
+        const bodyY = doc.y;
+        doc.rect(MARGIN, bodyY, CW, 1).strokeColor(C.border).lineWidth(0.5).stroke();
+
+        let recY = bodyY;
+        recs.forEach((rec, idx) => {
+          const num = String(idx + 1).padStart(2, '0');
+          const textH = doc.heightOfString(rec, { width: CW - 54, fontSize: 9 });
+          const rowH  = Math.max(28, textH + 14);
+
+          if (idx % 2 === 0) doc.rect(MARGIN, recY, CW, rowH).fill(C.bgCard);
+
+          // Número circular
+          doc.circle(MARGIN + 14, recY + rowH / 2, 10).fill(C.bgInfo);
+          doc.fillColor(C.primaryDark).fontSize(7.5).font('Helvetica-Bold')
+            .text(num, MARGIN + 9, recY + rowH / 2 - 5, { width: 10, align: 'center', lineBreak: false });
+
+          doc.fillColor(C.textSec).fontSize(9).font('Helvetica')
+            .text(rec, MARGIN + 30, recY + rowH / 2 - textH / 2, { width: CW - 40, lineGap: 2 });
+
+          doc.moveTo(MARGIN, recY + rowH).lineTo(W - MARGIN, recY + rowH)
+            .strokeColor(C.border).lineWidth(0.4).stroke();
+
+          recY += rowH;
+        });
+        doc.y = recY + 12;
       }
 
-      // ── PIE DE PÁGINA ──
-      doc.moveDown(1.5);
-      const pieY = Math.min(doc.y, 790);
-      doc.moveTo(MARGIN, pieY).lineTo(W - MARGIN, pieY).strokeColor('#E2E8F0').lineWidth(0.5).stroke();
-      doc.fillColor('#94A3B8').fontSize(8).font('Helvetica')
-        .text(
-          `Generado por Avax Health  ·  ${new Date().toLocaleDateString('es-AR', { day: '2-digit', month: 'long', year: 'numeric' })}`,
-          MARGIN, pieY + 6, { width: CONTENT_W, align: 'center' },
-        );
+      // ─── FOOTER ───────────────────────────────────────────────────
+      checkPage(28);
+      const footY = doc.y + 8;
+      doc.moveTo(MARGIN, footY).lineTo(W - MARGIN, footY).strokeColor(C.border).lineWidth(0.5).stroke();
+      doc.fillColor(C.primary).fontSize(9).font('Helvetica-Bold')
+        .text('Avax Health', MARGIN, footY + 7, { width: CW / 2, lineBreak: false });
+      doc.fillColor(C.textMuted).fontSize(8.5).font('Helvetica')
+        .text(TODAY, MARGIN, footY + 7, { width: CW, align: 'right', lineBreak: false });
 
       doc.end();
     });

@@ -1,12 +1,11 @@
 "use client";
 
-import { useCallback, useEffect, useState } from "react";
+import React, { useCallback, useEffect, useState } from "react";
 import reportsService, {
   TurnosReportData,
   PacientesReportData,
   InsightsData,
   InformeIaData,
-  InformeIaKpis,
 } from "@/services/reports.service";
 import { RoleGuard } from "@/components/guards/role-guard";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -53,8 +52,6 @@ import {
   Copy,
   FileText,
 } from "lucide-react";
-import ReactMarkdown from "react-markdown";
-
 type Rango = "este_mes" | "mes_anterior" | "3_meses" | "6_meses";
 
 function getRango(rango: Rango): { desde: string; hasta: string } {
@@ -426,32 +423,34 @@ export default function ReportesPage() {
             </div>
 
             <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
-              {/* Header */}
-              <div className="flex items-start justify-between gap-4 p-5 border-b bg-gradient-to-r from-violet-500/5 to-transparent">
-                <div className="flex items-start gap-3">
-                  <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10">
-                    <Sparkles className="h-5 w-5 text-violet-600" />
+              {/* Header — solo visible sin informe o durante loading */}
+              {(!informeIa || generandoInforme) && (
+                <div className="flex items-start justify-between gap-4 p-5 border-b bg-gradient-to-r from-violet-500/5 to-transparent">
+                  <div className="flex items-start gap-3">
+                    <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-violet-500/10">
+                      <Sparkles className="h-5 w-5 text-violet-600" />
+                    </div>
+                    <div>
+                      <h3 className="text-sm font-semibold">Informe ejecutivo generado por IA</h3>
+                      <p className="text-xs text-muted-foreground mt-0.5">
+                        GPT-4o analiza los datos del período y genera KPIs, gráficos y recomendaciones.
+                      </p>
+                    </div>
                   </div>
-                  <div>
-                    <h3 className="text-sm font-semibold">Informe ejecutivo generado por IA</h3>
-                    <p className="text-xs text-muted-foreground mt-0.5">
-                      GPT-4o analiza los datos del período y genera KPIs, gráficos y recomendaciones.
-                    </p>
-                  </div>
+                  <Button
+                    onClick={handleGenerarInforme}
+                    disabled={generandoInforme}
+                    className="shrink-0 rounded-xl gap-2 bg-violet-600 hover:bg-violet-700 text-white"
+                    size="sm"
+                  >
+                    {generandoInforme ? (
+                      <><RefreshCw className="h-4 w-4 animate-spin" />Generando...</>
+                    ) : (
+                      <><Sparkles className="h-4 w-4" />Generar informe</>
+                    )}
+                  </Button>
                 </div>
-                <Button
-                  onClick={handleGenerarInforme}
-                  disabled={generandoInforme}
-                  className="shrink-0 rounded-xl gap-2 bg-violet-600 hover:bg-violet-700 text-white"
-                  size="sm"
-                >
-                  {generandoInforme ? (
-                    <><RefreshCw className="h-4 w-4 animate-spin" />Generando...</>
-                  ) : (
-                    <><Sparkles className="h-4 w-4" />{informeIa ? "Regenerar" : "Generar informe"}</>
-                  )}
-                </Button>
-              </div>
+              )}
 
               {/* Loading */}
               {generandoInforme && (
@@ -460,8 +459,8 @@ export default function ReportesPage() {
                     <RefreshCw className="h-4 w-4 animate-spin text-violet-500" />
                     <span>Analizando datos y redactando informe... (puede tardar 15-20 segundos)</span>
                   </div>
-                  <div className="grid grid-cols-4 gap-3">
-                    {[...Array(4)].map((_, i) => <Skeleton key={i} className="h-16 rounded-lg" />)}
+                  <div className="grid grid-cols-3 gap-3">
+                    {[...Array(6)].map((_, i) => <Skeleton key={i} className="h-20 rounded-xl" />)}
                   </div>
                   <div className="space-y-2 pt-2">
                     <Skeleton className="h-4 w-full" /><Skeleton className="h-4 w-5/6" />
@@ -473,49 +472,13 @@ export default function ReportesPage() {
 
               {/* Contenido */}
               {!generandoInforme && informeIa && (
-                <>
-                  <InformeKpis kpis={informeIa.kpis} />
-                  <div className="px-6 pb-2 pt-4">
-                    <ReactMarkdown
-                      components={{
-                        h2: ({ children }) => (
-                          <h2 className="text-xs font-semibold uppercase tracking-wider text-violet-700 dark:text-violet-400 mt-6 mb-2 pb-1 border-b border-border first:mt-0">
-                            {children}
-                          </h2>
-                        ),
-                        h3: ({ children }) => (
-                          <h3 className="text-sm font-semibold text-foreground mt-3 mb-1.5">{children}</h3>
-                        ),
-                        p: ({ children }) => (
-                          <p className="text-sm text-muted-foreground leading-relaxed mb-3">{children}</p>
-                        ),
-                        ul: ({ children }) => (
-                          <ul className="space-y-1.5 mb-3 ml-1">{children}</ul>
-                        ),
-                        li: ({ children }) => (
-                          <li className="flex gap-2 text-sm text-muted-foreground">
-                            <span className="text-violet-500 shrink-0 mt-0.5">•</span>
-                            <span>{children}</span>
-                          </li>
-                        ),
-                        strong: ({ children }) => (
-                          <strong className="font-semibold text-foreground">{children}</strong>
-                        ),
-                      }}
-                    >
-                      {informeIa.texto}
-                    </ReactMarkdown>
-                  </div>
-                  <div className="flex items-center justify-end gap-2 px-5 py-3 border-t bg-muted/30">
-                    <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={handleCopiarInforme}>
-                      <Copy className="h-3.5 w-3.5" />Copiar
-                    </Button>
-                    <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={handleDescargarPdf} disabled={descargandoPdf}>
-                      <FileText className="h-3.5 w-3.5" />
-                      {descargandoPdf ? "Descargando..." : "Descargar PDF"}
-                    </Button>
-                  </div>
-                </>
+                <InformeIaDisplay
+                  informeIa={informeIa}
+                  onDescargarPdf={handleDescargarPdf}
+                  onCopiar={handleCopiarInforme}
+                  onRegenerar={handleGenerarInforme}
+                  descargandoPdf={descargandoPdf}
+                />
               )}
 
               {!generandoInforme && !informeIa && (
@@ -674,145 +637,273 @@ export default function ReportesPage() {
 }
 
 // ── Componente KPIs del Informe IA ──
-function InformeKpis({ kpis }: { kpis: InformeIaKpis }) {
-  const diasSemana = kpis.distribucionDia.filter(d =>
-    ["Lunes", "Martes", "Miércoles", "Jueves", "Viernes"].includes(d.dia)
-  );
-  const porMesChart = kpis.porMes.slice(-6).map(m => ({
-    mes: m.mes.substring(5),
-    turnos: m.total,
-  }));
+// ── Parseo de secciones Markdown ──────────────────────────────────────────────
+type MdSection = { title: string; bullets: string[]; paragraphs: string[] };
 
-  const mainKpis = [
-    {
-      label: "Total Turnos",
-      value: kpis.totalTurnos,
-      sub: `${kpis.completados} completados`,
-      color: "text-blue-600",
-      bg: "bg-blue-50 dark:bg-blue-950/30",
-      border: "border-blue-200 dark:border-blue-800",
-      icon: <Calendar className="h-4 w-4 text-blue-500" />,
-    },
-    {
-      label: "Tasa Asistencia",
-      value: `${kpis.tasaAsistencia}%`,
-      sub: `${kpis.cancelados} cancelados`,
-      color: "text-emerald-600",
-      bg: "bg-emerald-50 dark:bg-emerald-950/30",
-      border: "border-emerald-200 dark:border-emerald-800",
-      icon: <CheckCircle className="h-4 w-4 text-emerald-500" />,
-    },
-    {
-      label: "Pacientes",
-      value: kpis.totalPacientes,
-      sub: `+${kpis.nuevosPacientes} nuevos`,
-      color: "text-violet-600",
-      bg: "bg-violet-50 dark:bg-violet-950/30",
-      border: "border-violet-200 dark:border-violet-800",
-      icon: <Users className="h-4 w-4 text-violet-500" />,
-    },
-    {
-      label: "Facturado",
-      value: `$${kpis.totalFacturado.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`,
-      sub: kpis.totalOS > 0 ? `OS: $${kpis.totalOS.toLocaleString("es-AR", { maximumFractionDigits: 0 })}` : "Sin datos OS",
-      color: "text-amber-600",
-      bg: "bg-amber-50 dark:bg-amber-950/30",
-      border: "border-amber-200 dark:border-amber-800",
-      icon: <TrendingUp className="h-4 w-4 text-amber-500" />,
-    },
-  ];
+function parseMdSections(texto: string): MdSection[] {
+  const sections: MdSection[] = [];
+  let cur: MdSection | null = null;
+  for (const line of texto.split("\n")) {
+    const h2 = line.match(/^##\s+(.+)/);
+    if (h2) {
+      if (cur) sections.push(cur);
+      cur = { title: h2[1].trim(), bullets: [], paragraphs: [] };
+    } else if (cur) {
+      const bullet = line.match(/^[-*]\s+(.+)/);
+      if (bullet) {
+        cur.bullets.push(bullet[1].replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "$1").trim());
+      } else if (line.trim()) {
+        cur.paragraphs.push(line.replace(/\*\*(.+?)\*\*/g, "$1").replace(/\*(.+?)\*/g, "$1").trim());
+      }
+    }
+  }
+  if (cur) sections.push(cur);
+  return sections;
+}
 
+// ── Tipos KPI card ─────────────────────────────────────────────────────────────
+type KpiType = "info" | "success" | "danger" | "warning" | "neutral";
+
+const KPI_STYLES: Record<KpiType, { border: string; bg: string; valueColor: string }> = {
+  info:    { border: "border-t-[#0EA5E9]", bg: "bg-[#EFF6FF]",  valueColor: "text-[#0F172A]" },
+  success: { border: "border-t-[#10B981]", bg: "bg-[#ECFDF5]",  valueColor: "text-[#059669]" },
+  danger:  { border: "border-t-[#EF4444]", bg: "bg-[#FEF2F2]",  valueColor: "text-[#EF4444]" },
+  warning: { border: "border-t-[#F59E0B]", bg: "bg-[#FFFBEB]",  valueColor: "text-[#D97706]" },
+  neutral: { border: "border-t-[#CBD5E1]", bg: "bg-[#F8FAFC]",  valueColor: "text-[#0F172A]" },
+};
+
+function KpiCardItem({ label, value, sub, type }: { label: string; value: string | number; sub: string; type: KpiType }) {
+  const s = KPI_STYLES[type];
   return (
-    <div className="px-5 pt-5 pb-4 space-y-4 border-b">
-      {/* KPI cards row */}
-      <div className="grid grid-cols-2 lg:grid-cols-4 gap-3">
-        {mainKpis.map((k) => (
-          <div key={k.label} className={`rounded-lg border p-3 ${k.bg} ${k.border}`}>
-            <div className="flex items-center justify-between mb-1">
-              <span className="text-xs text-muted-foreground">{k.label}</span>
-              {k.icon}
-            </div>
-            <p className={`text-xl font-bold ${k.color}`}>{k.value}</p>
-            <p className="text-xs text-muted-foreground mt-0.5">{k.sub}</p>
-          </div>
-        ))}
-      </div>
+    <div className={`rounded-xl border border-[#E2E8F0] border-t-[3px] p-4 shadow-sm ${s.border} ${s.bg}`}>
+      <p className="text-[10px] font-medium uppercase tracking-wider text-[#64748B] mb-2">{label}</p>
+      <p className={`text-3xl font-bold leading-none mb-1 ${s.valueColor}`}>{value}</p>
+      <p className="text-xs text-[#64748B]">{sub}</p>
+    </div>
+  );
+}
 
-      {/* Métricas secundarias */}
-      <div className="grid grid-cols-3 lg:grid-cols-6 gap-2">
-        {[
-          { label: "Retención", value: `${kpis.tasaRetencion}%` },
-          { label: "Cancelaciones", value: `${kpis.cancelacionesPct}%` },
-          { label: "Profesionales", value: kpis.profesionales },
-          { label: "Nuevos pacientes", value: kpis.nuevosPacientes },
-          { label: "Cobrado OS", value: `$${kpis.totalOS.toLocaleString("es-AR", { maximumFractionDigits: 0 })}` },
-          { label: "Particular", value: `$${kpis.totalParticular.toLocaleString("es-AR", { maximumFractionDigits: 0 })}` },
-        ].map((m) => (
-          <div key={m.label} className="rounded-lg bg-muted/50 px-3 py-2 text-center">
-            <p className="text-sm font-semibold">{m.value}</p>
-            <p className="text-[10px] text-muted-foreground leading-tight mt-0.5">{m.label}</p>
-          </div>
-        ))}
-      </div>
-
-      {/* Charts row */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-4 pt-1">
-        {/* Turnos por mes */}
-        {porMesChart.length > 1 && (
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-              <BarChart2 className="h-3.5 w-3.5" />Evolución mensual
-            </p>
-            <ResponsiveContainer width="100%" height={90}>
-              <AreaChart data={porMesChart} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <defs>
-                  <linearGradient id="iaGrad" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#7C3AED" stopOpacity={0.3} />
-                    <stop offset="95%" stopColor="#7C3AED" stopOpacity={0} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="mes" tick={{ fontSize: 9 }} />
-                <YAxis tick={{ fontSize: 9 }} />
-                <Tooltip contentStyle={{ fontSize: 11 }} />
-                <Area type="monotone" dataKey="turnos" stroke="#7C3AED" fill="url(#iaGrad)" strokeWidth={2} />
-              </AreaChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-
-        {/* Turnos por día de la semana */}
-        {diasSemana.some(d => d.total > 0) && (
-          <div>
-            <p className="text-xs font-medium text-muted-foreground mb-2 flex items-center gap-1">
-              <Activity className="h-3.5 w-3.5" />Distribución semanal
-              {kpis.diaPico && <span className="ml-auto text-violet-600 font-medium">Pico: {kpis.diaPico}</span>}
-            </p>
-            <ResponsiveContainer width="100%" height={90}>
-              <BarChart data={diasSemana} margin={{ top: 4, right: 4, left: -20, bottom: 0 }}>
-                <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
-                <XAxis dataKey="dia" tickFormatter={(v: string) => v.substring(0, 3)} tick={{ fontSize: 9 }} />
-                <YAxis tick={{ fontSize: 9 }} />
-                <Tooltip contentStyle={{ fontSize: 11 }} />
-                <Bar dataKey="total" fill="#7C3AED" radius={[3, 3, 0, 0]} />
-              </BarChart>
-            </ResponsiveContainer>
-          </div>
-        )}
-      </div>
-
-      {/* Top profesional */}
-      {kpis.topProfesional && (
-        <div className="flex items-center gap-2 rounded-lg bg-violet-50 dark:bg-violet-950/20 border border-violet-200 dark:border-violet-800 px-4 py-2">
-          <Star className="h-4 w-4 text-violet-500 shrink-0" />
-          <span className="text-xs text-muted-foreground">Profesional más activo:</span>
-          <span className="text-xs font-semibold text-violet-700 dark:text-violet-300">{kpis.topProfesional}</span>
-          {kpis.diaPico && (
-            <><span className="text-xs text-muted-foreground ml-2">·  Día pico:</span>
-            <span className="text-xs font-semibold">{kpis.diaPico}</span></>
+// ── Sección con stat rows ──────────────────────────────────────────────────────
+function InformeSection({
+  title, accentColor, icon, rows, insight, alert,
+}: {
+  title: string;
+  accentColor: string;
+  icon: React.ReactNode;
+  rows: { key: string; val: string }[];
+  insight?: string;
+  alert?: string;
+}) {
+  return (
+    <div className="space-y-2">
+      {/* Header */}
+      <div className="flex items-center gap-2.5">
+        <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sm" style={{ background: accentColor + "20", color: accentColor }}>
+          {icon}
+        </div>
+        <h3 className="text-[15px] font-semibold text-[#0F172A] flex items-center gap-2">
+          {title}
+          {alert && (
+            <span className="inline-flex items-center rounded-full border border-[#FCA5A5] bg-[#FEF2F2] px-2 py-0.5 text-[10px] font-semibold uppercase tracking-wide text-[#EF4444]">
+              {alert}
+            </span>
           )}
+        </h3>
+        <div className="h-px flex-1 bg-[#E2E8F0]" />
+      </div>
+
+      {/* Stat rows */}
+      <div className="overflow-hidden rounded-xl border border-[#E2E8F0] shadow-sm">
+        {rows.map((r, i) => (
+          <div key={i} className="flex items-center justify-between border-b border-[#E2E8F0] px-5 py-2.5 text-sm last:border-b-0 hover:bg-[#F8FAFC]">
+            <span className="text-[#334155]">{r.key}</span>
+            <span className="font-medium text-[#0F172A]">{r.val}</span>
+          </div>
+        ))}
+      </div>
+
+      {/* Insight */}
+      {insight && (
+        <div className="rounded-lg border border-[#E2E8F0] border-l-[3px] border-l-[#38BDF8] bg-[#F8FAFC] px-4 py-2.5 text-xs leading-relaxed text-[#64748B]">
+          {insight}
         </div>
       )}
+    </div>
+  );
+}
+
+// ── Componente principal del informe IA ────────────────────────────────────────
+function InformeIaDisplay({
+  informeIa, onDescargarPdf, onCopiar, onRegenerar, descargandoPdf,
+}: {
+  informeIa: InformeIaData;
+  onDescargarPdf: () => void;
+  onCopiar: () => void;
+  onRegenerar: () => void;
+  descargandoPdf: boolean;
+}) {
+  const { kpis, texto, rango, clinicaNombre } = informeIa;
+  const sections = parseMdSections(texto);
+
+  const fmtDate = (s: string) => {
+    const [y, m, d] = s.split("-").map(Number);
+    return new Date(y, m - 1, d).toLocaleDateString("es-AR", { day: "numeric", month: "long", year: "numeric" });
+  };
+  const periodo = rango ? `${fmtDate(rango.desde)} – ${fmtDate(rango.hasta)}` : "";
+
+  const findSec = (kw: string) => sections.find(s => s.title.toLowerCase().includes(kw));
+
+  const tasaAsist = kpis.tasaAsistencia;
+  const tasaRet   = kpis.tasaRetencion;
+
+  const kpiCards: { label: string; value: string | number; sub: string; type: KpiType }[] = [
+    { label: "Total turnos",    value: kpis.totalTurnos,
+      sub: "Programados", type: "info" },
+    { label: "Tasa asistencia", value: `${tasaAsist}%`,
+      sub: `${kpis.completados} completados`,
+      type: tasaAsist === 0 ? "danger" : tasaAsist >= 50 ? "success" : "warning" },
+    { label: "Pacientes",       value: kpis.totalPacientes,
+      sub: `${kpis.nuevosPacientes} nuevo${kpis.nuevosPacientes !== 1 ? "s" : ""} este período`,
+      type: "neutral" },
+    { label: "Facturado",       value: `$${kpis.totalFacturado.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`,
+      sub: kpis.totalFacturado === 0 ? "Sin ingresos" : `OS: $${kpis.totalOS.toLocaleString("es-AR", { maximumFractionDigits: 0 })}`,
+      type: kpis.totalFacturado === 0 ? "danger" : "success" },
+    { label: "Profesionales",   value: kpis.profesionales,
+      sub: kpis.topProfesional ?? "Sin datos", type: "info" },
+    { label: "Retención",       value: `${tasaRet}%`,
+      sub: "Pacientes recurrentes",
+      type: tasaRet === 0 ? "danger" : tasaRet < 30 ? "warning" : "success" },
+  ];
+
+  const resumenSec   = findSec("resumen");
+  const turnosSec    = findSec("turno");
+  const pacientesSec = findSec("paciente");
+  const factSec      = findSec("factura");
+  const recsSec      = findSec("recomendac") ?? findSec("observac");
+
+  const summaryText = resumenSec
+    ? [...resumenSec.paragraphs, ...resumenSec.bullets].join(" ")
+    : "";
+
+  const cancelados  = kpis.cancelados;
+  const pendientes  = kpis.totalTurnos - kpis.completados - cancelados;
+
+  return (
+    <div className="overflow-hidden rounded-b-xl">
+      {/* Banner */}
+      <div className="relative overflow-hidden px-8 py-6" style={{ background: "linear-gradient(135deg, #0EA5E9 0%, #0369A1 100%)" }}>
+        <div className="absolute -right-10 -top-10 h-40 w-40 rounded-full opacity-10" style={{ background: "white" }} />
+        <div className="absolute bottom-[-30px] left-1/3 h-28 w-28 rounded-full opacity-5" style={{ background: "white" }} />
+
+        <p className="text-[11px] font-medium uppercase tracking-widest text-white/60 mb-1.5">Informe de Gestión Clínica</p>
+        <h2 className="text-2xl font-bold text-white mb-1 leading-tight">{clinicaNombre || "Clínica"}</h2>
+        {periodo && <p className="text-sm text-white/70 font-light">{periodo}</p>}
+        <div className="mt-4 inline-flex items-center gap-2 rounded-full border border-white/20 bg-white/15 px-3 py-1 text-[11px] text-white/85 backdrop-blur-sm">
+          <span className="h-1.5 w-1.5 rounded-full bg-[#10B981] shadow-[0_0_6px_#10B981]" />
+          Generado por Avax Health · {new Date().toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" })}
+        </div>
+      </div>
+
+      {/* Cuerpo */}
+      <div className="space-y-6 p-6">
+        {/* Label */}
+        <p className="text-[10px] font-medium uppercase tracking-wider text-[#64748B]">Indicadores del período</p>
+
+        {/* KPI Grid 3×2 */}
+        <div className="grid grid-cols-2 lg:grid-cols-3 gap-3">
+          {kpiCards.map((k) => <KpiCardItem key={k.label} {...k} />)}
+        </div>
+
+        {/* Summary box */}
+        {summaryText && (
+          <div className="relative overflow-hidden rounded-xl border border-[#BAE6FD] p-5" style={{ background: "linear-gradient(135deg, #EFF6FF 0%, #ECFDF5 100%)" }}>
+            <div className="absolute left-0 top-0 bottom-0 w-1 rounded-l-xl bg-[#0EA5E9]" />
+            <p className="pl-2 text-sm leading-relaxed text-[#334155]">{summaryText}</p>
+          </div>
+        )}
+
+        {/* Sección Turnos */}
+        <InformeSection
+          title="Turnos"
+          accentColor="#0EA5E9"
+          icon={<Calendar className="h-4 w-4" />}
+          rows={[
+            { key: "Total programados",  val: String(kpis.totalTurnos) },
+            { key: "Completados",        val: String(kpis.completados) },
+            { key: "Cancelados",         val: `${cancelados} (${kpis.cancelacionesPct}%)` },
+            { key: "Pendientes",         val: String(Math.max(0, pendientes)) },
+            ...(kpis.topProfesional ? [{ key: "Profesional más activo", val: kpis.topProfesional }] : []),
+          ]}
+          insight={turnosSec?.paragraphs[0] ?? turnosSec?.bullets[0]}
+        />
+
+        {/* Sección Pacientes */}
+        <InformeSection
+          title="Pacientes"
+          accentColor="#10B981"
+          icon={<Users className="h-4 w-4" />}
+          rows={[
+            { key: "Total en sistema",    val: String(kpis.totalPacientes) },
+            { key: "Nuevos este período", val: String(kpis.nuevosPacientes) },
+            { key: "Retención",           val: `${kpis.tasaRetencion}%` },
+          ]}
+          insight={pacientesSec?.paragraphs[0] ?? pacientesSec?.bullets[0]}
+        />
+
+        {/* Sección Facturación */}
+        <InformeSection
+          title="Facturación"
+          accentColor="#EF4444"
+          icon={<TrendingUp className="h-4 w-4" />}
+          rows={[
+            { key: "Total cobrado",   val: `$${kpis.totalFacturado.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+            { key: "Por obra social", val: `$${kpis.totalOS.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+            { key: "Particular",      val: `$${kpis.totalParticular.toLocaleString("es-AR", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}` },
+          ]}
+          insight={factSec?.paragraphs[0] ?? factSec?.bullets[0]}
+          alert={kpis.totalFacturado === 0 ? "ATENCIÓN" : undefined}
+        />
+
+        {/* Sección Recomendaciones */}
+        {recsSec && recsSec.bullets.length > 0 && (
+          <div className="space-y-2">
+            <div className="flex items-center gap-2.5">
+              <div className="flex h-7 w-7 shrink-0 items-center justify-center rounded-md text-sm" style={{ background: "#F59E0B20", color: "#F59E0B" }}>
+                <Star className="h-4 w-4" />
+              </div>
+              <h3 className="text-[15px] font-semibold text-[#0F172A]">Recomendaciones</h3>
+              <div className="h-px flex-1 bg-[#E2E8F0]" />
+            </div>
+            <div className="overflow-hidden rounded-xl border border-[#E2E8F0] shadow-sm">
+              {recsSec.bullets.map((rec, i) => (
+                <div key={i} className="flex gap-3.5 border-b border-[#E2E8F0] px-5 py-3 text-sm text-[#334155] last:border-b-0 hover:bg-[#F8FAFC]">
+                  <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full border border-[#BAE6FD] bg-[#EFF6FF] text-[10px] font-bold text-[#0369A1] mt-0.5">
+                    {String(i + 1).padStart(2, "0")}
+                  </span>
+                  <span className="leading-relaxed">{rec}</span>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Footer */}
+        <div className="flex items-center justify-between border-t border-[#E2E8F0] pt-4">
+          <span className="text-sm font-semibold text-[#0EA5E9]">Avax Health</span>
+          <div className="flex items-center gap-2">
+            <Button variant="ghost" size="sm" className="rounded-xl gap-2 text-violet-600 hover:text-violet-700 hover:bg-violet-50" onClick={onRegenerar}>
+              <RefreshCw className="h-3.5 w-3.5" />Regenerar
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={onCopiar}>
+              <Copy className="h-3.5 w-3.5" />Copiar
+            </Button>
+            <Button variant="outline" size="sm" className="rounded-xl gap-2" onClick={onDescargarPdf} disabled={descargandoPdf}>
+              <FileText className="h-3.5 w-3.5" />
+              {descargandoPdf ? "Descargando..." : "Descargar PDF"}
+            </Button>
+          </div>
+        </div>
+      </div>
     </div>
   );
 }

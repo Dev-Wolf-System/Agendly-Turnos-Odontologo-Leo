@@ -44,6 +44,7 @@ export interface InformeIaKpis {
 
 export interface InformeIaData {
   texto: string;
+  clinicaNombre: string;
   rango: { desde: string; hasta: string };
   kpis: InformeIaKpis;
 }
