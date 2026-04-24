@@ -87,15 +87,23 @@ export class ListaEsperaService {
     await this.repo.update(primera.id, { estado: 'notificada' });
 
     const paciente = primera.paciente as any;
+    const [profNombre = '', profApellido = ''] = turnoInfo.profesionalNombre.split(' ');
     try {
-      await this.webhookService.dispararWebhook(clinicaId, {
-        event: 'lista_espera_slot_libre',
-        paciente_id: primera.paciente_id,
-        paciente_nombre: paciente ? `${paciente.nombre} ${paciente.apellido}` : '',
-        paciente_cel: paciente?.cel ?? '',
-        profesional: turnoInfo.profesionalNombre,
-        fecha_turno_liberado: turnoInfo.fecha,
-        lista_espera_id: primera.id,
+      await this.webhookService.dispararWebhook(clinicaId, 'lista_espera_slot_libre', {
+        horario: { start_time: turnoInfo.fecha, end_time: turnoInfo.fecha },
+        paciente: {
+          nombre: paciente?.nombre ?? '',
+          apellido: paciente?.apellido ?? '',
+          cel: paciente?.cel ?? null,
+          dni: paciente?.dni ?? '',
+        },
+        tratamiento: null,
+        estado_turno: 'lista_espera_slot_libre',
+        estado_pago: 'pendiente',
+        profesional: { nombre: profNombre, apellido: profApellido, email: '' },
+        clinica: '',
+        recordatorio_horas_antes: null,
+        tipo: 'lista_espera_slot_libre',
       });
     } catch {
       // Webhook optional — no falla el flujo
