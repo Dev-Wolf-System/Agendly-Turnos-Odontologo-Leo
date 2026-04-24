@@ -1219,7 +1219,7 @@ export default function TurnosPage() {
                       value={pagoForm.obra_social_id}
                       onValueChange={(v) => {
                         const os = obrasSociales.find((o) => o.id === v);
-                        setPagoForm({ ...pagoForm, obra_social_id: v, obra_social_nombre: os?.nombre ?? "" });
+                        setPagoForm({ ...pagoForm, obra_social_id: v ?? "", obra_social_nombre: os?.nombre ?? "" });
                       }}
                     >
                       <SelectTrigger>
