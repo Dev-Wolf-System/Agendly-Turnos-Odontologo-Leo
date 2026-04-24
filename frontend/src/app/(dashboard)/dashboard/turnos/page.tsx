@@ -12,6 +12,7 @@ import turnosService, {
 } from "@/services/turnos.service";
 import tratamientosService, { Tratamiento } from "@/services/tratamientos.service";
 import pagosService from "@/services/pagos.service";
+import obrasSocialesService, { ObraSocial } from "@/services/obras-sociales.service";
 import pacientesService, { Paciente } from "@/services/pacientes.service";
 import usersService, { User } from "@/services/users.service";
 import { useAuth } from "@/components/providers/auth-provider";
@@ -129,7 +130,16 @@ export default function TurnosPage() {
   const [pagoTurno, setPagoTurno] = useState<Turno | null>(null);
   const [isSaving, setIsSaving] = useState(false);
   const [newEstado, setNewEstado] = useState<EstadoTurno>("pendiente");
-  const [pagoForm, setPagoForm] = useState({ total: "", method: "" });
+  const [obrasSociales, setObrasSociales] = useState<ObraSocial[]>([]);
+  const [pagoForm, setPagoForm] = useState({
+    total: "",
+    method: "",
+    fuente_pago: "particular" as "particular" | "obra_social",
+    obra_social_id: "",
+    obra_social_nombre: "",
+    codigo_prestacion: "",
+    nro_autorizacion: "",
+  });
   const [pagoExistente, setPagoExistente] = useState<Pago | null>(null);
   const [loadingPago, setLoadingPago] = useState(false);
   const [overlapWarning, setOverlapWarning] = useState<string | null>(null);
@@ -192,14 +202,16 @@ export default function TurnosPage() {
 
   const loadOptions = useCallback(async () => {
     try {
-      const [pacsResult, users, tratamientosData] = await Promise.all([
+      const [pacsResult, users, tratamientosData, osData] = await Promise.all([
         pacientesService.getAll(undefined, { limit: 1000 }),
         usersService.getAll(),
         tratamientosService.getActive(),
+        obrasSocialesService.getActive(),
       ]);
       setPacientes(pacsResult.data);
       setOdontologos(users.filter((u) => u.role === "professional"));
       setTratamientos(tratamientosData);
+      setObrasSociales(osData);
     } catch {
       // silently fail
     }
@@ -371,7 +383,20 @@ export default function TurnosPage() {
 
   const openPago = async (turno: Turno) => {
     setPagoTurno(turno);
-    setPagoForm({ total: "", method: "" });
+    // Pre-llenar OS del paciente si tiene una registrada en el catálogo
+    const pacienteOS = turno.paciente?.obra_social ?? "";
+    const osMatch = obrasSociales.find(
+      (os) => os.nombre.toLowerCase() === pacienteOS.toLowerCase()
+    );
+    setPagoForm({
+      total: "",
+      method: "",
+      fuente_pago: pacienteOS ? "obra_social" : "particular",
+      obra_social_id: osMatch?.id ?? "",
+      obra_social_nombre: osMatch?.nombre ?? pacienteOS,
+      codigo_prestacion: "",
+      nro_autorizacion: "",
+    });
     setPagoExistente(null);
     setLoadingPago(true);
     setPagoDialogOpen(true);
@@ -451,11 +476,19 @@ export default function TurnosPage() {
   const handlePago = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pagoTurno) return;
+    const esOS = pagoForm.fuente_pago === "obra_social";
     try {
       await pagosService.create({
         turno_id: pagoTurno.id,
         total: pagoForm.total ? parseFloat(pagoForm.total) : undefined,
-        method: pagoForm.method || undefined,
+        method: esOS ? "obra_social" : pagoForm.method || undefined,
+        fuente_pago: pagoForm.fuente_pago,
+        ...(esOS && {
+          obra_social_id: pagoForm.obra_social_id || undefined,
+          obra_social_nombre: pagoForm.obra_social_nombre || undefined,
+          codigo_prestacion: pagoForm.codigo_prestacion || undefined,
+          nro_autorizacion: pagoForm.nro_autorizacion || undefined,
+        }),
       });
       toast.success("Pago registrado");
       setPagoDialogOpen(false);
@@ -1082,18 +1115,19 @@ export default function TurnosPage() {
 
       {/* Dialog Registrar Pago */}
       <Dialog open={pagoDialogOpen} onOpenChange={setPagoDialogOpen}>
-        <DialogContent className="sm:max-w-[400px]">
+        <DialogContent className="sm:max-w-[440px]">
           <DialogHeader>
             <DialogTitle>Registrar Pago</DialogTitle>
             <DialogDescription>
               {pagoTurno?.paciente
-                ? `Cobrar a ${pagoTurno.paciente.nombre} ${pagoTurno.paciente.apellido}`
+                ? `${pagoTurno.paciente.nombre} ${pagoTurno.paciente.apellido}`
                 : "Registrar pago para este turno"}
               {pagoTurno
                 ? ` \u2014 ${formatDate(pagoTurno.start_time)} ${formatTime(pagoTurno.start_time)}`
                 : ""}
             </DialogDescription>
           </DialogHeader>
+
           {loadingPago ? (
             <div className="flex items-center gap-2 text-sm text-muted-foreground py-2">
               <div className="h-4 w-4 animate-spin rounded-full border-2 border-current border-t-transparent" />
@@ -1107,55 +1141,141 @@ export default function TurnosPage() {
                   Este turno ya tiene un pago {pagoExistente.estado}
                 </p>
                 <p className="text-amber-700 dark:text-amber-400 mt-1">
-                  Monto: ${Number(pagoExistente.total).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
-                  {pagoExistente.method ? ` · Método: ${pagoExistente.method}` : ""}
+                  ${Number(pagoExistente.total).toLocaleString("es-AR", { minimumFractionDigits: 2 })}
+                  {pagoExistente.method ? ` · ${pagoExistente.method}` : ""}
+                  {pagoExistente.fuente_pago === "obra_social" && pagoExistente.obra_social_nombre
+                    ? ` · OS: ${pagoExistente.obra_social_nombre}` : ""}
                 </p>
               </div>
             </div>
           ) : null}
+
           <form onSubmit={handlePago} className="space-y-4">
-            <div className="space-y-2">
-              <Label htmlFor="pago-total">Total ($) *</Label>
+            {/* Fuente de pago toggle */}
+            <div className="space-y-1.5">
+              <Label>Fuente de pago</Label>
+              <div className="grid grid-cols-2 gap-2">
+                {(["particular", "obra_social"] as const).map((f) => (
+                  <button
+                    key={f}
+                    type="button"
+                    onClick={() => setPagoForm({ ...pagoForm, fuente_pago: f })}
+                    className={`rounded-lg border px-3 py-2 text-sm font-medium transition-colors ${
+                      pagoForm.fuente_pago === f
+                        ? f === "particular"
+                          ? "border-[var(--ht-primary)] bg-[var(--ht-primary)]/10 text-[var(--ht-primary)]"
+                          : "border-emerald-500 bg-emerald-50 text-emerald-700 dark:bg-emerald-950/30 dark:text-emerald-400"
+                        : "border-border bg-background text-muted-foreground hover:bg-muted"
+                    }`}
+                  >
+                    {f === "particular" ? "Particular" : "Obra Social"}
+                  </button>
+                ))}
+              </div>
+            </div>
+
+            {/* Monto */}
+            <div className="space-y-1.5">
+              <Label htmlFor="pago-total">Monto ($) *</Label>
               <Input
                 id="pago-total"
                 type="number"
                 step="0.01"
                 value={pagoForm.total}
-                onChange={(e) =>
-                  setPagoForm({ ...pagoForm, total: e.target.value })
-                }
+                onChange={(e) => setPagoForm({ ...pagoForm, total: e.target.value })}
                 placeholder="0.00"
                 required
               />
             </div>
-            <div className="space-y-2">
-              <Label htmlFor="pago-method">Metodo de pago</Label>
-              <Select
-                value={pagoForm.method}
-                onValueChange={(v: string | null) =>
-                  setPagoForm({ ...pagoForm, method: v || "" })
-                }
-              >
-                <SelectTrigger>
-                  <SelectValue placeholder="Seleccionar metodo" />
-                </SelectTrigger>
-                <SelectContent>
-                  <SelectItem value="efectivo">Efectivo</SelectItem>
-                  <SelectItem value="mercadopago">MercadoPago</SelectItem>
-                  <SelectItem value="transferencia">Transferencia</SelectItem>
-                  <SelectItem value="tarjeta">Tarjeta</SelectItem>
-                </SelectContent>
-              </Select>
-            </div>
+
+            {/* Método de pago — solo particular */}
+            {pagoForm.fuente_pago === "particular" && (
+              <div className="space-y-1.5">
+                <Label htmlFor="pago-method">Método de pago</Label>
+                <Select
+                  value={pagoForm.method}
+                  onValueChange={(v: string | null) => setPagoForm({ ...pagoForm, method: v || "" })}
+                >
+                  <SelectTrigger>
+                    <SelectValue placeholder="Seleccionar método" />
+                  </SelectTrigger>
+                  <SelectContent>
+                    <SelectItem value="efectivo">Efectivo</SelectItem>
+                    <SelectItem value="mercadopago">MercadoPago</SelectItem>
+                    <SelectItem value="transferencia">Transferencia</SelectItem>
+                    <SelectItem value="tarjeta">Tarjeta</SelectItem>
+                  </SelectContent>
+                </Select>
+              </div>
+            )}
+
+            {/* Campos Obra Social */}
+            {pagoForm.fuente_pago === "obra_social" && (
+              <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20 p-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="pago-os">Obra Social *</Label>
+                  {obrasSociales.length > 0 ? (
+                    <Select
+                      value={pagoForm.obra_social_id}
+                      onValueChange={(v) => {
+                        const os = obrasSociales.find((o) => o.id === v);
+                        setPagoForm({ ...pagoForm, obra_social_id: v, obra_social_nombre: os?.nombre ?? "" });
+                      }}
+                    >
+                      <SelectTrigger>
+                        <SelectValue placeholder="Seleccionar obra social" />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {obrasSociales.map((os) => (
+                          <SelectItem key={os.id} value={os.id}>
+                            {os.nombre}{os.codigo ? ` (${os.codigo})` : ""}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  ) : (
+                    <Input
+                      id="pago-os"
+                      value={pagoForm.obra_social_nombre}
+                      onChange={(e) => setPagoForm({ ...pagoForm, obra_social_nombre: e.target.value })}
+                      placeholder="Nombre de la obra social"
+                    />
+                  )}
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="pago-codigo">Código prestación</Label>
+                  <Input
+                    id="pago-codigo"
+                    value={pagoForm.codigo_prestacion}
+                    onChange={(e) => setPagoForm({ ...pagoForm, codigo_prestacion: e.target.value })}
+                    placeholder="Ej: 0501, AMB001"
+                  />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="pago-autorizacion">Nro. autorización</Label>
+                  <Input
+                    id="pago-autorizacion"
+                    value={pagoForm.nro_autorizacion}
+                    onChange={(e) => setPagoForm({ ...pagoForm, nro_autorizacion: e.target.value })}
+                    placeholder="Número de autorización (opcional)"
+                  />
+                </div>
+              </div>
+            )}
+
             <DialogFooter>
-              <Button
-                type="button"
-                variant="outline"
-                onClick={() => setPagoDialogOpen(false)}
-              >
+              <Button type="button" variant="outline" onClick={() => setPagoDialogOpen(false)}>
                 Cancelar
               </Button>
-              <Button type="submit" disabled={!pagoForm.total || !pagoForm.method || !!pagoExistente}>
+              <Button
+                type="submit"
+                disabled={
+                  !pagoForm.total ||
+                  (pagoForm.fuente_pago === "particular" && !pagoForm.method) ||
+                  (pagoForm.fuente_pago === "obra_social" && !pagoForm.obra_social_id && !pagoForm.obra_social_nombre) ||
+                  !!pagoExistente
+                }
+              >
                 Registrar Pago
               </Button>
             </DialogFooter>

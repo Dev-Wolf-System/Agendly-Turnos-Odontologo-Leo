@@ -12,6 +12,9 @@ export interface Pago {
   external_reference: string | null;
   fuente_pago: 'particular' | 'obra_social';
   obra_social_nombre: string | null;
+  obra_social_id: string | null;
+  codigo_prestacion: string | null;
+  nro_autorizacion: string | null;
   created_at: string;
   turno?: {
     id: string;
@@ -57,6 +60,9 @@ export interface CreatePagoPayload {
   external_reference?: string;
   fuente_pago?: 'particular' | 'obra_social';
   obra_social_nombre?: string;
+  obra_social_id?: string;
+  codigo_prestacion?: string;
+  nro_autorizacion?: string;
 }
 
 export interface UpdatePagoPayload {
@@ -66,6 +72,9 @@ export interface UpdatePagoPayload {
   external_reference?: string;
   fuente_pago?: 'particular' | 'obra_social';
   obra_social_nombre?: string;
+  obra_social_id?: string;
+  codigo_prestacion?: string;
+  nro_autorizacion?: string;
 }
 
 const pagosService = {

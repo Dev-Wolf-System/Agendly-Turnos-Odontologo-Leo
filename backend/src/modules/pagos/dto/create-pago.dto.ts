@@ -7,6 +7,7 @@ import {
   IsUUID,
 } from 'class-validator';
 
+
 export class CreatePagoDto {
   @IsUUID()
   @IsNotEmpty()
@@ -31,4 +32,16 @@ export class CreatePagoDto {
   @IsString()
   @IsOptional()
   obra_social_nombre?: string;
+
+  @IsUUID()
+  @IsOptional()
+  obra_social_id?: string;
+
+  @IsString()
+  @IsOptional()
+  codigo_prestacion?: string;
+
+  @IsString()
+  @IsOptional()
+  nro_autorizacion?: string;
 }

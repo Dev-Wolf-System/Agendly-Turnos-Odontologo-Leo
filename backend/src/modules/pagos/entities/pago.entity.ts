@@ -27,6 +27,15 @@ export class Pago extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   obra_social_nombre: string | null;
 
+  @Column({ name: 'obra_social_id', type: 'uuid', nullable: true })
+  obra_social_id: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  codigo_prestacion: string | null;
+
+  @Column({ type: 'text', nullable: true })
+  nro_autorizacion: string | null;
+
   @ManyToOne(() => Turno, (turno) => turno.pagos)
   @JoinColumn({ name: 'turno_id' })
   turno: Turno;

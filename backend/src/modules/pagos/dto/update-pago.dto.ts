@@ -4,6 +4,7 @@ import {
   IsNumber,
   IsOptional,
   IsString,
+  IsUUID,
 } from 'class-validator';
 import { EstadoPago } from '../../../common/enums';
 
@@ -31,4 +32,16 @@ export class UpdatePagoDto {
   @IsString()
   @IsOptional()
   obra_social_nombre?: string;
+
+  @IsUUID()
+  @IsOptional()
+  obra_social_id?: string;
+
+  @IsString()
+  @IsOptional()
+  codigo_prestacion?: string;
+
+  @IsString()
+  @IsOptional()
+  nro_autorizacion?: string;
 }
