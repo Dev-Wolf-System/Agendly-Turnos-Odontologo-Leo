@@ -44,6 +44,7 @@ import {
   ArrowUpDown,
   LayoutGrid,
   LayoutList,
+  Shield,
 } from "lucide-react";
 
 function calcularEdad(fechaNacimiento: string | null): string {
@@ -392,6 +393,21 @@ export default function PacientesPage() {
                       <span>{new Date(paciente.fecha_nacimiento).toLocaleDateString("es-AR")}</span>
                     </div>
                   )}
+                  {paciente.obra_social ? (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                        <Shield className="h-2.5 w-2.5" />
+                        {paciente.obra_social}
+                        {paciente.plan_os ? ` · ${paciente.plan_os}` : ""}
+                      </Badge>
+                    </div>
+                  ) : (
+                    <div className="flex items-center gap-1.5 mt-1">
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground/60">
+                        Particular
+                      </Badge>
+                    </div>
+                  )}
                 </div>
 
                 {/* Acciones */}
@@ -443,9 +459,21 @@ export default function PacientesPage() {
                   <p className="text-sm font-semibold truncate">
                     {paciente.nombre} {paciente.apellido}
                   </p>
-                  <Badge variant="outline" className="text-[10px] mt-0.5">
-                    DNI {paciente.dni}
-                  </Badge>
+                  <div className="flex items-center gap-1.5 mt-0.5 flex-wrap">
+                    <Badge variant="outline" className="text-[10px]">
+                      DNI {paciente.dni}
+                    </Badge>
+                    {paciente.obra_social ? (
+                      <Badge variant="secondary" className="text-[10px] px-1.5 py-0 gap-1 bg-emerald-50 text-emerald-700 border-emerald-200 dark:bg-emerald-950/30 dark:text-emerald-400 dark:border-emerald-800">
+                        <Shield className="h-2.5 w-2.5" />
+                        {paciente.obra_social}
+                      </Badge>
+                    ) : (
+                      <Badge variant="outline" className="text-[10px] px-1.5 py-0 text-muted-foreground/60">
+                        Particular
+                      </Badge>
+                    )}
+                  </div>
                 </div>
                 <div className="hidden sm:flex items-center gap-1.5 text-xs text-muted-foreground">
                   <Phone className="h-3 w-3" />

@@ -5,7 +5,15 @@ import { useParams, useRouter } from "next/navigation";
 import Link from "next/link";
 import pacientesService, {
   FichaPaciente,
+  UpdatePacientePayload,
 } from "@/services/pacientes.service";
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from "@/components/ui/dialog";
 import { Button } from "@/components/ui/button";
 import { KpiCard } from "@/components/ui/kpi-card";
 import {
@@ -54,6 +62,8 @@ import {
   FileImage,
   File,
   Paperclip,
+  Pencil,
+  Shield,
 } from "lucide-react";
 
 function calcularEdad(fechaNacimiento: string | null): string {
@@ -145,6 +155,12 @@ export default function FichaPacientePage() {
   const [uploadingFile, setUploadingFile] = useState(false);
   const [archivoCategoria, setArchivoCategoria] = useState("");
   const [archivoNotas, setArchivoNotas] = useState("");
+  const [editDialogOpen, setEditDialogOpen] = useState(false);
+  const [isSavingEdit, setIsSavingEdit] = useState(false);
+  const [editForm, setEditForm] = useState({
+    nombre: "", apellido: "", dni: "", cel: "", email: "",
+    fecha_nacimiento: "", obra_social: "", nro_afiliado: "", plan_os: "",
+  });
 
   useEffect(() => {
     if (!id) return;
@@ -211,6 +227,45 @@ export default function FichaPacientePage() {
     if (mime === "application/pdf") return <FileText className="h-5 w-5 text-red-500" />;
     return <File className="h-5 w-5 text-muted-foreground" />;
   }
+
+  const openEditPaciente = () => {
+    if (!ficha) return;
+    const p = ficha.paciente;
+    setEditForm({
+      nombre: p.nombre, apellido: p.apellido, dni: p.dni,
+      cel: p.cel || "", email: p.email || "",
+      fecha_nacimiento: p.fecha_nacimiento || "",
+      obra_social: p.obra_social || "", nro_afiliado: p.nro_afiliado || "",
+      plan_os: p.plan_os || "",
+    });
+    setEditDialogOpen(true);
+  };
+
+  const handleSavePaciente = async (e: React.FormEvent) => {
+    e.preventDefault();
+    if (!ficha) return;
+    setIsSavingEdit(true);
+    try {
+      const payload: UpdatePacientePayload = {
+        nombre: editForm.nombre, apellido: editForm.apellido,
+        dni: editForm.dni || undefined, cel: editForm.cel || undefined,
+        email: editForm.email || undefined,
+        fecha_nacimiento: editForm.fecha_nacimiento || undefined,
+        obra_social: editForm.obra_social || undefined,
+        nro_afiliado: editForm.nro_afiliado || undefined,
+        plan_os: editForm.plan_os || undefined,
+      };
+      const updated = await pacientesService.update(ficha.paciente.id, payload);
+      setFicha({ ...ficha, paciente: updated });
+      setEditDialogOpen(false);
+      toast.success("Paciente actualizado");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Error al actualizar";
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    } finally {
+      setIsSavingEdit(false);
+    }
+  };
 
   if (isLoading) {
     return (
@@ -313,23 +368,28 @@ export default function FichaPacientePage() {
                         {paciente.email}
                       </span>
                     )}
-                    {paciente.obra_social && (
-                      <span className="flex items-center gap-1.5">
-                        <CreditCard className="h-3.5 w-3.5" />
-                        {paciente.obra_social}
-                        {paciente.nro_afiliado && (
-                          <span className="text-xs text-muted-foreground/70">#{paciente.nro_afiliado}</span>
-                        )}
-                        {paciente.plan_os && (
-                          <span className="text-xs text-muted-foreground/70">· {paciente.plan_os}</span>
-                        )}
+                    {paciente.obra_social ? (
+                      <span className="flex items-center gap-1.5 mt-0.5">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-emerald-100 dark:bg-emerald-950/40 border border-emerald-200 dark:border-emerald-800 px-2 py-0.5 text-xs font-medium text-emerald-700 dark:text-emerald-400">
+                          <Shield className="h-3 w-3" />
+                          {paciente.obra_social}
+                          {paciente.plan_os ? ` · ${paciente.plan_os}` : ""}
+                          {paciente.nro_afiliado ? ` — #${paciente.nro_afiliado}` : ""}
+                        </span>
+                      </span>
+                    ) : (
+                      <span className="flex items-center gap-1.5 mt-0.5">
+                        <span className="inline-flex items-center gap-1 rounded-full bg-muted/50 border border-border px-2 py-0.5 text-xs text-muted-foreground">
+                          <User className="h-3 w-3" />
+                          Particular
+                        </span>
                       </span>
                     )}
                   </div>
                 </div>
 
                 {/* Action Buttons */}
-                <div className="flex gap-2 shrink-0">
+                <div className="flex gap-2 shrink-0 flex-wrap">
                   <Link href={`/dashboard/turnos?paciente_id=${id}`}>
                     <Button size="sm" className="rounded-xl gap-1.5 shadow-sm">
                       <CalendarPlus className="h-4 w-4" />
@@ -342,6 +402,10 @@ export default function FichaPacientePage() {
                       Agregar Historial
                     </Button>
                   </Link>
+                  <Button variant="outline" size="sm" className="rounded-xl gap-1.5" onClick={openEditPaciente}>
+                    <Pencil className="h-4 w-4" />
+                    Editar
+                  </Button>
                 </div>
               </div>
             </div>
@@ -758,6 +822,76 @@ export default function FichaPacientePage() {
           </div>
         </TabsContent>
       </Tabs>
+
+      {/* Dialog Editar Paciente */}
+      <Dialog open={editDialogOpen} onOpenChange={setEditDialogOpen}>
+        <DialogContent className="sm:max-w-[520px] max-h-[90vh] overflow-y-auto">
+          <DialogHeader>
+            <DialogTitle>Editar Paciente</DialogTitle>
+          </DialogHeader>
+          <form onSubmit={handleSavePaciente} className="space-y-4">
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-nombre">Nombre *</Label>
+                <Input id="edit-nombre" value={editForm.nombre} onChange={(e) => setEditForm({ ...editForm, nombre: e.target.value })} required />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-apellido">Apellido *</Label>
+                <Input id="edit-apellido" value={editForm.apellido} onChange={(e) => setEditForm({ ...editForm, apellido: e.target.value })} required />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-dni">DNI</Label>
+                <Input id="edit-dni" value={editForm.dni} onChange={(e) => setEditForm({ ...editForm, dni: e.target.value })} />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-fnac">Fecha de Nacimiento</Label>
+                <Input id="edit-fnac" type="date" value={editForm.fecha_nacimiento} onChange={(e) => setEditForm({ ...editForm, fecha_nacimiento: e.target.value })} />
+              </div>
+            </div>
+            <div className="grid grid-cols-2 gap-3">
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-cel">Celular</Label>
+                <Input id="edit-cel" value={editForm.cel} onChange={(e) => setEditForm({ ...editForm, cel: e.target.value })} placeholder="+54 11 1234-5678" />
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-email">Email</Label>
+                <Input id="edit-email" type="email" value={editForm.email} onChange={(e) => setEditForm({ ...editForm, email: e.target.value })} placeholder="paciente@email.com" />
+              </div>
+            </div>
+
+            {/* Cobertura Médica */}
+            <div className="space-y-3 rounded-lg border border-emerald-200 bg-emerald-50/50 dark:border-emerald-800 dark:bg-emerald-950/20 p-3">
+              <div className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-emerald-600 dark:text-emerald-400" />
+                <p className="text-xs font-semibold text-emerald-700 dark:text-emerald-400 uppercase tracking-wide">Cobertura Médica</p>
+              </div>
+              <div className="space-y-1.5">
+                <Label htmlFor="edit-os">Obra Social / Prepaga</Label>
+                <Input id="edit-os" value={editForm.obra_social} onChange={(e) => setEditForm({ ...editForm, obra_social: e.target.value })} placeholder="OSDE, Swiss Medical, IOMA, etc." />
+              </div>
+              <div className="grid grid-cols-2 gap-3">
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-afiliado">Nro. Afiliado</Label>
+                  <Input id="edit-afiliado" value={editForm.nro_afiliado} onChange={(e) => setEditForm({ ...editForm, nro_afiliado: e.target.value })} placeholder="123456789" />
+                </div>
+                <div className="space-y-1.5">
+                  <Label htmlFor="edit-plan">Plan</Label>
+                  <Input id="edit-plan" value={editForm.plan_os} onChange={(e) => setEditForm({ ...editForm, plan_os: e.target.value })} placeholder="310 / Preferred / etc." />
+                </div>
+              </div>
+            </div>
+
+            <DialogFooter>
+              <Button type="button" variant="outline" onClick={() => setEditDialogOpen(false)}>Cancelar</Button>
+              <Button type="submit" disabled={isSavingEdit}>
+                {isSavingEdit ? "Guardando..." : "Guardar Cambios"}
+              </Button>
+            </DialogFooter>
+          </form>
+        </DialogContent>
+      </Dialog>
     </div>
   );
 }
