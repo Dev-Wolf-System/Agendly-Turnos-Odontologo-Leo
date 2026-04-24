@@ -58,6 +58,8 @@ import {
   XCircle,
   UserX,
   RefreshCw,
+  Send,
+  Copy,
 } from "lucide-react";
 import type { Pago } from "@/services/pagos.service";
 import { WeekCalendar } from "@/components/calendar/WeekCalendar";
@@ -145,6 +147,11 @@ export default function TurnosPage() {
   const [overlapWarning, setOverlapWarning] = useState<string | null>(null);
   const [checkingOverlap, setCheckingOverlap] = useState(false);
   const [isReprogramacion, setIsReprogramacion] = useState(false);
+  const [linkPagoDialogOpen, setLinkPagoDialogOpen] = useState(false);
+  const [linkPagoTurnoId, setLinkPagoTurnoId] = useState<string | null>(null);
+  const [linkPagoMonto, setLinkPagoMonto] = useState<number>(0);
+  const [linkPagoUrl, setLinkPagoUrl] = useState<string | null>(null);
+  const [sendingLink, setSendingLink] = useState(false);
   const [form, setForm] = useState({
     paciente_id: "",
     user_id: "",
@@ -446,9 +453,19 @@ export default function TurnosPage() {
         if (form.tipo_tratamiento) payload.tipo_tratamiento = form.tipo_tratamiento;
         if (form.notas) payload.notas = form.notas;
         if (isReprogramacion) payload.es_reprogramacion = true;
-        await turnosService.create(payload);
+        const created = await turnosService.create(payload);
         setIsReprogramacion(false);
         toast.success("Turno creado");
+        // Ofrecer link de pago si el tratamiento tiene precio
+        if (form.tipo_tratamiento) {
+          const trat = tratamientos.find((t) => t.nombre === form.tipo_tratamiento);
+          if (trat && trat.precio_base && trat.precio_base > 0) {
+            setLinkPagoTurnoId(created.id);
+            setLinkPagoMonto(trat.precio_base);
+            setLinkPagoUrl(null);
+            setLinkPagoDialogOpen(true);
+          }
+        }
       }
       setDialogOpen(false);
       reloadAll();
@@ -477,6 +494,7 @@ export default function TurnosPage() {
     e.preventDefault();
     if (!pagoTurno) return;
     const esOS = pagoForm.fuente_pago === "obra_social";
+    const esMercadoPago = pagoForm.method === "mercadopago";
     try {
       await pagosService.create({
         turno_id: pagoTurno.id,
@@ -490,11 +508,32 @@ export default function TurnosPage() {
           nro_autorizacion: pagoForm.nro_autorizacion || undefined,
         }),
       });
-      toast.success("Pago registrado");
       setPagoDialogOpen(false);
+      if (esMercadoPago) {
+        setLinkPagoTurnoId(pagoTurno.id);
+        setLinkPagoMonto(pagoForm.total ? parseFloat(pagoForm.total) : 0);
+        setLinkPagoUrl(null);
+        setLinkPagoDialogOpen(true);
+      } else {
+        toast.success("Pago registrado");
+      }
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Error al registrar pago";
       toast.error(Array.isArray(msg) ? msg[0] : msg);
+    }
+  };
+
+  const handleGenerarLink = async () => {
+    if (!linkPagoTurnoId || !user?.clinica_id) return;
+    setSendingLink(true);
+    try {
+      const data = await turnosService.getLinkPago(linkPagoTurnoId, user.clinica_id);
+      setLinkPagoUrl(data.checkout_url);
+      toast.success("Link de pago generado");
+    } catch {
+      toast.error("Error al generar el link de pago. Verificá la configuración de MercadoPago.");
+    } finally {
+      setSendingLink(false);
     }
   };
 
@@ -1191,7 +1230,7 @@ export default function TurnosPage() {
             {/* Método de pago — solo particular */}
             {pagoForm.fuente_pago === "particular" && (
               <div className="space-y-1.5">
-                <Label htmlFor="pago-method">Método de pago</Label>
+                <Label htmlFor="pago-method">Método de pago *</Label>
                 <Select
                   value={pagoForm.method}
                   onValueChange={(v: string | null) => setPagoForm({ ...pagoForm, method: v || "" })}
@@ -1203,9 +1242,14 @@ export default function TurnosPage() {
                     <SelectItem value="efectivo">Efectivo</SelectItem>
                     <SelectItem value="mercadopago">MercadoPago</SelectItem>
                     <SelectItem value="transferencia">Transferencia</SelectItem>
-                    <SelectItem value="tarjeta">Tarjeta</SelectItem>
                   </SelectContent>
                 </Select>
+                {pagoForm.method === "mercadopago" && (
+                  <p className="text-xs text-[var(--ht-primary)] flex items-center gap-1.5 mt-1">
+                    <Send className="h-3 w-3" />
+                    Al registrar, se generará el link de cobro por MercadoPago
+                  </p>
+                )}
               </div>
             )}
 
@@ -1280,6 +1324,63 @@ export default function TurnosPage() {
               </Button>
             </DialogFooter>
           </form>
+        </DialogContent>
+      </Dialog>
+      {/* Dialog Link de Pago MercadoPago */}
+      <Dialog open={linkPagoDialogOpen} onOpenChange={(open) => { if (!open) setLinkPagoDialogOpen(false); }}>
+        <DialogContent className="sm:max-w-[440px]">
+          <DialogHeader>
+            <DialogTitle>Generar link de pago</DialogTitle>
+            <DialogDescription>
+              {linkPagoMonto > 0
+                ? `Cobro pendiente de $${Number(linkPagoMonto).toLocaleString("es-AR", { minimumFractionDigits: 2 })} listo para enviar.`
+                : "¿Querés generar el link de cobro por MercadoPago?"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {linkPagoUrl ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30 p-3">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 dark:text-emerald-400 shrink-0" />
+                <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">Link generado correctamente</p>
+              </div>
+              <div className="flex gap-2">
+                <Input readOnly value={linkPagoUrl} className="text-xs font-mono" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => { navigator.clipboard.writeText(linkPagoUrl!); toast.success("Link copiado al portapapeles"); }}
+                  title="Copiar link"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 rounded-lg border border-[var(--ht-primary)]/30 bg-[var(--ht-primary)]/5 p-3">
+              <Send className="h-4 w-4 text-[var(--ht-primary)] shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground">
+                Se generará un link de pago de MercadoPago que podés compartir con el paciente para que abone de forma online.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setLinkPagoDialogOpen(false)}>
+              {linkPagoUrl ? "Cerrar" : "No por ahora"}
+            </Button>
+            {!linkPagoUrl && (
+              <Button
+                onClick={handleGenerarLink}
+                disabled={sendingLink}
+                className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white"
+              >
+                <Send className="h-4 w-4" />
+                {sendingLink ? "Generando..." : "Generar link de pago"}
+              </Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>

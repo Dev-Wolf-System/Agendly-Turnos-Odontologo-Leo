@@ -103,6 +103,9 @@ const turnosService = {
 
   delete: (id: string) =>
     api.delete(`/turnos/${id}`).then((r) => r.data),
+
+  getLinkPago: (turnoId: string, clinicaId: string) =>
+    api.get<{ checkout_url: string }>(`/agent/turnos/${turnoId}/link-pago`, { params: { clinicaId } }).then((r) => r.data),
 };
 
 export default turnosService;
