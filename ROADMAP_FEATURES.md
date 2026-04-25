@@ -1,5 +1,5 @@
 # Roadmap de Features — Avax Health
-> Actualizado: 2026-04-19
+> Actualizado: 2026-04-25
 
 ---
 
@@ -72,7 +72,7 @@
 
 ---
 
-## R3 — Lista de espera
+## R3 — Lista de espera ✅ CODE-COMPLETE (2026-04-24)
 
 **Objetivo:** cuando un horario está completo, el paciente queda en lista de espera y recibe WhatsApp si se libera un turno.
 
@@ -87,7 +87,7 @@
 
 ---
 
-## R4 — Encuesta NPS post-turno
+## R4 — Encuesta NPS post-turno ✅ CODE-COMPLETE (2026-04-25)
 
 **Objetivo:** 2 horas después de un turno completado, enviar WhatsApp: "¿Del 1 al 10 cómo calificás tu visita?"
 
@@ -102,7 +102,7 @@
 
 ---
 
-## R5 — Consentimientos informados
+## R5 — Consentimientos informados ✅ CODE-COMPLETE (2026-04-25)
 
 **Objetivo:** generar PDF de consentimiento con datos del paciente, enviarlo por WhatsApp, registrar aceptación.
 
