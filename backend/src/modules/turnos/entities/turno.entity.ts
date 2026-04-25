@@ -43,6 +43,12 @@ export class Turno extends TenantBaseEntity {
   @Column({ type: 'boolean', default: false })
   recordatorio_enviado: boolean;
 
+  @Column({ type: 'boolean', default: false })
+  encuesta_enviada: boolean;
+
+  @Column({ type: 'integer', nullable: true })
+  nps_score: number | null;
+
   @ManyToOne(() => Clinica, (clinica) => clinica.turnos)
   @JoinColumn({ name: 'clinica_id' })
   clinica: Clinica;

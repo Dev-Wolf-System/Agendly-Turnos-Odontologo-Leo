@@ -6,6 +6,7 @@ import {
   Logger,
 } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
+import { ConfigService } from '@nestjs/config';
 import { Repository, Between, LessThanOrEqual } from 'typeorm';
 import { Cron, CronExpression } from '@nestjs/schedule';
 import { Turno } from './entities/turno.entity';
@@ -36,6 +37,7 @@ export class TurnosService {
     private readonly webhookService: WebhookService,
     private readonly notificacionesService: NotificacionesService,
     private readonly listaEsperaService: ListaEsperaService,
+    private readonly configService: ConfigService,
   ) {}
 
   async findAll(
@@ -388,6 +390,64 @@ export class TurnosService {
     } catch (err) {
       this.logger.error(`Error en cron de recordatorios: ${err.message}`);
     }
+  }
+
+  /**
+   * Cron: cada 10 minutos envía encuesta NPS a turnos completados hace >2h
+   * que aún no recibieron la encuesta.
+   */
+  @Cron(CronExpression.EVERY_10_MINUTES)
+  async enviarEncuestasNps(): Promise<void> {
+    try {
+      const dosHorasAtras = new Date();
+      dosHorasAtras.setHours(dosHorasAtras.getHours() - 2);
+
+      const turnos = await this.turnoRepository.find({
+        where: {
+          estado: EstadoTurno.COMPLETADO,
+          encuesta_enviada: false,
+          end_time: LessThanOrEqual(dosHorasAtras),
+        },
+        relations: ['paciente', 'user'],
+      });
+
+      if (turnos.length === 0) return;
+
+      const backendUrl = this.configService.get<string>('BACKEND_URL') || '';
+
+      for (const turno of turnos) {
+        const callbackUrl = `${backendUrl}/turnos/${turno.id}/nps`;
+        const enviado = await this.webhookService.dispararNpsEncuesta(turno.clinica_id, {
+          turno_id: turno.id,
+          paciente: {
+            nombre: turno.paciente?.nombre || '',
+            apellido: turno.paciente?.apellido || '',
+            cel: turno.paciente?.cel || null,
+          },
+          profesional: {
+            nombre: turno.user?.nombre || '',
+            apellido: turno.user?.apellido || '',
+          },
+          fecha_turno: turno.end_time.toISOString(),
+          callback_url: callbackUrl,
+        });
+
+        if (enviado) {
+          await this.turnoRepository.update(turno.id, { encuesta_enviada: true });
+        }
+      }
+
+      this.logger.log(`Encuestas NPS procesadas: ${turnos.length}`);
+    } catch (err) {
+      this.logger.error(`Error en cron NPS: ${err.message}`);
+    }
+  }
+
+  async registrarNps(turnoId: string, score: number): Promise<{ ok: boolean }> {
+    const turno = await this.turnoRepository.findOne({ where: { id: turnoId } });
+    if (!turno) throw new NotFoundException('Turno no encontrado');
+    await this.turnoRepository.update(turnoId, { nps_score: score });
+    return { ok: true };
   }
 
   private async checkOverlap(

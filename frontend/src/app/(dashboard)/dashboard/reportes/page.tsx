@@ -6,6 +6,7 @@ import reportsService, {
   PacientesReportData,
   InsightsData,
   InformeIaData,
+  NpsReportData,
 } from "@/services/reports.service";
 import { RoleGuard } from "@/components/guards/role-guard";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -51,6 +52,7 @@ import {
   RefreshCw,
   Copy,
   FileText,
+  ThumbsUp,
 } from "lucide-react";
 type Rango = "este_mes" | "mes_anterior" | "3_meses" | "6_meses";
 
@@ -90,6 +92,7 @@ export default function ReportesPage() {
   const [turnosData, setTurnosData] = useState<TurnosReportData | null>(null);
   const [pacientesData, setPacientesData] = useState<PacientesReportData | null>(null);
   const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
+  const [npsData, setNpsData] = useState<NpsReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [informeIa, setInformeIa] = useState<InformeIaData | null>(null);
@@ -100,14 +103,16 @@ export default function ReportesPage() {
     setLoading(true);
     try {
       const { desde, hasta } = getRango(rango);
-      const [turnos, pacientes, insights] = await Promise.all([
+      const [turnos, pacientes, insights, nps] = await Promise.all([
         reportsService.getTurnos({ desde, hasta }),
         reportsService.getPacientes(),
         reportsService.getInsights({ desde, hasta }),
+        reportsService.getNps({ desde, hasta }),
       ]);
       setTurnosData(turnos);
       setPacientesData(pacientes);
       setInsightsData(insights);
+      setNpsData(nps);
     } catch {
       toast.error("Error al cargar reportes");
     } finally {
@@ -408,6 +413,91 @@ export default function ReportesPage() {
             <Skeleton className="h-64 w-full rounded-xl" />
             <Skeleton className="h-48 w-full rounded-xl" />
           </div>
+        )}
+
+        {/* ── SECCIÓN NPS ── */}
+        {!loading && npsData && (
+          <>
+            <div className="flex items-center gap-3 pt-2">
+              <div className="h-px flex-1 bg-border" />
+              <div className="flex items-center gap-1.5 rounded-full bg-emerald-500/10 px-3 py-1">
+                <ThumbsUp className="h-3.5 w-3.5 text-emerald-600" />
+                <span className="text-xs font-semibold text-emerald-600 uppercase tracking-wide">NPS — Satisfacción</span>
+              </div>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <KpiCard
+                label="NPS Score"
+                value={npsData.nps_score !== null ? npsData.nps_score : "—"}
+                icon={<ThumbsUp className="h-5 w-5" />}
+                variant={
+                  npsData.nps_score === null ? "primary"
+                  : npsData.nps_score >= 50 ? "accent"
+                  : npsData.nps_score >= 0 ? "warm"
+                  : "danger"
+                }
+                sub={npsData.total_respuestas > 0 ? `${npsData.total_respuestas} respuestas` : "Sin respuestas"}
+              />
+              <KpiCard
+                label="Promedio"
+                value={npsData.promedio !== null ? `${npsData.promedio}/10` : "—"}
+                icon={<Star className="h-5 w-5" />}
+                variant="primary"
+              />
+              <KpiCard
+                label="Promotores (9-10)"
+                value={npsData.promotores}
+                icon={<CheckCircle className="h-5 w-5" />}
+                variant="accent"
+                sub={npsData.total_respuestas > 0 ? `${Math.round((npsData.promotores / npsData.total_respuestas) * 100)}%` : undefined}
+              />
+              <KpiCard
+                label="Detractores (1-6)"
+                value={npsData.detractores}
+                icon={<XCircle className="h-5 w-5" />}
+                variant="danger"
+                sub={npsData.total_respuestas > 0 ? `${Math.round((npsData.detractores / npsData.total_respuestas) * 100)}%` : undefined}
+              />
+            </div>
+
+            {npsData.respuestas.length > 0 && (
+              <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+                <div className="flex items-center gap-2 px-5 py-3 border-b">
+                  <ThumbsUp className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold">Últimas respuestas</h3>
+                </div>
+                <div className="divide-y">
+                  {npsData.respuestas.slice(0, 10).map((r) => {
+                    const color = r.score >= 9 ? "text-emerald-600 bg-emerald-50" : r.score >= 7 ? "text-amber-600 bg-amber-50" : "text-red-600 bg-red-50";
+                    return (
+                      <div key={r.turno_id} className="flex items-center gap-4 px-5 py-3 text-sm hover:bg-muted/30">
+                        <span className={`flex h-8 w-8 shrink-0 items-center justify-center rounded-full font-bold text-base ${color}`}>
+                          {r.score}
+                        </span>
+                        <div className="flex-1 min-w-0">
+                          <p className="font-medium truncate">{r.paciente}</p>
+                          <p className="text-xs text-muted-foreground">{r.profesional}</p>
+                        </div>
+                        <span className="text-xs text-muted-foreground shrink-0">
+                          {new Date(r.fecha).toLocaleDateString("es-AR", { day: "2-digit", month: "short" })}
+                        </span>
+                      </div>
+                    );
+                  })}
+                </div>
+              </div>
+            )}
+
+            {npsData.total_respuestas === 0 && (
+              <div className="rounded-xl border bg-card p-8 text-center text-muted-foreground text-sm">
+                <ThumbsUp className="h-8 w-8 mx-auto mb-2 opacity-30" />
+                <p>Aún no hay respuestas NPS en este período.</p>
+                <p className="text-xs mt-1">Las encuestas se envían automáticamente 2 horas después de cada turno completado.</p>
+              </div>
+            )}
+          </>
         )}
 
         {/* ── SECCIÓN INFORME IA ── */}

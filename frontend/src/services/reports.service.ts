@@ -49,6 +49,24 @@ export interface InformeIaData {
   kpis: InformeIaKpis;
 }
 
+export interface NpsRespuesta {
+  turno_id: string;
+  score: number;
+  fecha: string;
+  paciente: string;
+  profesional: string;
+}
+
+export interface NpsReportData {
+  total_respuestas: number;
+  promedio: number | null;
+  nps_score: number | null;
+  promotores: number;
+  pasivos: number;
+  detractores: number;
+  respuestas: NpsRespuesta[];
+}
+
 export interface PacientesReportData {
   total: number;
   nuevos_este_mes: number;
@@ -99,6 +117,9 @@ const reportsService = {
     a.click();
     URL.revokeObjectURL(url);
   },
+
+  getNps: (params?: { desde?: string; hasta?: string }) =>
+    api.get<NpsReportData>("/reports/nps", { params }).then((r) => r.data),
 
   generarInformeIa: (params?: { desde?: string; hasta?: string }) =>
     api.get<InformeIaData>("/reports/informe-ia", { params }).then((r) => r.data),

@@ -12,7 +12,9 @@ import {
 import { TurnosService } from './turnos.service';
 import { CreateTurnoDto } from './dto/create-turno.dto';
 import { UpdateTurnoDto } from './dto/update-turno.dto';
+import { NpsDto } from './dto/nps.dto';
 import { CurrentClinica } from '../../common/decorators';
+import { ApiKeyAuth } from '../../common/decorators/api-key-auth.decorator';
 import { EstadoTurno } from '../../common/enums';
 
 @Controller('turnos')
@@ -89,5 +91,14 @@ export class TurnosController {
     @CurrentClinica() clinicaId: string,
   ) {
     return this.turnosService.remove(id, clinicaId);
+  }
+
+  @ApiKeyAuth()
+  @Patch(':id/nps')
+  registrarNps(
+    @Param('id', ParseUUIDPipe) id: string,
+    @Body() body: NpsDto,
+  ) {
+    return this.turnosService.registrarNps(id, body.score);
   }
 }

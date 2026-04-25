@@ -987,4 +987,59 @@ FACTURACIÓN:
       doc.end();
     });
   }
+
+  async getNpsReport(clinicaId: string, desde?: string, hasta?: string) {
+    const qb = this.turnoRepository
+      .createQueryBuilder('t')
+      .leftJoin('t.paciente', 'p')
+      .leftJoin('t.user', 'u')
+      .where('t.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('t.nps_score IS NOT NULL');
+
+    if (desde || hasta) {
+      const desdeDate = desde ? new Date(desde) : new Date(new Date().getFullYear(), 0, 1);
+      const hastaDate = hasta ? new Date(hasta) : new Date();
+      desdeDate.setHours(0, 0, 0, 0);
+      hastaDate.setHours(23, 59, 59, 999);
+      qb.andWhere('t.end_time >= :desde', { desde: desdeDate });
+      qb.andWhere('t.end_time <= :hasta', { hasta: hastaDate });
+    }
+
+    const turnos = await qb
+      .select([
+        't.id', 't.nps_score', 't.end_time',
+        'p.id', 'p.nombre', 'p.apellido',
+        'u.id', 'u.nombre', 'u.apellido',
+      ])
+      .orderBy('t.end_time', 'DESC')
+      .getMany();
+
+    const scores = turnos.map((t) => t.nps_score as number);
+    const total = scores.length;
+    const promotores = scores.filter((s) => s >= 9).length;
+    const pasivos = scores.filter((s) => s >= 7 && s <= 8).length;
+    const detractores = scores.filter((s) => s <= 6).length;
+    const promedio = total > 0 ? Math.round((scores.reduce((a, b) => a + b, 0) / total) * 10) / 10 : null;
+    const nps_score = total > 0 ? Math.round(((promotores - detractores) / total) * 100) : null;
+
+    return {
+      total_respuestas: total,
+      promedio,
+      nps_score,
+      promotores,
+      pasivos,
+      detractores,
+      respuestas: turnos.map((t) => ({
+        turno_id: t.id,
+        score: t.nps_score,
+        fecha: t.end_time,
+        paciente: t.paciente
+          ? `${t.paciente.nombre} ${t.paciente.apellido}`
+          : 'Desconocido',
+        profesional: t.user
+          ? `${t.user.nombre} ${t.user.apellido}`
+          : 'Desconocido',
+      })),
+    };
+  }
 }

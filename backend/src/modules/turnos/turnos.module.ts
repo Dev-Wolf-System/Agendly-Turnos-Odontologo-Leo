@@ -1,4 +1,5 @@
 import { Module } from '@nestjs/common';
+import { ConfigModule } from '@nestjs/config';
 import { TypeOrmModule } from '@nestjs/typeorm';
 import { Turno } from './entities/turno.entity';
 import { Pago } from '../pagos/entities/pago.entity';
@@ -13,6 +14,7 @@ import { ListaEsperaModule } from '../lista-espera/lista-espera.module';
 
 @Module({
   imports: [
+    ConfigModule,
     TypeOrmModule.forFeature([Turno, Pago, HistorialMedico, Clinica, Tratamiento]),
     NotificacionesModule,
     ListaEsperaModule,

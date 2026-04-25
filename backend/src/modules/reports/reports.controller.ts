@@ -91,4 +91,13 @@ export class ReportsController {
   getPacientesReport(@CurrentClinica() clinicaId: string) {
     return this.reportsService.getPacientesReport(clinicaId);
   }
+
+  @Get('nps')
+  getNpsReport(
+    @CurrentClinica() clinicaId: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
+    return this.reportsService.getNpsReport(clinicaId, desde, hasta);
+  }
 }

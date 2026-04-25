@@ -100,11 +100,43 @@ export class WebhookService {
     return tieneWebhook ? clinica.recordatorio_horas_antes : null;
   }
 
+  async dispararNpsEncuesta(
+    clinicaId: string,
+    data: {
+      turno_id: string;
+      paciente: { nombre: string; apellido: string; cel: string | null };
+      profesional: { nombre: string; apellido: string };
+      fecha_turno: string;
+      callback_url: string;
+    },
+  ): Promise<boolean> {
+    try {
+      const clinica = await this.clinicaRepository.findOne({ where: { id: clinicaId } });
+      if (!clinica?.webhooks) return false;
+
+      const config = clinica.webhooks['nps_encuesta'];
+      if (!config?.activo || !config?.url) return false;
+
+      this.enviarRaw(config.url, 'nps_encuesta', {
+        ...data,
+        clinica: clinica.nombre,
+      });
+      return true;
+    } catch (err) {
+      this.logger.warn(`Error al preparar webhook [nps_encuesta]: ${err.message}`);
+      return false;
+    }
+  }
+
   private enviar(url: string, label: string, payload: WebhookPayload): void {
+    this.enviarRaw(url, label, payload);
+  }
+
+  private enviarRaw(url: string, label: string, body: object): void {
     fetch(url, {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify(payload),
+      body: JSON.stringify(body),
     })
       .then((res) => {
         this.logger.log(
