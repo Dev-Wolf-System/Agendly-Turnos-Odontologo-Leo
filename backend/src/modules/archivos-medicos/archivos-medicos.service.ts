@@ -10,6 +10,7 @@ import { SupabaseService } from '../../common/services/supabase.service';
 
 const BUCKET_ARCHIVOS = 'archivos-medicos';
 const BUCKET_LOGOS = 'clinica-logos';
+const BUCKET_CONSENTIMIENTOS = 'consentimientos';
 const SIGNED_URL_EXPIRY = 3600; // 1 hora
 const MAX_FILE_SIZE = 10 * 1024 * 1024; // 10MB
 
@@ -44,8 +45,16 @@ export class ArchivosMedicosService {
     if (!names.includes(BUCKET_LOGOS)) {
       await supabase.storage.createBucket(BUCKET_LOGOS, {
         public: true,
-        fileSizeLimit: 2 * 1024 * 1024, // 2MB
+        fileSizeLimit: 2 * 1024 * 1024,
         allowedMimeTypes: ['image/jpeg', 'image/png', 'image/webp', 'image/svg+xml'],
+      });
+    }
+
+    if (!names.includes(BUCKET_CONSENTIMIENTOS)) {
+      await supabase.storage.createBucket(BUCKET_CONSENTIMIENTOS, {
+        public: false,
+        fileSizeLimit: MAX_FILE_SIZE,
+        allowedMimeTypes: ['application/pdf'],
       });
     }
   }
