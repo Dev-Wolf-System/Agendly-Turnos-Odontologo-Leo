@@ -21,7 +21,8 @@ import { WebhookService } from '../../common/services/webhook.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { ListaEsperaService } from '../lista-espera/lista-espera.service';
 import { SupabaseService } from '../../common/services/supabase.service';
-import * as PDFDocument from 'pdfkit';
+// eslint-disable-next-line @typescript-eslint/no-require-imports
+const PDFDocument = require('pdfkit');
 
 @Injectable()
 export class TurnosService {
@@ -529,6 +530,7 @@ export class TurnosService {
         nombre: turno.paciente?.nombre || '',
         apellido: turno.paciente?.apellido || '',
         cel: turno.paciente?.cel || null,
+        dni: turno.paciente?.dni || '',
       },
       consentimiento_url: signedData.signedUrl,
     });
