@@ -41,16 +41,8 @@ yarn-error.log*
 # .MDs
 AhorrarTokens.md
 CLAUDE.md
-PENDIENTES.md
-PLAN_ADMIN_PANEL.md
-PLAN_AGENTE_ZOE_SAAS.md
-PLAN_CLINIC_IMPROVEMENTS.md
-PLAN_DESARROLLO.md
-PLAN_FEATURES_SAAS.md
-PLAN_REDISENO_UI_AVAX_HEALTH.md
-PLAN_UX_UI_REDISENO.md
-HOJA_DE_RUTA_UI.md
-ROADMAP_FEATURES.md
 
 # Carpetas no utiles
 UtilidadesMias/
+Planes de Desarrollo/
+AI/
