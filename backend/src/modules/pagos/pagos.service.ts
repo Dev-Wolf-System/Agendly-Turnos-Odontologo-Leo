@@ -194,7 +194,6 @@ export class PagosService {
 
   async remove(id: string, clinicaId: string): Promise<void> {
     const pago = await this.findOne(id, clinicaId);
-    pago.estado = EstadoPago.PENDIENTE;
-    await this.pagoRepository.save(pago);
+    await this.pagoRepository.remove(pago);
   }
 }
