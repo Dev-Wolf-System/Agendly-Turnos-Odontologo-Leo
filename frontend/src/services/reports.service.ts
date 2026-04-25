@@ -67,6 +67,20 @@ export interface NpsReportData {
   respuestas: NpsRespuesta[];
 }
 
+export interface ObraSocialReportItem {
+  obra_social: string;
+  turnos: number;
+  completados: number;
+  pacientes: number;
+  facturado: number;
+}
+
+export interface ObraSocialReportData {
+  por_obra_social: ObraSocialReportItem[];
+  total_facturado: number;
+  total_turnos: number;
+}
+
 export interface PacientesReportData {
   total: number;
   nuevos_este_mes: number;
@@ -120,6 +134,9 @@ const reportsService = {
 
   getNps: (params?: { desde?: string; hasta?: string }) =>
     api.get<NpsReportData>("/reports/nps", { params }).then((r) => r.data),
+
+  getObraSocial: (params?: { desde?: string; hasta?: string }) =>
+    api.get<ObraSocialReportData>("/reports/obra-social", { params }).then((r) => r.data),
 
   generarInformeIa: (params?: { desde?: string; hasta?: string }) =>
     api.get<InformeIaData>("/reports/informe-ia", { params }).then((r) => r.data),

@@ -100,4 +100,13 @@ export class ReportsController {
   ) {
     return this.reportsService.getNpsReport(clinicaId, desde, hasta);
   }
+
+  @Get('obra-social')
+  getObraSocialReport(
+    @CurrentClinica() clinicaId: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
+    return this.reportsService.getObraSocialReport(clinicaId, desde, hasta);
+  }
 }

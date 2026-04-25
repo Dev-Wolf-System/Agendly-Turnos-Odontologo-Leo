@@ -1042,4 +1042,51 @@ FACTURACIÓN:
       })),
     };
   }
+
+  async getObraSocialReport(clinicaId: string, desde?: string, hasta?: string) {
+    const desdeDate = desde ? new Date(desde) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const hastaDate = hasta ? new Date(hasta) : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
+    desdeDate.setHours(0, 0, 0, 0);
+    hastaDate.setHours(23, 59, 59, 999);
+
+    const turnosRaw = await this.turnoRepository
+      .createQueryBuilder('t')
+      .leftJoin('t.paciente', 'p')
+      .select("COALESCE(p.obra_social, 'Particular')", 'obra_social')
+      .addSelect('COUNT(t.id)', 'turnos')
+      .addSelect("SUM(CASE WHEN t.estado = 'completado' THEN 1 ELSE 0 END)", 'completados')
+      .addSelect('COUNT(DISTINCT t.paciente_id)', 'pacientes')
+      .where('t.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('t.start_time BETWEEN :desde AND :hasta', { desde: desdeDate, hasta: hastaDate })
+      .groupBy('p.obra_social')
+      .orderBy('turnos', 'DESC')
+      .getRawMany<{ obra_social: string; turnos: string; completados: string; pacientes: string }>();
+
+    const pagosRaw = await this.pagoRepository
+      .createQueryBuilder('pago')
+      .leftJoin('pago.turno', 't')
+      .leftJoin('t.paciente', 'p')
+      .select("COALESCE(p.obra_social, 'Particular')", 'obra_social')
+      .addSelect('SUM(pago.total)', 'facturado')
+      .where('t.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('pago.estado = :estado', { estado: EstadoPago.APROBADO })
+      .andWhere('t.start_time BETWEEN :desde AND :hasta', { desde: desdeDate, hasta: hastaDate })
+      .groupBy('p.obra_social')
+      .getRawMany<{ obra_social: string; facturado: string }>();
+
+    const facturadoMap = new Map(pagosRaw.map((r) => [r.obra_social, parseFloat(r.facturado) || 0]));
+
+    const por_obra_social = turnosRaw.map((r) => ({
+      obra_social: r.obra_social,
+      turnos: parseInt(r.turnos, 10),
+      completados: parseInt(r.completados, 10),
+      pacientes: parseInt(r.pacientes, 10),
+      facturado: facturadoMap.get(r.obra_social) || 0,
+    }));
+
+    const total_facturado = por_obra_social.reduce((s, r) => s + r.facturado, 0);
+    const total_turnos = por_obra_social.reduce((s, r) => s + r.turnos, 0);
+
+    return { por_obra_social, total_facturado, total_turnos };
+  }
 }

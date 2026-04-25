@@ -7,6 +7,7 @@ import reportsService, {
   InsightsData,
   InformeIaData,
   NpsReportData,
+  ObraSocialReportData,
 } from "@/services/reports.service";
 import { RoleGuard } from "@/components/guards/role-guard";
 import { KpiCard } from "@/components/ui/kpi-card";
@@ -53,6 +54,8 @@ import {
   Copy,
   FileText,
   ThumbsUp,
+  Building2,
+  Banknote,
 } from "lucide-react";
 type Rango = "este_mes" | "mes_anterior" | "3_meses" | "6_meses";
 
@@ -93,6 +96,7 @@ export default function ReportesPage() {
   const [pacientesData, setPacientesData] = useState<PacientesReportData | null>(null);
   const [insightsData, setInsightsData] = useState<InsightsData | null>(null);
   const [npsData, setNpsData] = useState<NpsReportData | null>(null);
+  const [osData, setOsData] = useState<ObraSocialReportData | null>(null);
   const [loading, setLoading] = useState(true);
   const [exporting, setExporting] = useState(false);
   const [informeIa, setInformeIa] = useState<InformeIaData | null>(null);
@@ -103,16 +107,18 @@ export default function ReportesPage() {
     setLoading(true);
     try {
       const { desde, hasta } = getRango(rango);
-      const [turnos, pacientes, insights, nps] = await Promise.all([
+      const [turnos, pacientes, insights, nps, os] = await Promise.all([
         reportsService.getTurnos({ desde, hasta }),
         reportsService.getPacientes(),
         reportsService.getInsights({ desde, hasta }),
         reportsService.getNps({ desde, hasta }),
+        reportsService.getObraSocial({ desde, hasta }),
       ]);
       setTurnosData(turnos);
       setPacientesData(pacientes);
       setInsightsData(insights);
       setNpsData(nps);
+      setOsData(os);
     } catch {
       toast.error("Error al cargar reportes");
     } finally {
@@ -719,6 +725,138 @@ export default function ReportesPage() {
                 </ResponsiveContainer>
               </div>
             )}
+          </>
+        )}
+
+        {/* ── SECCIÓN OBRAS SOCIALES ── */}
+        {!loading && osData && osData.por_obra_social.length > 0 && (
+          <>
+            <div className="flex items-center gap-3 pt-2">
+              <div className="h-px flex-1 bg-border" />
+              <div className="flex items-center gap-1.5 rounded-full bg-indigo-500/10 px-3 py-1">
+                <Building2 className="h-3.5 w-3.5 text-indigo-600" />
+                <span className="text-xs font-semibold text-indigo-600 uppercase tracking-wide">Obras Sociales</span>
+              </div>
+              <div className="h-px flex-1 bg-border" />
+            </div>
+
+            {/* KPIs */}
+            <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
+              <KpiCard
+                label="Total Facturado"
+                value={`$${osData.total_facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })}`}
+                icon={<Banknote className="h-5 w-5" />}
+                variant="accent"
+              />
+              <KpiCard
+                label="Total Turnos"
+                value={osData.total_turnos}
+                icon={<Building2 className="h-5 w-5" />}
+                variant="primary"
+                sub={`${osData.por_obra_social.length} coberturas`}
+              />
+              <KpiCard
+                label="Facturado OS"
+                value={`$${osData.por_obra_social.filter(o => o.obra_social !== "Particular").reduce((s, o) => s + o.facturado, 0).toLocaleString("es-AR", { minimumFractionDigits: 0 })}`}
+                icon={<Heart className="h-5 w-5" />}
+                variant="warm"
+                sub="Con cobertura"
+              />
+              <KpiCard
+                label="Facturado Particular"
+                value={`$${(osData.por_obra_social.find(o => o.obra_social === "Particular")?.facturado || 0).toLocaleString("es-AR", { minimumFractionDigits: 0 })}`}
+                icon={<Users className="h-5 w-5" />}
+                variant="primary"
+                sub="Sin cobertura"
+              />
+            </div>
+
+            {/* Turnos por OS — barras */}
+            <div className="rounded-xl border bg-card p-6 shadow-sm">
+              <div className="flex items-center gap-2 mb-4">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold">Turnos por obra social</h3>
+              </div>
+              <div className="space-y-3">
+                {osData.por_obra_social.slice(0, 10).map((os) => {
+                  const pct = osData.total_turnos > 0 ? Math.round((os.turnos / osData.total_turnos) * 100) : 0;
+                  const completadosPct = os.turnos > 0 ? Math.round((os.completados / os.turnos) * 100) : 0;
+                  return (
+                    <div key={os.obra_social} className="flex items-center gap-3">
+                      <div className="w-36 shrink-0 text-sm font-medium truncate">{os.obra_social}</div>
+                      <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                        <div
+                          className="h-full bg-gradient-to-r from-indigo-500 to-indigo-700 rounded-full transition-[width] duration-500"
+                          style={{ width: `${pct}%` }}
+                        />
+                      </div>
+                      <div className="w-28 text-right text-xs tabular-nums text-muted-foreground">
+                        {os.turnos} ({completadosPct}% compl.)
+                      </div>
+                    </div>
+                  );
+                })}
+              </div>
+            </div>
+
+            {/* Facturación por OS — barras */}
+            {osData.total_facturado > 0 && (
+              <div className="rounded-xl border bg-card p-6 shadow-sm">
+                <div className="flex items-center gap-2 mb-4">
+                  <Banknote className="h-4 w-4 text-muted-foreground" />
+                  <h3 className="text-sm font-semibold">Facturación por obra social</h3>
+                </div>
+                <div className="space-y-3">
+                  {osData.por_obra_social
+                    .filter(os => os.facturado > 0)
+                    .slice(0, 10)
+                    .map((os) => {
+                      const pct = osData.total_facturado > 0 ? Math.round((os.facturado / osData.total_facturado) * 100) : 0;
+                      return (
+                        <div key={os.obra_social} className="flex items-center gap-3">
+                          <div className="w-36 shrink-0 text-sm font-medium truncate">{os.obra_social}</div>
+                          <div className="flex-1 h-2 bg-muted rounded-full overflow-hidden">
+                            <div
+                              className="h-full bg-gradient-to-r from-emerald-500 to-emerald-700 rounded-full transition-[width] duration-500"
+                              style={{ width: `${pct}%` }}
+                            />
+                          </div>
+                          <div className="w-36 text-right text-xs tabular-nums text-muted-foreground">
+                            ${os.facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })} ({pct}%)
+                          </div>
+                        </div>
+                      );
+                    })}
+                </div>
+              </div>
+            )}
+
+            {/* Tabla detallada */}
+            <div className="rounded-xl border bg-card shadow-sm overflow-hidden">
+              <div className="flex items-center gap-2 px-5 py-3 border-b">
+                <Building2 className="h-4 w-4 text-muted-foreground" />
+                <h3 className="text-sm font-semibold">Detalle por cobertura</h3>
+              </div>
+              <div className="divide-y">
+                {osData.por_obra_social.map((os) => (
+                  <div key={os.obra_social} className="grid grid-cols-4 gap-2 px-5 py-3 text-sm hover:bg-muted/30">
+                    <div className="font-medium truncate col-span-1">{os.obra_social}</div>
+                    <div className="text-center tabular-nums text-muted-foreground">
+                      <span className="font-medium text-foreground">{os.turnos}</span> turnos
+                    </div>
+                    <div className="text-center tabular-nums text-muted-foreground">
+                      <span className="font-medium text-foreground">{os.pacientes}</span> pac.
+                    </div>
+                    <div className="text-right tabular-nums">
+                      {os.facturado > 0
+                        ? <span className="font-medium text-emerald-600">${os.facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })}</span>
+                        : <span className="text-muted-foreground">—</span>
+                      }
+                    </div>
+                  </div>
+                ))}
+              </div>
+            </div>
           </>
         )}
       </div>
