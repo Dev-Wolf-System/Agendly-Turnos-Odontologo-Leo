@@ -13,6 +13,8 @@ export interface WebhookPayload {
   clinica: string;
   recordatorio_horas_antes: number | null;
   tipo?: string;
+  turno_id?: string;
+  consentimiento_url?: string;
 }
 
 @Injectable()

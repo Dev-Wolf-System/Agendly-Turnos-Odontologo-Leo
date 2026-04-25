@@ -526,12 +526,26 @@ export class TurnosService {
 
     this.webhookService.dispararWebhook(clinicaId, 'consentimiento_enviado', {
       turno_id: turnoId,
+      horario: {
+        start_time: turno.start_time?.toISOString(),
+        end_time: turno.end_time?.toISOString(),
+      },
       paciente: {
         nombre: turno.paciente?.nombre || '',
         apellido: turno.paciente?.apellido || '',
         cel: turno.paciente?.cel || null,
         dni: turno.paciente?.dni || '',
       },
+      tratamiento: turno.tipo_tratamiento || null,
+      estado_turno: turno.estado,
+      estado_pago: 'pendiente',
+      profesional: {
+        nombre: turno.user?.nombre || '',
+        apellido: turno.user?.apellido || '',
+        email: turno.user?.email || '',
+      },
+      clinica: turno.clinica?.nombre || '',
+      recordatorio_horas_antes: null,
       consentimiento_url: signedData.signedUrl,
     });
 
