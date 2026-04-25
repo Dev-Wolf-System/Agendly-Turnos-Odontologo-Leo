@@ -16,6 +16,7 @@ import { NotificacionesService } from '../notificaciones/notificaciones.service'
 import { ClinicaMpService } from '../clinica-mp/clinica-mp.service';
 import { Pago } from '../pagos/entities/pago.entity';
 import { Turno } from '../turnos/entities/turno.entity';
+import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
 import { EstadoSubscription, EstadoPago, TipoNotificacion } from '../../common/enums';
 
 @Injectable()
@@ -33,6 +34,8 @@ export class BillingService {
     private readonly pagoRepo: Repository<Pago>,
     @InjectRepository(Turno)
     private readonly turnoRepo: Repository<Turno>,
+    @InjectRepository(Tratamiento)
+    private readonly tratamientoRepo: Repository<Tratamiento>,
   ) {
     this.mp = new MercadoPagoConfig({
       accessToken: this.config.getOrThrow<string>('MP_ACCESS_TOKEN'),
@@ -314,6 +317,96 @@ export class BillingService {
     } catch (err) {
       this.logger.error(`Error procesando webhook clinica ${clinicaId}`, err);
     }
+  }
+
+  async getLinkPagoTurno(
+    turnoId: string,
+    clinicaId: string,
+  ): Promise<{ checkout_url: string; pago_id: string; monto: number }> {
+    const turno = await this.turnoRepo.findOne({
+      where: { id: turnoId, clinica_id: clinicaId },
+      relations: ['paciente', 'pagos'],
+    });
+    if (!turno) throw new NotFoundException('Turno no encontrado');
+
+    let pago = turno.pagos?.find((p) => p.estado === EstadoPago.PENDIENTE) ?? null;
+
+    if (!pago) {
+      let precio: number | null = null;
+      if (turno.tipo_tratamiento) {
+        const tratamiento = await this.tratamientoRepo.findOne({
+          where: { clinica_id: clinicaId, nombre: turno.tipo_tratamiento, activo: true },
+          select: ['precio_base'],
+        });
+        if (tratamiento?.precio_base) precio = Number(tratamiento.precio_base);
+      }
+      if (!precio || precio <= 0) {
+        throw new BadRequestException(
+          'El turno no tiene un precio asociado. Asigná un tratamiento con precio primero.',
+        );
+      }
+      pago = this.pagoRepo.create({ turno_id: turnoId, total: precio, estado: EstadoPago.PENDIENTE, method: 'mercadopago' });
+      pago = await this.pagoRepo.save(pago);
+    }
+
+    if (!pago.total || Number(pago.total) <= 0) {
+      throw new BadRequestException('El pago no tiene un monto válido');
+    }
+
+    const mpConfig = await this.clinicaMpService.findByClinica(clinicaId);
+    if (!mpConfig) {
+      throw new BadRequestException('La clínica no tiene Mercado Pago configurado. Configuralo en Ajustes → Pagos.');
+    }
+
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+    const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.avaxhealth.com/api');
+    const pacienteNombre = turno.paciente
+      ? `${turno.paciente.nombre} ${turno.paciente.apellido}`
+      : 'Paciente';
+
+    const preference = new Preference(this.getMpForClinica(mpConfig.access_token));
+    const result = await preference.create({
+      body: {
+        items: [{
+          id: turnoId,
+          title: `Turno — ${turno.tipo_tratamiento ?? 'Consulta'} — ${pacienteNombre}`,
+          quantity: 1,
+          unit_price: Number(pago.total),
+          currency_id: 'ARS',
+        }],
+        external_reference: `pago_${pago.id}`,
+        back_urls: {
+          success: `${frontendUrl}/billing/success`,
+          failure: `${frontendUrl}/billing/failure`,
+          pending: `${frontendUrl}/billing/success`,
+        },
+        auto_return: 'approved',
+        notification_url: `${backendUrl}/billing/webhook/clinica/${clinicaId}`,
+      },
+    });
+
+    const isProduction = this.config.get('NODE_ENV') === 'production';
+    const checkout_url =
+      (isProduction ? result.init_point : result.sandbox_init_point) ?? result.init_point ?? '';
+
+    this.logger.log(`Link de pago (turno) generado — turno ${turnoId}, pago ${pago.id}`);
+
+    if (mpConfig.webhook_activo && mpConfig.webhook_url) {
+      fetch(mpConfig.webhook_url, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          turno_id: turnoId,
+          pago_id: pago.id,
+          paciente: pacienteNombre,
+          tratamiento: turno.tipo_tratamiento ?? 'Consulta',
+          monto: Number(pago.total),
+          link_pago: checkout_url,
+        }),
+      }).catch((err) => this.logger.warn(`Webhook pago fallido: ${err.message}`));
+    }
+
+    return { checkout_url, pago_id: pago.id, monto: Number(pago.total) };
   }
 
   async getPortal(clinicaId: string) {

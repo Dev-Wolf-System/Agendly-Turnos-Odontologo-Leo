@@ -58,6 +58,15 @@ export class BillingController {
   }
 
   @SetMetadata(IS_WRITE_OPERATION, false)
+  @Get('link-pago/turno/:turnoId')
+  getLinkPagoTurno(
+    @Param('turnoId', ParseUUIDPipe) turnoId: string,
+    @CurrentClinica() clinicaId: string,
+  ) {
+    return this.billingService.getLinkPagoTurno(turnoId, clinicaId);
+  }
+
+  @SetMetadata(IS_WRITE_OPERATION, false)
   @Get('link-pago/:pagoId')
   getLinkPagoPago(
     @Param('pagoId', ParseUUIDPipe) pagoId: string,
