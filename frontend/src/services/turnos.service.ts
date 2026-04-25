@@ -37,6 +37,12 @@ export interface Turno {
   fue_reprogramado: boolean;
   es_reprogramacion: boolean;
   recordatorio_enviado: boolean;
+  encuesta_enviada: boolean;
+  nps_score: number | null;
+  consentimiento_enviado: boolean;
+  consentimiento_url: string | null;
+  consentimiento_aceptado: boolean;
+  consentimiento_aceptado_at: string | null;
   created_at: string;
   paciente?: {
     id: string;
@@ -106,6 +112,9 @@ const turnosService = {
 
   getLinkPago: (turnoId: string, _clinicaId: string) =>
     api.get<{ checkout_url: string; pago_id: string; monto: number }>(`/billing/link-pago/turno/${turnoId}`).then((r) => r.data),
+
+  generarConsentimiento: (id: string) =>
+    api.get<{ url: string; storage_path: string }>(`/turnos/${id}/consentimiento/pdf`).then((r) => r.data),
 };
 
 export default turnosService;

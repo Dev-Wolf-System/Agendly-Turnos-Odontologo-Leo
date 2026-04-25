@@ -101,4 +101,18 @@ export class TurnosController {
   ) {
     return this.turnosService.registrarNps(id, body.score);
   }
+
+  @Get(':id/consentimiento/pdf')
+  generarConsentimiento(
+    @Param('id', ParseUUIDPipe) id: string,
+    @CurrentClinica() clinicaId: string,
+  ) {
+    return this.turnosService.generarConsentimiento(id, clinicaId);
+  }
+
+  @ApiKeyAuth()
+  @Patch(':id/consentimiento/aceptar')
+  aceptarConsentimiento(@Param('id', ParseUUIDPipe) id: string) {
+    return this.turnosService.aceptarConsentimiento(id);
+  }
 }

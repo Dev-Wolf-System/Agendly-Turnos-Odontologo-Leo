@@ -49,6 +49,18 @@ export class Turno extends TenantBaseEntity {
   @Column({ type: 'integer', nullable: true })
   nps_score: number | null;
 
+  @Column({ type: 'boolean', default: false })
+  consentimiento_enviado: boolean;
+
+  @Column({ type: 'text', nullable: true })
+  consentimiento_url: string | null;
+
+  @Column({ type: 'boolean', default: false })
+  consentimiento_aceptado: boolean;
+
+  @Column({ type: 'timestamp', nullable: true })
+  consentimiento_aceptado_at: Date | null;
+
   @ManyToOne(() => Clinica, (clinica) => clinica.turnos)
   @JoinColumn({ name: 'clinica_id' })
   clinica: Clinica;

@@ -20,6 +20,8 @@ import { EstadoTurno } from '../../common/enums';
 import { WebhookService } from '../../common/services/webhook.service';
 import { NotificacionesService } from '../notificaciones/notificaciones.service';
 import { ListaEsperaService } from '../lista-espera/lista-espera.service';
+import { SupabaseService } from '../../common/services/supabase.service';
+import * as PDFDocument from 'pdfkit';
 
 @Injectable()
 export class TurnosService {
@@ -38,6 +40,7 @@ export class TurnosService {
     private readonly notificacionesService: NotificacionesService,
     private readonly listaEsperaService: ListaEsperaService,
     private readonly configService: ConfigService,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   async findAll(
@@ -478,6 +481,127 @@ export class TurnosService {
         'El profesional ya tiene un turno en ese horario',
       );
     }
+  }
+
+  async generarConsentimiento(
+    turnoId: string,
+    clinicaId: string,
+  ): Promise<{ url: string; storage_path: string }> {
+    const turno = await this.turnoRepository.findOne({
+      where: { id: turnoId, clinica_id: clinicaId },
+      relations: ['paciente', 'user', 'clinica'],
+    });
+    if (!turno) throw new NotFoundException('Turno no encontrado');
+
+    const pdfBuffer = await this.buildConsentimientoPdf(turno);
+
+    const supabase = this.supabaseService.getClient();
+    const storagePath = `${clinicaId}/${turnoId}/consentimiento.pdf`;
+
+    const { error } = await supabase.storage
+      .from('consentimientos')
+      .upload(storagePath, pdfBuffer, {
+        contentType: 'application/pdf',
+        upsert: true,
+      });
+
+    if (error) {
+      throw new BadRequestException(`Error al subir PDF: ${error.message}`);
+    }
+
+    const EXPIRY = 60 * 60 * 24 * 7; // 7 días
+    const { data: signedData, error: signedError } = await supabase.storage
+      .from('consentimientos')
+      .createSignedUrl(storagePath, EXPIRY);
+
+    if (signedError) {
+      throw new BadRequestException(`Error al generar URL: ${signedError.message}`);
+    }
+
+    await this.turnoRepository.update(
+      { id: turnoId, clinica_id: clinicaId },
+      { consentimiento_enviado: true, consentimiento_url: signedData.signedUrl },
+    );
+
+    this.webhookService.dispararWebhook(clinicaId, 'consentimiento_enviado', {
+      turno_id: turnoId,
+      paciente: {
+        nombre: turno.paciente?.nombre || '',
+        apellido: turno.paciente?.apellido || '',
+        cel: turno.paciente?.cel || null,
+      },
+      consentimiento_url: signedData.signedUrl,
+    });
+
+    return { url: signedData.signedUrl, storage_path: storagePath };
+  }
+
+  async aceptarConsentimiento(turnoId: string): Promise<{ ok: boolean }> {
+    const turno = await this.turnoRepository.findOne({ where: { id: turnoId } });
+    if (!turno) throw new NotFoundException('Turno no encontrado');
+
+    await this.turnoRepository.update(
+      { id: turnoId },
+      { consentimiento_aceptado: true, consentimiento_aceptado_at: new Date() },
+    );
+
+    return { ok: true };
+  }
+
+  private buildConsentimientoPdf(turno: Turno): Promise<Buffer> {
+    return new Promise((resolve, reject) => {
+      const doc = new PDFDocument({ margin: 50, size: 'A4' });
+      const chunks: Buffer[] = [];
+
+      doc.on('data', (chunk: Buffer) => chunks.push(chunk));
+      doc.on('end', () => resolve(Buffer.concat(chunks)));
+      doc.on('error', reject);
+
+      const clinicaNombre = turno.clinica?.nombre || 'Clínica';
+      const paciente = turno.paciente;
+      const profesional = turno.user;
+      const fecha = new Date(turno.start_time).toLocaleDateString('es-AR', {
+        weekday: 'long', year: 'numeric', month: 'long', day: 'numeric',
+      });
+      const tratamiento = turno.tipo_tratamiento || 'Tratamiento médico';
+
+      doc.fontSize(18).font('Helvetica-Bold').text(clinicaNombre, { align: 'center' });
+      doc.fontSize(13).font('Helvetica').text('CONSENTIMIENTO INFORMADO', { align: 'center' });
+      doc.moveDown(1.5);
+
+      doc.fontSize(11).font('Helvetica-Bold').text('Datos del paciente:');
+      doc.font('Helvetica').text(`Nombre: ${paciente?.nombre || ''} ${paciente?.apellido || ''}`);
+      doc.text(`DNI: ${paciente?.dni || 'No registrado'}`);
+      doc.moveDown();
+
+      doc.font('Helvetica-Bold').text('Datos del turno:');
+      doc.font('Helvetica').text(`Fecha: ${fecha}`);
+      doc.text(`Tratamiento: ${tratamiento}`);
+      if (profesional) {
+        doc.text(`Profesional: ${profesional.nombre} ${profesional.apellido}`);
+      }
+      doc.moveDown(1.5);
+
+      doc.font('Helvetica-Bold').text('Declaración de consentimiento:');
+      doc.moveDown(0.5);
+      doc.font('Helvetica').fontSize(10).text(
+        `Yo, ${paciente?.nombre || ''} ${paciente?.apellido || ''}, DNI ${paciente?.dni || ''}, en pleno uso de mis facultades mentales, declaro que he sido informado/a por el profesional tratante sobre el procedimiento de ${tratamiento}, sus beneficios, riesgos posibles, alternativas disponibles y el pronóstico esperado.\n\nEntiendo que tengo el derecho de revocar este consentimiento en cualquier momento antes de la realización del procedimiento, sin que ello conlleve perjuicio alguno en mi atención médica.\n\nPor la presente, autorizo al equipo de ${clinicaNombre} a realizar el procedimiento mencionado y los procedimientos complementarios que fueran necesarios según el criterio del profesional tratante.`,
+        { align: 'justify', lineGap: 4 }
+      );
+      doc.moveDown(2);
+
+      doc.fontSize(11).font('Helvetica-Bold').text(
+        'Para confirmar su aceptación, responda este mensaje con la palabra: ACEPTO',
+        { align: 'center' }
+      );
+      doc.moveDown(0.5);
+      doc.fontSize(9).font('Helvetica').fillColor('#666666').text(
+        `Documento generado el ${new Date().toLocaleDateString('es-AR')} · Turno ID: ${turno.id}`,
+        { align: 'center' }
+      );
+
+      doc.end();
+    });
   }
 
   private fireWebhook(clinicaId: string, estado: string, turno: Turno): void {

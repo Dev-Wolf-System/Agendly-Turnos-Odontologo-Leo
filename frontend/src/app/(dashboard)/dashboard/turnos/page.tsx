@@ -60,6 +60,8 @@ import {
   RefreshCw,
   Send,
   Copy,
+  FileText,
+  ShieldCheck,
 } from "lucide-react";
 import type { Pago } from "@/services/pagos.service";
 import { WeekCalendar } from "@/components/calendar/WeekCalendar";
@@ -152,6 +154,10 @@ export default function TurnosPage() {
   const [linkPagoMonto, setLinkPagoMonto] = useState<number>(0);
   const [linkPagoUrl, setLinkPagoUrl] = useState<string | null>(null);
   const [sendingLink, setSendingLink] = useState(false);
+  const [consentimientoDialogOpen, setConsentimientoDialogOpen] = useState(false);
+  const [consentimientoTurno, setConsentimientoTurno] = useState<Turno | null>(null);
+  const [consentimientoUrl, setConsentimientoUrl] = useState<string | null>(null);
+  const [loadingConsentimiento, setLoadingConsentimiento] = useState(false);
   const [form, setForm] = useState({
     paciente_id: "",
     user_id: "",
@@ -559,6 +565,34 @@ export default function TurnosPage() {
     }
   };
 
+  const openConsentimiento = (turno: Turno) => {
+    setConsentimientoTurno(turno);
+    setConsentimientoUrl(turno.consentimiento_url || null);
+    setConsentimientoDialogOpen(true);
+  };
+
+  const handleEnviarConsentimiento = async () => {
+    if (!consentimientoTurno) return;
+    setLoadingConsentimiento(true);
+    try {
+      const data = await turnosService.generarConsentimiento(consentimientoTurno.id);
+      setConsentimientoUrl(data.url);
+      setTurnos((prev) =>
+        prev.map((t) =>
+          t.id === consentimientoTurno.id
+            ? { ...t, consentimiento_enviado: true, consentimiento_url: data.url }
+            : t,
+        ),
+      );
+      toast.success("Consentimiento generado y listo para enviar");
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Error al generar el consentimiento";
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    } finally {
+      setLoadingConsentimiento(false);
+    }
+  };
+
   const handleDelete = async () => {
     if (!deleting) return;
     try {
@@ -842,6 +876,23 @@ export default function TurnosPage() {
                             title="Editar"
                           >
                             <Pencil className="h-4 w-4" />
+                          </Button>
+                          <Button
+                            variant="ghost"
+                            size="icon"
+                            className={`h-8 w-8 transition-all duration-200 hover:scale-110 ${
+                              turno.consentimiento_aceptado
+                                ? "text-emerald-600 hover:text-emerald-700 hover:bg-emerald-50 dark:hover:bg-emerald-950/40"
+                                : "text-purple-600 hover:text-purple-700 hover:bg-purple-50 dark:hover:bg-purple-950/40"
+                            }`}
+                            onClick={() => openConsentimiento(turno)}
+                            title={turno.consentimiento_aceptado ? "Consentimiento firmado" : "Enviar consentimiento"}
+                          >
+                            {turno.consentimiento_aceptado ? (
+                              <ShieldCheck className="h-4 w-4" />
+                            ) : (
+                              <FileText className="h-4 w-4" />
+                            )}
                           </Button>
                           <Button
                             variant="ghost"
@@ -1378,6 +1429,81 @@ export default function TurnosPage() {
               >
                 <Send className="h-4 w-4" />
                 {sendingLink ? "Generando..." : "Generar link de pago"}
+              </Button>
+            )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      {/* Dialog Consentimiento Informado */}
+      <Dialog open={consentimientoDialogOpen} onOpenChange={(open) => { if (!open) { setConsentimientoDialogOpen(false); setConsentimientoUrl(null); } }}>
+        <DialogContent className="sm:max-w-[460px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <FileText className="h-5 w-5 text-purple-600" />
+              Consentimiento informado
+            </DialogTitle>
+            <DialogDescription>
+              {consentimientoTurno?.paciente
+                ? `${consentimientoTurno.paciente.nombre} ${consentimientoTurno.paciente.apellido} · ${consentimientoTurno.tipo_tratamiento || "Tratamiento"}`
+                : "Generá y enviá el consentimiento por WhatsApp"}
+            </DialogDescription>
+          </DialogHeader>
+
+          {consentimientoTurno?.consentimiento_aceptado ? (
+            <div className="flex items-center gap-3 rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30 p-3">
+              <ShieldCheck className="h-5 w-5 text-emerald-600 shrink-0" />
+              <div>
+                <p className="text-sm font-medium text-emerald-700 dark:text-emerald-300">Consentimiento firmado</p>
+                {consentimientoTurno.consentimiento_aceptado_at && (
+                  <p className="text-xs text-emerald-600 dark:text-emerald-400">
+                    {new Date(consentimientoTurno.consentimiento_aceptado_at).toLocaleString("es-AR")}
+                  </p>
+                )}
+              </div>
+            </div>
+          ) : consentimientoUrl ? (
+            <div className="space-y-3">
+              <div className="flex items-center gap-2 rounded-lg border border-emerald-300 bg-emerald-50 dark:border-emerald-800 dark:bg-emerald-950/30 p-3">
+                <CheckCircle2 className="h-4 w-4 text-emerald-600 shrink-0" />
+                <p className="text-sm text-emerald-700 dark:text-emerald-300 font-medium">PDF generado — listo para compartir</p>
+              </div>
+              <div className="flex gap-2">
+                <Input readOnly value={consentimientoUrl} className="text-xs font-mono" />
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="icon"
+                  onClick={() => { navigator.clipboard.writeText(consentimientoUrl!); toast.success("Link copiado"); }}
+                  title="Copiar link"
+                >
+                  <Copy className="h-4 w-4" />
+                </Button>
+              </div>
+              <p className="text-xs text-muted-foreground">
+                Compartí este link o envialo por WhatsApp. El paciente debe responder <strong>ACEPTO</strong> para confirmar.
+              </p>
+            </div>
+          ) : (
+            <div className="flex items-start gap-3 rounded-lg border border-purple-200 bg-purple-50 dark:border-purple-800 dark:bg-purple-950/20 p-3">
+              <FileText className="h-4 w-4 text-purple-600 shrink-0 mt-0.5" />
+              <p className="text-sm text-muted-foreground">
+                Se generará un PDF con los datos del paciente y el tratamiento. El paciente deberá responder <strong>ACEPTO</strong> por WhatsApp para confirmar.
+              </p>
+            </div>
+          )}
+
+          <DialogFooter>
+            <Button variant="outline" onClick={() => { setConsentimientoDialogOpen(false); setConsentimientoUrl(null); }}>
+              {consentimientoUrl || consentimientoTurno?.consentimiento_aceptado ? "Cerrar" : "Cancelar"}
+            </Button>
+            {!consentimientoUrl && !consentimientoTurno?.consentimiento_aceptado && (
+              <Button
+                onClick={handleEnviarConsentimiento}
+                disabled={loadingConsentimiento}
+                className="gap-2 bg-gradient-to-r from-purple-600 to-purple-800 hover:opacity-90 text-white"
+              >
+                <FileText className="h-4 w-4" />
+                {loadingConsentimiento ? "Generando PDF..." : "Generar consentimiento"}
               </Button>
             )}
           </DialogFooter>
