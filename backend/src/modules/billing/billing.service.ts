@@ -138,8 +138,14 @@ export class BillingService {
     } catch (err: any) {
       const mpError = err?.cause ?? err;
       this.logger.error(`Error creando PreApproval en MP: ${JSON.stringify(mpError)}`);
+      const msg = mpError?.message ?? '';
+      if (msg.includes('different countries')) {
+        throw new BadRequestException(
+          'El email ingresado está asociado a una cuenta Mercado Pago de otro país. Usá un email registrado en Argentina o uno que no esté en MP.',
+        );
+      }
       throw new BadRequestException(
-        `MP error: ${mpError?.message ?? JSON.stringify(mpError)}`,
+        'No se pudo iniciar el checkout con Mercado Pago. Verificá tus credenciales MP.',
       );
     }
 
