@@ -17,6 +17,21 @@ export class BillingController {
     return this.billingService.createCheckout(clinicaId, body?.planId);
   }
 
+  /** Estado público de suscripción para polling post-pago desde /bienvenida */
+  @Public()
+  @Get('status/:clinicaId')
+  getSubscriptionStatus(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
+    return this.billingService.getSubscriptionStatus(clinicaId);
+  }
+
+  /** Fallback a trial cuando el usuario abandona el pago en MP */
+  @Public()
+  @Post('fallback-trial')
+  fallbackToTrial(@Body() body: { clinica_id: string }) {
+    if (!body?.clinica_id) throw new BadRequestException('clinica_id es requerido');
+    return this.billingService.fallbackToTrial(body.clinica_id);
+  }
+
   /** Checkout público para clínicas recién registradas con plan pago (sin JWT) */
   @Public()
   @Post('checkout-registro')

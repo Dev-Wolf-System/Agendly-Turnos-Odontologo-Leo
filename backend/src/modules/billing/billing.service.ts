@@ -132,7 +132,7 @@ export class BillingService {
             transaction_amount: precio,
             currency_id: 'ARS',
           },
-          back_url: `${frontendUrl}/bienvenida?status=success`,
+          back_url: `${frontendUrl}/bienvenida?clinica_id=${clinicaId}`,
         },
       });
     } catch (err: any) {
@@ -568,6 +568,54 @@ export class BillingService {
     } catch (err) {
       this.logger.warn(`No se pudo cancelar PreApproval ${preapprovalId} en MP: ${err}`);
     }
+  }
+
+  /** Estado público de suscripción — usado por /bienvenida para polling post-pago */
+  async getSubscriptionStatus(clinicaId: string) {
+    const clinica = await this.clinicaRepo.findOne({ where: { id: clinicaId } });
+    if (!clinica) throw new NotFoundException('Clínica no encontrada');
+
+    const sub = await this.subscriptionsService.findByClinica(clinicaId);
+    return {
+      estado: sub?.estado ?? null,
+      aprobada: clinica.estado_aprobacion === 'Aprobado',
+      plan_nombre: sub?.plan?.nombre ?? null,
+    };
+  }
+
+  /** Convierte una suscripción INACTIVA (pago abandonado) a trial pendiente de aprobación */
+  async fallbackToTrial(clinicaId: string): Promise<{ success: boolean }> {
+    const clinica = await this.clinicaRepo.findOne({ where: { id: clinicaId } });
+    if (!clinica) throw new NotFoundException('Clínica no encontrada');
+    if (clinica.estado_aprobacion !== 'Pendiente') {
+      throw new BadRequestException('La clínica no está en estado pendiente');
+    }
+
+    const sub = await this.subscriptionsService.findByClinica(clinicaId);
+    if (!sub) throw new NotFoundException('Suscripción no encontrada');
+    if (sub.estado !== EstadoSubscription.INACTIVA) {
+      throw new BadRequestException('La suscripción ya fue activada');
+    }
+
+    const trialPlan = await this.plansService.findDefaultTrial();
+    if (!trialPlan) throw new BadRequestException('No hay plan trial disponible');
+
+    const now = new Date();
+    const trialEnd = new Date(now);
+    trialEnd.setDate(trialEnd.getDate() + 14);
+
+    await this.subscriptionsService.update(sub.id, {
+      plan_id: trialPlan.id,
+      estado: EstadoSubscription.ACTIVA,
+      fecha_inicio: now,
+      fecha_fin: trialEnd,
+      trial_ends_at: trialEnd,
+      preapproval_id: null as any,
+      auto_renew: false,
+    });
+
+    this.logger.log(`Clínica ${clinicaId} convertida a trial por abandono de pago`);
+    return { success: true };
   }
 
   async getPortal(clinicaId: string) {
