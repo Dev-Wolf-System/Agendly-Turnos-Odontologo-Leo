@@ -411,7 +411,7 @@ export default function ListaEsperaPage() {
                 <Label>Estado</Label>
                 <Select value={form.estado} onValueChange={(v) => setForm({ ...form, estado: v as EstadoListaEspera })}>
                   <SelectTrigger>
-                    <SelectValue>{ESTADO_ENTRADA_LABELS[form.estado] ?? form.estado}</SelectValue>
+                    <SelectValue>{ESTADO_ENTRADA_LABELS[form.estado ?? ""] ?? form.estado}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="activa">En espera</SelectItem>
