@@ -56,15 +56,21 @@ export class MailService {
   }
 
   async sendResetPassword(data: ResetPasswordData): Promise<void> {
-    if (!this.resend) return;
-    const { error } = await this.resend.emails.send({
+    if (!this.resend) {
+      this.logger.warn('[sendResetPassword] RESEND_API_KEY no configurado — skip');
+      return;
+    }
+    this.logger.log(`[sendResetPassword] enviando a: ${data.email} desde: ${this.from}`);
+    const { data: resendData, error } = await this.resend.emails.send({
       from: this.from,
       to: data.email,
       subject: 'Restablecer contraseña — Avax Health',
       html: this.templateResetPassword(data),
     });
     if (error) {
-      this.logger.warn(`Error enviando reset password a ${data.email}: ${JSON.stringify(error)}`);
+      this.logger.warn(`[sendResetPassword] error Resend: ${JSON.stringify(error)}`);
+    } else {
+      this.logger.log(`[sendResetPassword] enviado OK, id: ${resendData?.id}`);
     }
   }
 

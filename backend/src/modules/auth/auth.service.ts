@@ -153,11 +153,14 @@ export class AuthService {
   }
 
   async forgotPassword(email: string): Promise<void> {
+    this.logger.log(`[forgotPassword] solicitud para: ${email}`);
+
     const user = await this.userRepository.findOne({ where: { email } });
     if (!user) {
-      // No revelar si el email existe o no — respuesta silenciosa
+      this.logger.log(`[forgotPassword] usuario no encontrado en DB: ${email}`);
       return;
     }
+    this.logger.log(`[forgotPassword] usuario encontrado, supabase_uid: ${user.supabase_uid ?? 'NULL'}`);
 
     const appUrl = this.configService.get<string>('FRONTEND_URL') ?? 'https://avaxhealth.com';
     const supabase = this.supabaseService.getClient();
@@ -169,9 +172,10 @@ export class AuthService {
     });
 
     if (error || !data?.properties?.action_link) {
-      this.logger.warn(`No se pudo generar link de reset para ${email}: ${error?.message}`);
+      this.logger.warn(`[forgotPassword] generateLink falló: ${JSON.stringify(error)}`);
       throw new NotFoundException('No se pudo procesar la solicitud. Verificá que el email sea correcto.');
     }
+    this.logger.log(`[forgotPassword] link generado OK, llamando mailService...`);
 
     await this.mailService.sendResetPassword({
       nombre: user.nombre,
@@ -179,6 +183,7 @@ export class AuthService {
       reset_url: data.properties.action_link,
       app_url: appUrl,
     });
+    this.logger.log(`[forgotPassword] sendResetPassword completado para: ${email}`);
   }
 
   /** Fallback de login para admin/internal (no se expone en producción normal) */
