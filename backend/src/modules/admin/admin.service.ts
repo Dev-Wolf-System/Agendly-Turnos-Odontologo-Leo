@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { Paciente } from '../pacientes/entities/paciente.entity';
 import { Turno } from '../turnos/entities/turno.entity';
 import { EstadoSubscription } from '../../common/enums';
+import { SupabaseService } from '../../common/services/supabase.service';
 
 @Injectable()
 export class AdminService {
@@ -27,6 +28,7 @@ export class AdminService {
     @InjectRepository(Turno)
     private readonly turnoRepo: Repository<Turno>,
     private readonly dataSource: DataSource,
+    private readonly supabaseService: SupabaseService,
   ) {}
 
   // ─── Clínicas ────────────────────────────────────────
@@ -157,6 +159,13 @@ export class AdminService {
       throw new NotFoundException('Clínica no encontrada');
     }
 
+    // Obtener supabase_uids antes de borrar la DB para limpiar Supabase Auth después
+    const supabaseUids = (
+      await this.userRepo.find({ where: { clinica_id: id }, select: ['supabase_uid'] })
+    )
+      .map((u) => u.supabase_uid)
+      .filter((uid): uid is string => !!uid);
+
     const qr = this.dataSource.createQueryRunner();
     await qr.connect();
     await qr.startTransaction();
@@ -194,6 +203,22 @@ export class AdminService {
       await qr.query(`DELETE FROM clinicas WHERE id = $1`, [id]);
 
       await qr.commitTransaction();
+
+      // Eliminar usuarios de Supabase Auth (fuera de la transacción — no bloquea el resultado)
+      if (supabaseUids.length > 0) {
+        const supabase = this.supabaseService.getClient();
+        await Promise.allSettled(
+          supabaseUids.map((uid) => supabase.auth.admin.deleteUser(uid)),
+        ).then((results) => {
+          const failed = results.filter((r) => r.status === 'rejected');
+          if (failed.length > 0) {
+            this.logger.warn(
+              `deleteClinica(${id}): ${failed.length}/${supabaseUids.length} usuarios de Supabase Auth no se pudieron eliminar`,
+            );
+          }
+        });
+      }
+
       return { deleted: true, clinica: clinica.nombre };
     } catch (error) {
       await qr.rollbackTransaction();
