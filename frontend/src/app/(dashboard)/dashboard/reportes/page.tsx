@@ -58,9 +58,6 @@ import {
   ThumbsUp,
   Building2,
   Banknote,
-  ArrowUpRight,
-  ArrowDownRight,
-  Minus,
   DollarSign,
 } from "lucide-react";
 type Rango = "este_mes" | "mes_anterior" | "3_meses" | "6_meses";
@@ -889,60 +886,44 @@ export default function ReportesPage() {
                 <UserCheck className="h-4 w-4 text-muted-foreground" />
                 <h3 className="text-sm font-semibold">Desempeño del equipo — período seleccionado</h3>
               </div>
-              <div className="overflow-x-auto">
-                <table className="w-full text-sm">
-                  <thead>
-                    <tr className="border-b bg-muted/40 text-xs text-muted-foreground uppercase tracking-wide">
-                      <th className="text-left px-5 py-3 font-medium">Profesional</th>
-                      <th className="text-left px-4 py-3 font-medium hidden sm:table-cell">Especialidad</th>
-                      <th className="text-center px-4 py-3 font-medium">Total</th>
-                      <th className="text-center px-4 py-3 font-medium">Complet.</th>
-                      <th className="text-center px-4 py-3 font-medium">Cancel.</th>
-                      <th className="text-center px-4 py-3 font-medium">Asistencia</th>
-                      <th className="text-right px-5 py-3 font-medium">Facturado</th>
-                    </tr>
-                  </thead>
-                  <tbody className="divide-y">
-                    {productividadData.map((p) => {
-                      const tasaColor =
-                        p.tasa_asistencia >= 80
-                          ? "text-emerald-600 bg-emerald-50"
-                          : p.tasa_asistencia >= 50
-                          ? "text-amber-600 bg-amber-50"
-                          : "text-red-600 bg-red-50";
-                      return (
-                        <tr key={p.id} className="hover:bg-muted/20 transition-colors">
-                          <td className="px-5 py-3 font-medium">
-                            {p.nombre} {p.apellido}
-                          </td>
-                          <td className="px-4 py-3 text-muted-foreground hidden sm:table-cell">
-                            {p.especialidad || <span className="opacity-40">—</span>}
-                          </td>
-                          <td className="px-4 py-3 text-center tabular-nums font-semibold">
-                            {p.total}
-                          </td>
-                          <td className="px-4 py-3 text-center tabular-nums text-emerald-600">
-                            {p.completados}
-                          </td>
-                          <td className="px-4 py-3 text-center tabular-nums text-red-500">
-                            {p.cancelados}
-                          </td>
-                          <td className="px-4 py-3 text-center">
-                            <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${tasaColor}`}>
-                              {p.tasa_asistencia}%
-                            </span>
-                          </td>
-                          <td className="px-5 py-3 text-right tabular-nums font-medium text-emerald-600">
-                            {p.facturado > 0
-                              ? `$${p.facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })}`
-                              : <span className="text-muted-foreground font-normal">—</span>
-                            }
-                          </td>
-                        </tr>
-                      );
-                    })}
-                  </tbody>
-                </table>
+              <div className="grid grid-cols-7 gap-2 px-5 py-2 border-b bg-muted/30 text-xs text-muted-foreground uppercase tracking-wide">
+                <div className="col-span-2">Profesional</div>
+                <div className="hidden sm:block">Especialidad</div>
+                <div className="text-center">Total</div>
+                <div className="text-center">Complet.</div>
+                <div className="text-center">Asistencia</div>
+                <div className="text-right">Facturado</div>
+              </div>
+              <div className="divide-y">
+                {productividadData.map((p) => {
+                  const tasaColor =
+                    p.tasa_asistencia >= 80
+                      ? "text-emerald-600 bg-emerald-500/10"
+                      : p.tasa_asistencia >= 50
+                      ? "text-amber-600 bg-amber-500/10"
+                      : "text-red-500 bg-red-500/10";
+                  return (
+                    <div key={p.id} className="grid grid-cols-7 gap-2 px-5 py-3 text-sm hover:bg-muted/30">
+                      <div className="col-span-2 font-medium truncate">{p.nombre} {p.apellido}</div>
+                      <div className="hidden sm:block text-muted-foreground truncate">
+                        {p.especialidad || <span className="opacity-40">—</span>}
+                      </div>
+                      <div className="text-center tabular-nums font-semibold">{p.total}</div>
+                      <div className="text-center tabular-nums text-emerald-600">{p.completados}</div>
+                      <div className="text-center">
+                        <span className={`inline-flex items-center rounded-full px-2 py-0.5 text-xs font-semibold tabular-nums ${tasaColor}`}>
+                          {p.tasa_asistencia}%
+                        </span>
+                      </div>
+                      <div className="text-right tabular-nums">
+                        {p.facturado > 0
+                          ? <span className="font-medium text-emerald-600">${p.facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })}</span>
+                          : <span className="text-muted-foreground">—</span>
+                        }
+                      </div>
+                    </div>
+                  );
+                })}
               </div>
             </div>
           </>
@@ -961,63 +942,46 @@ export default function ReportesPage() {
             </div>
 
             <div className="grid grid-cols-2 lg:grid-cols-4 gap-4">
-              {/* Facturado este mes */}
-              <div className="rounded-xl border bg-card p-5 shadow-sm">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Este mes</p>
-                <p className="text-2xl font-bold tabular-nums">
-                  ${financieroData.mes_actual.facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">{financieroData.mes_actual.pagos} cobros</p>
-              </div>
-              {/* Facturado mes anterior */}
-              <div className="rounded-xl border bg-card p-5 shadow-sm">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Mes anterior</p>
-                <p className="text-2xl font-bold tabular-nums text-muted-foreground">
-                  ${financieroData.mes_anterior.facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })}
-                </p>
-                <p className="text-xs text-muted-foreground mt-0.5">{financieroData.mes_anterior.pagos} cobros</p>
-              </div>
-              {/* Variación facturado */}
-              <div className="rounded-xl border bg-card p-5 shadow-sm">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Variación facturado</p>
-                <div className="flex items-center gap-1.5">
-                  {financieroData.variacion_facturado_pct > 0 ? (
-                    <ArrowUpRight className="h-5 w-5 text-emerald-500" />
-                  ) : financieroData.variacion_facturado_pct < 0 ? (
-                    <ArrowDownRight className="h-5 w-5 text-red-500" />
-                  ) : (
-                    <Minus className="h-5 w-5 text-muted-foreground" />
-                  )}
-                  <p className={`text-2xl font-bold tabular-nums ${
-                    financieroData.variacion_facturado_pct > 0
-                      ? "text-emerald-600"
-                      : financieroData.variacion_facturado_pct < 0
-                      ? "text-red-500"
-                      : "text-muted-foreground"
-                  }`}>
-                    {financieroData.variacion_facturado_pct > 0 ? "+" : ""}{financieroData.variacion_facturado_pct}%
-                  </p>
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">vs mes anterior</p>
-              </div>
-              {/* Variación turnos completados */}
-              <div className="rounded-xl border bg-card p-5 shadow-sm">
-                <p className="text-xs text-muted-foreground uppercase tracking-wide mb-1">Turnos completados</p>
-                <div className="flex items-center gap-2">
-                  <p className="text-2xl font-bold tabular-nums">{financieroData.mes_actual.turnos_completados}</p>
-                  {financieroData.mes_anterior.turnos_completados > 0 && (
-                    <span className={`flex items-center text-xs font-semibold rounded-full px-1.5 py-0.5 ${
-                      financieroData.variacion_turnos_pct >= 0 ? "text-emerald-600 bg-emerald-50" : "text-red-500 bg-red-50"
-                    }`}>
-                      {financieroData.variacion_turnos_pct >= 0 ? "+" : ""}{financieroData.variacion_turnos_pct}%
-                    </span>
-                  )}
-                </div>
-                <p className="text-xs text-muted-foreground mt-0.5">anterior: {financieroData.mes_anterior.turnos_completados}</p>
-              </div>
+              <KpiCard
+                label="Facturado este mes"
+                value={`$${financieroData.mes_actual.facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })}`}
+                icon={<DollarSign className="h-5 w-5" />}
+                variant="accent"
+                sub={`${financieroData.mes_actual.pagos} cobros registrados`}
+                trend={financieroData.mes_anterior.facturado > 0 || financieroData.mes_actual.facturado > 0 ? {
+                  value: `${Math.abs(financieroData.variacion_facturado_pct)}%`,
+                  direction: financieroData.variacion_facturado_pct > 0 ? "up" : financieroData.variacion_facturado_pct < 0 ? "down" : "flat",
+                  positive: financieroData.variacion_facturado_pct >= 0,
+                } : undefined}
+              />
+              <KpiCard
+                label="Mes anterior"
+                value={`$${financieroData.mes_anterior.facturado.toLocaleString("es-AR", { minimumFractionDigits: 0 })}`}
+                icon={<Banknote className="h-5 w-5" />}
+                variant="primary"
+                sub={`${financieroData.mes_anterior.pagos} cobros registrados`}
+              />
+              <KpiCard
+                label="Turnos completados"
+                value={financieroData.mes_actual.turnos_completados}
+                icon={<CheckCircle className="h-5 w-5" />}
+                variant="accent"
+                sub={`anterior: ${financieroData.mes_anterior.turnos_completados}`}
+                trend={financieroData.mes_anterior.turnos_completados > 0 || financieroData.mes_actual.turnos_completados > 0 ? {
+                  value: `${Math.abs(financieroData.variacion_turnos_pct)}%`,
+                  direction: financieroData.variacion_turnos_pct > 0 ? "up" : financieroData.variacion_turnos_pct < 0 ? "down" : "flat",
+                  positive: financieroData.variacion_turnos_pct >= 0,
+                } : undefined}
+              />
+              <KpiCard
+                label="Cobros este mes"
+                value={financieroData.mes_actual.pagos}
+                icon={<TrendingUp className="h-5 w-5" />}
+                variant="primary"
+                sub="Pagos aprobados"
+              />
             </div>
 
-            {/* Gráfico últimos 6 meses */}
             {financieroData.ultimos_6_meses.length > 1 && (
               <div className="rounded-xl border bg-card p-6 shadow-sm">
                 <div className="flex items-center gap-2 mb-4">
@@ -1034,8 +998,8 @@ export default function ReportesPage() {
                   >
                     <defs>
                       <linearGradient id="gradFinanciero" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="#10B981" stopOpacity={0.3} />
-                        <stop offset="95%" stopColor="#10B981" stopOpacity={0} />
+                        <stop offset="5%" stopColor="var(--ht-accent)" stopOpacity={0.3} />
+                        <stop offset="95%" stopColor="var(--ht-accent)" stopOpacity={0} />
                       </linearGradient>
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
@@ -1045,7 +1009,7 @@ export default function ReportesPage() {
                       contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", fontSize: 12 }}
                       formatter={(v: number) => [`$${v.toLocaleString("es-AR", { minimumFractionDigits: 0 })}`, "Facturado"]}
                     />
-                    <Area type="monotone" dataKey="facturado" stroke="#10B981" fill="url(#gradFinanciero)" strokeWidth={2} dot={{ r: 3 }} />
+                    <Area type="monotone" dataKey="facturado" stroke="var(--ht-accent-dark)" fill="url(#gradFinanciero)" strokeWidth={2} dot={{ r: 3 }} />
                   </AreaChart>
                 </ResponsiveContainer>
               </div>
