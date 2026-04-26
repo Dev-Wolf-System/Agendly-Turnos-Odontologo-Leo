@@ -2,13 +2,14 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Repeat, Plus, Crown } from "lucide-react";
+import { Repeat, Plus, Crown, XCircle, Loader2 } from "lucide-react";
 import {
   getAdminSubscriptions,
   getAdminClinicas,
   getAdminPlans,
   createAdminSubscription,
   updateAdminSubscription,
+  cancelAdminSubscription,
 } from "@/services/admin.service";
 import type {
   Subscription,
@@ -59,6 +60,7 @@ export default function AdminSuscripcionesPage() {
   const [loading, setLoading] = useState(true);
   const [showForm, setShowForm] = useState(false);
   const [filterEstado, setFilterEstado] = useState<EstadoKey | "">("");
+  const [cancelingId, setCancelingId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     clinica_id: "",
@@ -106,6 +108,23 @@ export default function AdminSuscripcionesPage() {
       load();
     } catch (err) {
       console.error(err);
+    }
+  };
+
+  const handleCancelSubscription = async (sub: Subscription) => {
+    const confirmed = window.confirm(
+      `¿Cancelar la suscripción de ${sub.clinica?.nombre ?? "esta clínica"}?\n\nSe cancelará el débito automático en Mercado Pago. La clínica mantiene acceso hasta el ${new Date(sub.fecha_fin).toLocaleDateString("es-AR")}.`
+    );
+    if (!confirmed) return;
+    try {
+      setCancelingId(sub.id);
+      await cancelAdminSubscription(sub.id);
+      load();
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo cancelar la suscripción en MP. Verificar logs.");
+    } finally {
+      setCancelingId(null);
     }
   };
 
@@ -308,7 +327,8 @@ export default function AdminSuscripcionesPage() {
                 <Th align="center" className="hidden md:table-cell">Inicio</Th>
                 <Th align="center" className="hidden md:table-cell">Vence</Th>
                 <Th align="center" className="hidden lg:table-cell">Renovación</Th>
-                <Th align="right">Acción</Th>
+                <Th align="right">Estado</Th>
+                <Th align="center">MP</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-light)]">
@@ -417,6 +437,25 @@ export default function AdminSuscripcionesPage() {
                             </option>
                           ))}
                         </select>
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        {sub.estado === "activa" ? (
+                          <button
+                            onClick={() => handleCancelSubscription(sub)}
+                            disabled={cancelingId === sub.id}
+                            title="Cancelar débito automático en MP"
+                            className="inline-flex items-center gap-1.5 rounded-lg border border-destructive/30 px-2.5 py-1.5 text-[11px] font-medium text-destructive transition-all hover:bg-destructive/5 disabled:opacity-50"
+                          >
+                            {cancelingId === sub.id ? (
+                              <Loader2 className="h-3 w-3 animate-spin" />
+                            ) : (
+                              <XCircle className="h-3 w-3" />
+                            )}
+                            Cancelar MP
+                          </button>
+                        ) : (
+                          <span className="text-[11px] text-[var(--text-muted)]">—</span>
+                        )}
                       </td>
                     </tr>
                   );

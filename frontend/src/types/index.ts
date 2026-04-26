@@ -116,4 +116,13 @@ export interface RegisterRequest {
   apellido: string;
   email: string;
   password: string;
+  plan_id?: string;
+}
+
+export interface RegisterResponse {
+  success: boolean;
+  message: string;
+  clinica_id?: string;
+  plan_id?: string;
+  requires_payment?: boolean;
 }

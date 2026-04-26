@@ -1,7 +1,7 @@
 import { getSupabaseClient } from "@/lib/supabase-client";
 import { setAccessToken } from "@/lib/auth-token";
 import api from "./api";
-import type { RegisterRequest } from "@/types";
+import type { RegisterRequest, RegisterResponse } from "@/types";
 
 const SUPABASE_ERROR_MAP: Record<string, string> = {
   "Invalid login credentials": "Email o contraseña incorrectos",
@@ -46,8 +46,8 @@ export const authService = {
     }
   },
 
-  async register(data: RegisterRequest): Promise<{ success: boolean; message: string }> {
-    const response = await api.post("/auth/register", data);
+  async register(data: RegisterRequest): Promise<RegisterResponse> {
+    const response = await api.post<RegisterResponse>("/auth/register", data);
     return response.data;
   },
 

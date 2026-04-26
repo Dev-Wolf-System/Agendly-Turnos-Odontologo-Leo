@@ -36,6 +36,9 @@ export class Subscription extends BaseEntity {
   @Column({ type: 'text', nullable: true })
   external_reference: string;
 
+  @Column({ type: 'text', nullable: true })
+  preapproval_id: string;
+
   @Column({ type: 'date', nullable: true })
   grace_period_ends_at: Date;
 

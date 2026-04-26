@@ -7,12 +7,13 @@ import { ClinicaMpModule } from '../clinica-mp/clinica-mp.module';
 import { Pago } from '../pagos/entities/pago.entity';
 import { Turno } from '../turnos/entities/turno.entity';
 import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
+import { Clinica } from '../clinicas/entities/clinica.entity';
 import { BillingService } from './billing.service';
 import { BillingController } from './billing.controller';
 
 @Module({
   imports: [
-    TypeOrmModule.forFeature([Pago, Turno, Tratamiento]),
+    TypeOrmModule.forFeature([Pago, Turno, Tratamiento, Clinica]),
     SubscriptionsModule,
     PlansModule,
     NotificacionesModule,

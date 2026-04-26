@@ -126,3 +126,7 @@ export async function updateAdminSubscription(
   const { data } = await api.patch(`/admin/subscriptions/${id}`, payload);
   return data;
 }
+
+export async function cancelAdminSubscription(id: string): Promise<void> {
+  await api.delete(`/admin/subscriptions/${id}/cancel`);
+}

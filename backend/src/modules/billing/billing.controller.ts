@@ -1,4 +1,4 @@
-import { Controller, Post, Get, Body, Headers, SetMetadata, Req, HttpCode, Param, ParseUUIDPipe } from '@nestjs/common';
+import { Controller, Post, Get, Delete, Body, Headers, SetMetadata, Req, HttpCode, Param, ParseUUIDPipe, BadRequestException } from '@nestjs/common';
 import { Request } from 'express';
 import { BillingService } from './billing.service';
 import { Public, CurrentClinica } from '../../common/decorators';
@@ -15,6 +15,16 @@ export class BillingController {
     @Body() body: { planId?: string },
   ) {
     return this.billingService.createCheckout(clinicaId, body?.planId);
+  }
+
+  /** Checkout público para clínicas recién registradas con plan pago (sin JWT) */
+  @Public()
+  @Post('checkout-registro')
+  createCheckoutRegistro(@Body() body: { clinica_id: string; plan_id: string }) {
+    if (!body?.clinica_id || !body?.plan_id) {
+      throw new BadRequestException('clinica_id y plan_id son requeridos');
+    }
+    return this.billingService.createCheckoutRegistro(body.clinica_id, body.plan_id);
   }
 
   @Public()
@@ -73,6 +83,12 @@ export class BillingController {
     @CurrentClinica() clinicaId: string,
   ) {
     return this.billingService.getLinkPagoPago(pagoId, clinicaId);
+  }
+
+  @SetMetadata(IS_WRITE_OPERATION, false)
+  @Delete('subscribe')
+  cancelSubscription(@CurrentClinica() clinicaId: string) {
+    return this.billingService.cancelSubscription(clinicaId);
   }
 
   @Get('portal')

@@ -237,6 +237,8 @@ function SuscripcionContent() {
 
   const [expandedTicket, setExpandedTicket] = useState<string | null>(null);
   const [checkingOut, setCheckingOut] = useState(false);
+  const [canceling, setCanceling] = useState(false);
+  const [cancelDialogOpen, setCancelDialogOpen] = useState(false);
   const [planes, setPlanes] = useState<Plan[]>([]);
   const [selectedPlanId, setSelectedPlanId] = useState<string>("");
 
@@ -276,6 +278,21 @@ function SuscripcionContent() {
       if (pagados.length > 0) setSelectedPlanId(pagados[0].id);
     }).catch(() => {});
   }, [fetchSubscription, fetchTickets]);
+
+  // ─── Cancelar suscripción ───
+  const handleCancelSubscription = async () => {
+    try {
+      setCanceling(true);
+      await billingService.cancelSubscription();
+      toast.success("Suscripción cancelada. El acceso se mantiene hasta el fin del período actual.");
+      setCancelDialogOpen(false);
+      fetchSubscription();
+    } catch {
+      toast.error("No se pudo cancelar la suscripción. Intentá de nuevo.");
+    } finally {
+      setCanceling(false);
+    }
+  };
 
   // ─── Checkout MP ───
   const handleCheckout = async (planId?: string) => {
@@ -651,23 +668,8 @@ function SuscripcionContent() {
                     </div>
                   )}
 
-                  {/* Auto renew + botón de pago */}
-                  <div className="flex items-center justify-between pt-2">
-                    <div className="flex items-center gap-2">
-                      <RefreshCw className="w-4 h-4 text-muted-foreground" />
-                      <span className="text-sm text-muted-foreground">
-                        Renovacion automatica
-                      </span>
-                      <Badge
-                        className={`border-0 text-[11px] ${
-                          sub.auto_renew
-                            ? "bg-emerald-100 text-emerald-700 dark:bg-emerald-900/30 dark:text-emerald-400"
-                            : "bg-gray-100 text-gray-600 dark:bg-gray-800 dark:text-gray-400"
-                        }`}
-                      >
-                        {sub.auto_renew ? "Activa" : "Inactiva"}
-                      </Badge>
-                    </div>
+                  {/* Botones de acción */}
+                  <div className="flex items-center justify-between pt-2 gap-2">
                     <Button
                       size="sm"
                       onClick={() => handleCheckout(isTrial ? selectedPlanId : undefined)}
@@ -679,8 +681,20 @@ function SuscripcionContent() {
                       ) : (
                         <Zap className="w-3.5 h-3.5" />
                       )}
-                      {isTrial ? "Activar plan" : "Renovar"}
+                      {isTrial ? "Activar plan" : "Suscribirse"}
                     </Button>
+                    {estado === "activa" && !isTrial && (
+                      <Button
+                        size="sm"
+                        variant="outline"
+                        onClick={() => setCancelDialogOpen(true)}
+                        disabled={canceling}
+                        className="gap-1.5 text-xs text-destructive border-destructive/30 hover:bg-destructive/5"
+                      >
+                        <XCircle className="w-3.5 h-3.5" />
+                        Cancelar suscripción
+                      </Button>
+                    )}
                   </div>
 
                   {/* Features */}
@@ -874,6 +888,39 @@ function SuscripcionContent() {
         )}
 
       </div>
+
+      {/* ── Dialog: Cancelar suscripción ── */}
+      <Dialog open={cancelDialogOpen} onOpenChange={setCancelDialogOpen}>
+        <DialogContent className="sm:max-w-[420px]">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-destructive">
+              <XCircle className="w-5 h-5" />
+              Cancelar suscripción
+            </DialogTitle>
+            <DialogDescription>
+              Esta acción cancelará el débito automático mensual en Mercado Pago.
+              Seguirás teniendo acceso hasta el <strong>{sub?.fecha_fin ? new Date(sub.fecha_fin).toLocaleDateString("es-AR", { day: "2-digit", month: "long", year: "numeric" }) : "fin del período"}</strong>.
+            </DialogDescription>
+          </DialogHeader>
+          <div className="rounded-xl bg-orange-50 dark:bg-orange-900/20 border border-orange-200 dark:border-orange-800 p-4 text-sm text-orange-800 dark:text-orange-300">
+            Una vez cancelada, no se realizarán más cobros automáticos. Podés volver a suscribirte cuando quieras.
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setCancelDialogOpen(false)} disabled={canceling}>
+              Volver
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleCancelSubscription}
+              disabled={canceling}
+              className="gap-2"
+            >
+              {canceling ? <Loader2 className="w-4 h-4 animate-spin" /> : <XCircle className="w-4 h-4" />}
+              {canceling ? "Cancelando..." : "Sí, cancelar"}
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
 
       {/* ── Dialog: Nuevo Ticket ── */}
       <Dialog open={dialogOpen} onOpenChange={setDialogOpen}>

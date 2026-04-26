@@ -12,7 +12,7 @@ import { User } from '../users/entities/user.entity';
 import { Clinica } from '../clinicas/entities/clinica.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { UserRole } from '../../common/enums';
+import { UserRole, EstadoSubscription } from '../../common/enums';
 import { PlansService } from '../plans/plans.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { SupabaseService } from '../../common/services/supabase.service';
@@ -68,7 +68,28 @@ export class AuthService {
     // Crear usuario en Supabase Auth (asíncrono, no bloquea el registro)
     this.createSupabaseUser(savedUser.id, registerDto.email, registerDto.password);
 
-    // Auto-asignar trial subscription (queda inactiva hasta aprobación)
+    // Si viene plan_id (plan pago), crear suscripción inactiva pendiente de pago
+    if (registerDto.plan_id) {
+      const now = new Date();
+      await this.subscriptionsService.create({
+        clinica_id: savedClinica.id,
+        plan_id: registerDto.plan_id,
+        estado: EstadoSubscription.INACTIVA,
+        fecha_inicio: now,
+        fecha_fin: now,
+      });
+
+      return {
+        success: true,
+        message: 'Registro completado. Redirigiendo al pago...',
+        clinica: savedClinica,
+        clinica_id: savedClinica.id,
+        plan_id: registerDto.plan_id,
+        requires_payment: true,
+      };
+    }
+
+    // Flujo trial: auto-asignar suscripción de prueba (queda inactiva hasta aprobación manual)
     const trialPlan = await this.plansService.findDefaultTrial();
     if (trialPlan) {
       await this.subscriptionsService.createTrialForClinica(
@@ -82,6 +103,7 @@ export class AuthService {
       message:
         'Tu solicitud de prueba gratuita fue enviada. Nuestro equipo la revisará y te contactará por email.',
       clinica: savedClinica,
+      requires_payment: false,
     };
   }
 

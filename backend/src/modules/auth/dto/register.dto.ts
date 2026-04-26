@@ -1,4 +1,4 @@
-import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional } from 'class-validator';
+import { IsEmail, IsNotEmpty, IsString, MinLength, IsOptional, IsUUID } from 'class-validator';
 import { Transform } from 'class-transformer';
 import { normalizePhone } from '../../../common/utils/normalize-phone';
 
@@ -19,6 +19,10 @@ export class RegisterDto {
   @IsString()
   @IsOptional()
   especialidad?: string;
+
+  @IsUUID()
+  @IsOptional()
+  plan_id?: string;
 
   @IsString()
   @IsNotEmpty()

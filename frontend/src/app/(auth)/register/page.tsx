@@ -1,9 +1,13 @@
 "use client";
 
-import { useState, Suspense } from "react";
+import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
 import Image from "next/image";
+import { useSearchParams } from "next/navigation";
 import { authService } from "@/services/auth.service";
+import { plansService } from "@/services/plans.service";
+import type { Plan } from "@/types";
+import api from "@/services/api";
 
 /* ── Icons ── */
 
@@ -120,9 +124,13 @@ export default function RegisterPage() {
 }
 
 function RegisterForm() {
+  const searchParams = useSearchParams();
+  const planIdFromQuery = searchParams.get("plan");
+
   const [step, setStep] = useState(0);
   const [showPassword, setShowPassword] = useState(false);
   const [showConfirm, setShowConfirm] = useState(false);
+  const [selectedPlan, setSelectedPlan] = useState<Plan | null>(null);
 
   const [form, setForm] = useState({
     clinica_nombre: "",
@@ -138,6 +146,14 @@ function RegisterForm() {
   const [error, setError] = useState("");
   const [isLoading, setIsLoading] = useState(false);
   const [success, setSuccess] = useState(false);
+
+  useEffect(() => {
+    if (!planIdFromQuery) return;
+    plansService.getActivePlans().then((plans) => {
+      const plan = plans.find((p) => p.id === planIdFromQuery);
+      if (plan) setSelectedPlan(plan);
+    }).catch(() => {});
+  }, [planIdFromQuery]);
 
   const updateField = (field: string, value: string) =>
     setForm((prev) => ({ ...prev, [field]: value }));
@@ -167,7 +183,7 @@ function RegisterForm() {
 
     setIsLoading(true);
     try {
-      await authService.register({
+      const result = await authService.register({
         clinica_nombre: form.clinica_nombre,
         nombre_propietario: form.nombre_propietario || undefined,
         clinica_cel: form.clinica_cel || undefined,
@@ -176,7 +192,19 @@ function RegisterForm() {
         apellido: form.apellido,
         email: form.email,
         password: form.password,
+        plan_id: planIdFromQuery || undefined,
       });
+
+      // Si el registro requiere pago, generar checkout y redirigir a MP
+      if (result.requires_payment && result.clinica_id && planIdFromQuery) {
+        const { data } = await api.post<{ checkout_url: string }>("/billing/checkout-registro", {
+          clinica_id: result.clinica_id,
+          plan_id: planIdFromQuery,
+        });
+        window.location.href = data.checkout_url;
+        return;
+      }
+
       setSuccess(true);
     } catch (err: any) {
       const message =
@@ -248,7 +276,9 @@ function RegisterForm() {
           height={56}
           className="mx-auto mb-4 rounded-xl shadow-md"
         />
-        <h1 className="text-2xl font-bold tracking-tight">Solicitar Prueba Gratuita</h1>
+        <h1 className="text-2xl font-bold tracking-tight">
+          {selectedPlan ? `Contratar plan ${selectedPlan.nombre}` : "Solicitar Prueba Gratuita"}
+        </h1>
         <p className="mt-1 text-sm text-muted-foreground">
           Configura tu clinica en menos de 2 minutos
         </p>
@@ -517,7 +547,13 @@ function RegisterForm() {
                 </p>
                 <div className="grid grid-cols-2 gap-y-1.5 text-sm">
                   <span className="text-muted-foreground">Plan:</span>
-                  <span className="font-medium text-emerald-600">Prueba gratuita (14 dias)</span>
+                  {selectedPlan ? (
+                    <span className="font-medium text-[var(--ht-primary)]">
+                      {selectedPlan.nombre} — ${Number(selectedPlan.precio_mensual).toLocaleString("es-AR")}/mes
+                    </span>
+                  ) : (
+                    <span className="font-medium text-emerald-600">Prueba gratuita (14 dias)</span>
+                  )}
                   <span className="text-muted-foreground">Clinica:</span>
                   <span className="font-medium">{form.clinica_nombre || "—"}</span>
                   <span className="text-muted-foreground">Admin:</span>
@@ -552,11 +588,11 @@ function RegisterForm() {
                   {isLoading ? (
                     <>
                       <div className="h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                      Enviando solicitud...
+                      {selectedPlan ? "Redirigiendo al pago..." : "Enviando solicitud..."}
                     </>
                   ) : (
                     <>
-                      Solicitar Prueba Gratuita
+                      {selectedPlan ? "Continuar al pago" : "Solicitar Prueba Gratuita"}
                       <ArrowRightIcon className="h-4 w-4" />
                     </>
                   )}

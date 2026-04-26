@@ -8,7 +8,7 @@ import {
 import { InjectRepository } from '@nestjs/typeorm';
 import { Repository } from 'typeorm';
 import { ConfigService } from '@nestjs/config';
-import { MercadoPagoConfig, Preference, Payment } from 'mercadopago';
+import { MercadoPagoConfig, Preference, Payment, PreApproval } from 'mercadopago';
 import * as crypto from 'crypto';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { PlansService } from '../plans/plans.service';
@@ -17,6 +17,7 @@ import { ClinicaMpService } from '../clinica-mp/clinica-mp.service';
 import { Pago } from '../pagos/entities/pago.entity';
 import { Turno } from '../turnos/entities/turno.entity';
 import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
+import { Clinica } from '../clinicas/entities/clinica.entity';
 import { EstadoSubscription, EstadoPago, TipoNotificacion } from '../../common/enums';
 
 @Injectable()
@@ -36,6 +37,8 @@ export class BillingService {
     private readonly turnoRepo: Repository<Turno>,
     @InjectRepository(Tratamiento)
     private readonly tratamientoRepo: Repository<Tratamiento>,
+    @InjectRepository(Clinica)
+    private readonly clinicaRepo: Repository<Clinica>,
   ) {
     this.mp = new MercadoPagoConfig({
       accessToken: this.config.getOrThrow<string>('MP_ACCESS_TOKEN'),
@@ -61,38 +64,83 @@ export class BillingService {
     const precio = Number(plan.precio_mensual);
     if (precio <= 0) throw new BadRequestException('El plan seleccionado no tiene un precio válido');
 
+    // Cancelar preapproval anterior si existe
+    if (sub.preapproval_id) {
+      await this.cancelPreapprovalInMp(sub.preapproval_id);
+    }
+
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
     const backendUrl = this.config.get<string>('BACKEND_URL', 'https://api.avaxhealth.com/api');
 
     const externalRef = `sub_${sub.id}_plan_${targetPlanId}`;
 
-    const preference = new Preference(this.mp);
-    const result = await preference.create({
+    const preapproval = new PreApproval(this.mp);
+    const result = await preapproval.create({
       body: {
-        items: [
-          {
-            id: targetPlanId,
-            title: `Suscripción ${plan.nombre} — Avax Health`,
-            quantity: 1,
-            unit_price: precio,
-            currency_id: 'ARS',
-          },
-        ],
+        reason: `Suscripción ${plan.nombre} — Avax Health`,
         external_reference: externalRef,
-        back_urls: {
-          success: `${frontendUrl}/billing/success`,
-          failure: `${frontendUrl}/billing/failure`,
-          pending: `${frontendUrl}/billing/success`,
+        auto_recurring: {
+          frequency: 1,
+          frequency_type: 'months',
+          transaction_amount: precio,
+          currency_id: 'ARS',
         },
-        auto_return: 'approved',
-        notification_url: `${backendUrl}/billing/webhook`,
+        back_url: `${frontendUrl}/billing/success`,
       },
     });
 
-    const isProduction = this.config.get('NODE_ENV') === 'production';
-    const url = (isProduction ? result.init_point : result.sandbox_init_point) ?? result.init_point ?? '';
+    if (result.id) {
+      await this.subscriptionsService.update(sub.id, {
+        preapproval_id: result.id,
+        auto_renew: true,
+      });
+    }
 
-    return { checkout_url: url };
+    return { checkout_url: result.init_point ?? '' };
+  }
+
+  /** Checkout público para clínicas recién registradas (sin JWT) — solo estado Pendiente */
+  async createCheckoutRegistro(clinicaId: string, planId: string): Promise<{ checkout_url: string }> {
+    const clinica = await this.clinicaRepo.findOne({ where: { id: clinicaId } });
+    if (!clinica) throw new NotFoundException('Clínica no encontrada');
+    if (clinica.estado_aprobacion !== 'Pendiente') {
+      throw new BadRequestException('Este endpoint es solo para clínicas pendientes de activación');
+    }
+
+    const plan = await this.plansService.findOne(planId);
+    if (!plan) throw new BadRequestException('Plan no encontrado');
+
+    const precio = Number(plan.precio_mensual);
+    if (precio <= 0) throw new BadRequestException('El plan seleccionado no tiene un precio válido');
+
+    const sub = await this.subscriptionsService.findByClinica(clinicaId);
+    if (!sub) throw new BadRequestException('No se encontró suscripción para esta clínica');
+
+    const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
+
+    const preapproval = new PreApproval(this.mp);
+    const result = await preapproval.create({
+      body: {
+        reason: `Suscripción ${plan.nombre} — Avax Health`,
+        external_reference: `sub_${sub.id}_plan_${planId}`,
+        auto_recurring: {
+          frequency: 1,
+          frequency_type: 'months',
+          transaction_amount: precio,
+          currency_id: 'ARS',
+        },
+        back_url: `${frontendUrl}/bienvenida?status=success`,
+      },
+    });
+
+    if (result.id) {
+      await this.subscriptionsService.update(sub.id, {
+        preapproval_id: result.id,
+        auto_renew: true,
+      });
+    }
+
+    return { checkout_url: result.init_point ?? '' };
   }
 
   async getLinkPagoPago(
@@ -170,6 +218,28 @@ export class BillingService {
       }
     }
 
+    // ── Preapproval autorizado (primera vez que el usuario acepta el débito automático) ──
+    if (body.type === 'subscription_preapproval') {
+      const preapprovalId = body?.data?.id;
+      if (preapprovalId) {
+        try {
+          const preapproval = new PreApproval(this.mp);
+          const pa = await preapproval.get({ id: String(preapprovalId) });
+          if (pa.external_reference) {
+            const subMatch = pa.external_reference.match(/^sub_([^_]+(?:_[^_]+)*?)_plan_/);
+            if (subMatch) {
+              const subId = subMatch[1];
+              await this.subscriptionsService.update(subId, { preapproval_id: String(preapprovalId) });
+              this.logger.log(`PreApproval ${preapprovalId} vinculado a sub ${subId}`);
+            }
+          }
+        } catch (err) {
+          this.logger.warn(`Error procesando subscription_preapproval: ${err}`);
+        }
+      }
+      return;
+    }
+
     if (body.type !== 'payment') return;
 
     const dataId = body?.data?.id;
@@ -238,10 +308,21 @@ export class BillingService {
         external_reference: String(paymentData.id),
       });
 
-      if ((sub as any).clinica_id) {
+      const clinicaId = (sub as any).clinica_id;
+
+      // Auto-aprobar clínica si estaba pendiente (registro con pago directo)
+      if (clinicaId) {
+        const clinica = await this.clinicaRepo.findOne({ where: { id: clinicaId } });
+        if (clinica?.estado_aprobacion === 'Pendiente') {
+          await this.clinicaRepo.update(clinicaId, { estado_aprobacion: 'Aprobado' });
+          this.logger.log(`Clínica ${clinicaId} auto-aprobada tras pago de suscripción`);
+        }
+      }
+
+      if (clinicaId) {
         const plan = await this.plansService.findOne(newPlanId).catch(() => null);
         await this.notificacionesService.crear(
-          (sub as any).clinica_id,
+          clinicaId,
           TipoNotificacion.INFO,
           'Suscripción renovada',
           `Plan ${plan?.nombre ?? newPlanId} activo hasta ${newFechaFin.toLocaleDateString('es-AR')}`,
@@ -407,6 +488,33 @@ export class BillingService {
     }
 
     return { checkout_url, pago_id: pago.id, monto: Number(pago.total) };
+  }
+
+  async cancelSubscription(clinicaId: string): Promise<void> {
+    const sub = await this.subscriptionsService.findByClinica(clinicaId);
+    if (!sub) throw new NotFoundException('No se encontró suscripción');
+
+    if (sub.preapproval_id) {
+      await this.cancelPreapprovalInMp(sub.preapproval_id);
+    }
+
+    await this.subscriptionsService.update(sub.id, {
+      estado: EstadoSubscription.CANCELADA,
+      preapproval_id: null as any,
+      auto_renew: false,
+    });
+
+    this.logger.log(`Suscripción ${sub.id} cancelada — clínica ${clinicaId}`);
+  }
+
+  private async cancelPreapprovalInMp(preapprovalId: string): Promise<void> {
+    try {
+      const preapproval = new PreApproval(this.mp);
+      await preapproval.update({ id: preapprovalId, body: { status: 'cancelled' } });
+      this.logger.log(`PreApproval ${preapprovalId} cancelado en MP`);
+    } catch (err) {
+      this.logger.warn(`No se pudo cancelar PreApproval ${preapprovalId} en MP: ${err}`);
+    }
   }
 
   async getPortal(clinicaId: string) {

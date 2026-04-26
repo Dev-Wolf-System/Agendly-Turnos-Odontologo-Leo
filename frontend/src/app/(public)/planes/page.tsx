@@ -233,16 +233,16 @@ function PlanCard({
 
       {/* CTA */}
       {Number(plan.precio_mensual) > 0 ? (
-        <a
-          href="mailto:ventas@avaxhealth.com?subject=Consulta%20plan"
+        <Link
+          href={`/register?plan=${plan.id}`}
           className={`inline-flex w-full items-center justify-center rounded-xl px-4 py-3.5 text-sm font-semibold transition-all ${
             plan.is_highlighted
               ? "bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-lg shadow-[var(--ht-primary)]/25 hover:opacity-90 hover:shadow-[var(--ht-primary)]/40"
               : "border-2 border-border bg-transparent text-foreground hover:border-[var(--ht-primary)]/30 hover:bg-[var(--ht-primary)]/5"
           }`}
         >
-          Contactanos
-        </a>
+          Contratar ahora
+        </Link>
       ) : (
         <Link
           href="/register"

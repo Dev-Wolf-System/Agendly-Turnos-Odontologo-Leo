@@ -13,12 +13,14 @@ import { Paciente } from '../pacientes/entities/paciente.entity';
 import { Turno } from '../turnos/entities/turno.entity';
 import { PlansModule } from '../plans/plans.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
+import { BillingModule } from '../billing/billing.module';
 
 @Module({
   imports: [
     TypeOrmModule.forFeature([Clinica, Subscription, Plan, User, Paciente, Turno]),
     PlansModule,
     SubscriptionsModule,
+    BillingModule,
   ],
   controllers: [
     AdminClinicasController,

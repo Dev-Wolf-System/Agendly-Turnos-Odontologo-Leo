@@ -28,6 +28,10 @@ const billingService = {
     return res.data;
   },
 
+  async cancelSubscription(): Promise<void> {
+    await api.delete("/billing/subscribe");
+  },
+
   async getPortal(): Promise<BillingPortal | null> {
     const res = await api.get<BillingPortal | null>("/billing/portal");
     return res.data;
