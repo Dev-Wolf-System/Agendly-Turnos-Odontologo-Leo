@@ -234,7 +234,7 @@ export default function AdminDashboardPage() {
                 tick={{ fontSize: 11, fill: "var(--text-muted)" }}
                 tickLine={false}
                 axisLine={false}
-                tickFormatter={(v: number) => v >= 1000 ? `$${(v / 1000).toFixed(0)}k` : `$${v}`}
+                tickFormatter={(v) => { const n = Number(v); return n >= 1000 ? `$${(n / 1000).toFixed(0)}k` : `$${n}`; }}
                 width={42}
               />
               <Tooltip
