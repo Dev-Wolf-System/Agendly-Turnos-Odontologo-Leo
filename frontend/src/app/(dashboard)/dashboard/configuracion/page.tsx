@@ -34,7 +34,10 @@ import {
 import {
   Select,
   SelectContent,
+  SelectGroup,
   SelectItem,
+  SelectLabel,
+  SelectSeparator,
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
@@ -88,6 +91,60 @@ const ESPECIALIDADES = [
   { value: "medicina_general", label: "Medicina General" },
   { value: "psicologia", label: "Psicología" },
   { value: "general", label: "Otra / General" },
+];
+
+const ESPECIALIDADES_PROFESIONAL: { grupo: string; items: string[] }[] = [
+  {
+    grupo: "Medicina General",
+    items: ["Clínica Médica", "Medicina General", "Medicina Familiar", "Medicina Interna"],
+  },
+  {
+    grupo: "Especialidades Médicas",
+    items: [
+      "Cardiología", "Dermatología", "Endocrinología", "Gastroenterología",
+      "Geriatría", "Ginecología", "Obstetricia", "Hematología",
+      "Infectología", "Nefrología", "Neumología", "Neurología",
+      "Oftalmología", "Oncología", "Otorrinolaringología", "Pediatría",
+      "Psiquiatría", "Reumatología", "Traumatología", "Urología",
+    ],
+  },
+  {
+    grupo: "Cirugía",
+    items: [
+      "Cirugía General", "Cirugía Cardiovascular",
+      "Cirugía Plástica", "Neurocirugía", "Cirugía Maxilofacial",
+    ],
+  },
+  {
+    grupo: "Salud Mental",
+    items: ["Psicología", "Psicología Infantil", "Psicopedagogía", "Psiquiatría"],
+  },
+  {
+    grupo: "Odontología",
+    items: [
+      "Odontología General", "Ortodoncia", "Endodoncia",
+      "Periodoncia", "Odontopediatría", "Implantología",
+      "Estética Dental", "Prostodoncia",
+    ],
+  },
+  {
+    grupo: "Rehabilitación",
+    items: [
+      "Kinesiología", "Fisioterapia", "Fonoaudiología",
+      "Terapia Ocupacional", "Osteopatía",
+    ],
+  },
+  {
+    grupo: "Nutrición y Estética",
+    items: ["Nutrición", "Dietética", "Medicina Estética", "Dermatología Estética"],
+  },
+  {
+    grupo: "Otras",
+    items: [
+      "Acupuntura", "Homeopatía", "Podología", "Enfermería",
+      "Obstétrica", "Optometría", "Medicina Deportiva",
+    ],
+  },
 ];
 
 const DIAS_SEMANA = [
@@ -1341,6 +1398,7 @@ function TabEquipo({
   const [editing, setEditing] = useState<User | null>(null);
   const [deleting, setDeleting] = useState<User | null>(null);
   const [isSaving, setIsSaving] = useState(false);
+  const [especialidadLibre, setEspecialidadLibre] = useState(false);
   const [form, setForm] = useState({
     nombre: "",
     apellido: "",
@@ -1352,19 +1410,22 @@ function TabEquipo({
 
   const openCreate = () => {
     setEditing(null);
+    setEspecialidadLibre(false);
     setForm({ nombre: "", apellido: "", email: "", password: "", role: "professional", especialidad: "" });
     setDialogOpen(true);
   };
 
   const openEdit = (u: User) => {
     setEditing(u);
+    const esp = u.especialidad ?? "";
+    setEspecialidadLibre(!!esp && !ESPECIALIDADES_PROFESIONAL.flatMap((g) => g.items).includes(esp));
     setForm({
       nombre: u.nombre,
       apellido: u.apellido,
       email: u.email,
       password: "",
       role: u.role,
-      especialidad: u.especialidad ?? "",
+      especialidad: esp,
     });
     setDialogOpen(true);
   };
@@ -1568,11 +1629,45 @@ function TabEquipo({
             </div>
             <div className="space-y-2">
               <Label>Especialidad</Label>
-              <Input
-                value={form.especialidad}
-                onChange={(e) => setForm({ ...form, especialidad: e.target.value })}
-                placeholder="Ej: Cardiología, Ortodoncia, Clínica General"
-              />
+              <Select
+                value={especialidadLibre ? "otra" : form.especialidad}
+                onValueChange={(v) => {
+                  if (v === "otra") {
+                    setEspecialidadLibre(true);
+                    setForm({ ...form, especialidad: "" });
+                  } else {
+                    setEspecialidadLibre(false);
+                    setForm({ ...form, especialidad: v });
+                  }
+                }}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Seleccionar especialidad" />
+                </SelectTrigger>
+                <SelectContent className="max-h-64">
+                  {ESPECIALIDADES_PROFESIONAL.map((grupo, gi) => (
+                    <React.Fragment key={grupo.grupo}>
+                      {gi > 0 && <SelectSeparator />}
+                      <SelectGroup>
+                        <SelectLabel>{grupo.grupo}</SelectLabel>
+                        {grupo.items.map((esp) => (
+                          <SelectItem key={esp} value={esp}>{esp}</SelectItem>
+                        ))}
+                      </SelectGroup>
+                    </React.Fragment>
+                  ))}
+                  <SelectSeparator />
+                  <SelectItem value="otra">Otra (escribir manualmente)</SelectItem>
+                </SelectContent>
+              </Select>
+              {especialidadLibre && (
+                <Input
+                  autoFocus
+                  value={form.especialidad}
+                  onChange={(e) => setForm({ ...form, especialidad: e.target.value })}
+                  placeholder="Escribí la especialidad"
+                />
+              )}
             </div>
             <div className="space-y-2">
               <Label>Rol *</Label>
