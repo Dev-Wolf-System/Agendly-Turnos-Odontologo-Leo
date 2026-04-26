@@ -988,6 +988,138 @@ FACTURACIÓN:
     });
   }
 
+  async getProductividadProfesional(
+    clinicaId: string,
+    desde?: string,
+    hasta?: string,
+  ) {
+    const desdeDate = desde ? new Date(desde) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
+    const hastaDate = hasta ? new Date(hasta) : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
+    desdeDate.setHours(0, 0, 0, 0);
+    hastaDate.setHours(23, 59, 59, 999);
+
+    const turnosRaw = await this.turnoRepository
+      .createQueryBuilder('t')
+      .leftJoin('t.user', 'u')
+      .where('t.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('t.start_time BETWEEN :desde AND :hasta', { desde: desdeDate, hasta: hastaDate })
+      .andWhere('t.user_id IS NOT NULL')
+      .select('t.user_id', 'user_id')
+      .addSelect('u.nombre', 'nombre')
+      .addSelect('u.apellido', 'apellido')
+      .addSelect('u.especialidad', 'especialidad')
+      .addSelect('COUNT(t.id)', 'total')
+      .addSelect("SUM(CASE WHEN t.estado = 'completado' THEN 1 ELSE 0 END)", 'completados')
+      .addSelect("SUM(CASE WHEN t.estado = 'cancelado' THEN 1 ELSE 0 END)", 'cancelados')
+      .addSelect("SUM(CASE WHEN t.estado = 'pendiente' THEN 1 ELSE 0 END)", 'pendientes')
+      .groupBy('t.user_id')
+      .addGroupBy('u.nombre')
+      .addGroupBy('u.apellido')
+      .addGroupBy('u.especialidad')
+      .orderBy('total', 'DESC')
+      .getRawMany<{
+        user_id: string;
+        nombre: string;
+        apellido: string;
+        especialidad: string | null;
+        total: string;
+        completados: string;
+        cancelados: string;
+        pendientes: string;
+      }>();
+
+    const pagosRaw = await this.pagoRepository
+      .createQueryBuilder('p')
+      .leftJoin('p.turno', 't')
+      .where('t.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('p.estado = :estado', { estado: EstadoPago.APROBADO })
+      .andWhere('t.start_time BETWEEN :desde AND :hasta', { desde: desdeDate, hasta: hastaDate })
+      .andWhere('t.user_id IS NOT NULL')
+      .select('t.user_id', 'user_id')
+      .addSelect('SUM(p.total)', 'facturado')
+      .groupBy('t.user_id')
+      .getRawMany<{ user_id: string; facturado: string }>();
+
+    const facturadoMap = new Map(pagosRaw.map((r) => [r.user_id, parseFloat(r.facturado) || 0]));
+
+    return turnosRaw.map((r) => {
+      const total = parseInt(r.total, 10);
+      const completados = parseInt(r.completados, 10);
+      const cancelados = parseInt(r.cancelados, 10);
+      const pendientes = parseInt(r.pendientes, 10);
+      const facturado = facturadoMap.get(r.user_id) || 0;
+      const tasa_asistencia = total > 0 ? Math.round((completados / total) * 100) : 0;
+      return { id: r.user_id, nombre: r.nombre, apellido: r.apellido, especialidad: r.especialidad || null, total, completados, cancelados, pendientes, facturado, tasa_asistencia };
+    });
+  }
+
+  async getFinanciero(clinicaId: string) {
+    const now = new Date();
+    const mesActualDesde = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
+    const mesActualHasta = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
+    const mesAnteriorDesde = new Date(now.getFullYear(), now.getMonth() - 1, 1, 0, 0, 0, 0);
+    const mesAnteriorHasta = new Date(now.getFullYear(), now.getMonth(), 0, 23, 59, 59, 999);
+
+    const getPagos = (desde: Date, hasta: Date) =>
+      this.pagoRepository
+        .createQueryBuilder('p')
+        .where('p.clinica_id = :clinicaId', { clinicaId })
+        .andWhere('p.estado = :estado', { estado: EstadoPago.APROBADO })
+        .andWhere('p.created_at BETWEEN :desde AND :hasta', { desde, hasta })
+        .select('SUM(p.total)', 'total')
+        .addSelect('COUNT(p.id)', 'cantidad')
+        .getRawOne<{ total: string | null; cantidad: string }>();
+
+    const getTurnos = (desde: Date, hasta: Date) =>
+      this.turnoRepository
+        .createQueryBuilder('t')
+        .where('t.clinica_id = :clinicaId', { clinicaId })
+        .andWhere("t.estado = 'completado'")
+        .andWhere('t.start_time BETWEEN :desde AND :hasta', { desde, hasta })
+        .getCount();
+
+    const [pagosActual, pagosAnterior, turnosActual, turnosAnterior] = await Promise.all([
+      getPagos(mesActualDesde, mesActualHasta),
+      getPagos(mesAnteriorDesde, mesAnteriorHasta),
+      getTurnos(mesActualDesde, mesActualHasta),
+      getTurnos(mesAnteriorDesde, mesAnteriorHasta),
+    ]);
+
+    const facturadoActual = parseFloat(pagosActual?.total || '0');
+    const facturadoAnterior = parseFloat(pagosAnterior?.total || '0');
+    const variacionFacturado = facturadoAnterior > 0
+      ? Math.round(((facturadoActual - facturadoAnterior) / facturadoAnterior) * 100)
+      : facturadoActual > 0 ? 100 : 0;
+    const variacionTurnos = turnosAnterior > 0
+      ? Math.round(((turnosActual - turnosAnterior) / turnosAnterior) * 100)
+      : turnosActual > 0 ? 100 : 0;
+
+    const seisDesde = new Date(now.getFullYear(), now.getMonth() - 5, 1, 0, 0, 0, 0);
+    const ultimos6Meses = await this.pagoRepository
+      .createQueryBuilder('p')
+      .where('p.clinica_id = :clinicaId', { clinicaId })
+      .andWhere('p.estado = :estado', { estado: EstadoPago.APROBADO })
+      .andWhere('p.created_at >= :desde', { desde: seisDesde })
+      .select("TO_CHAR(p.created_at, 'YYYY-MM')", 'mes')
+      .addSelect('SUM(p.total)', 'facturado')
+      .addSelect('COUNT(p.id)', 'pagos')
+      .groupBy("TO_CHAR(p.created_at, 'YYYY-MM')")
+      .orderBy("TO_CHAR(p.created_at, 'YYYY-MM')", 'ASC')
+      .getRawMany<{ mes: string; facturado: string; pagos: string }>();
+
+    return {
+      mes_actual: { facturado: facturadoActual, turnos_completados: turnosActual, pagos: parseInt(pagosActual?.cantidad || '0', 10) },
+      mes_anterior: { facturado: facturadoAnterior, turnos_completados: turnosAnterior, pagos: parseInt(pagosAnterior?.cantidad || '0', 10) },
+      variacion_facturado_pct: variacionFacturado,
+      variacion_turnos_pct: variacionTurnos,
+      ultimos_6_meses: ultimos6Meses.map((r) => ({
+        mes: r.mes,
+        facturado: parseFloat(r.facturado) || 0,
+        pagos: parseInt(r.pagos, 10),
+      })),
+    };
+  }
+
   async getNpsReport(clinicaId: string, desde?: string, hasta?: string) {
     const qb = this.turnoRepository
       .createQueryBuilder('t')

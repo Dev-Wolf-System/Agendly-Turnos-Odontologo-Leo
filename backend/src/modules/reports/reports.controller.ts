@@ -101,6 +101,20 @@ export class ReportsController {
     return this.reportsService.getNpsReport(clinicaId, desde, hasta);
   }
 
+  @Get('productividad')
+  getProductividadProfesional(
+    @CurrentClinica() clinicaId: string,
+    @Query('desde') desde?: string,
+    @Query('hasta') hasta?: string,
+  ) {
+    return this.reportsService.getProductividadProfesional(clinicaId, desde, hasta);
+  }
+
+  @Get('financiero')
+  getFinanciero(@CurrentClinica() clinicaId: string) {
+    return this.reportsService.getFinanciero(clinicaId);
+  }
+
   @Get('obra-social')
   getObraSocialReport(
     @CurrentClinica() clinicaId: string,

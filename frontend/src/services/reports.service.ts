@@ -81,6 +81,27 @@ export interface ObraSocialReportData {
   total_turnos: number;
 }
 
+export interface ProductividadProfesional {
+  id: string;
+  nombre: string;
+  apellido: string;
+  especialidad: string | null;
+  total: number;
+  completados: number;
+  cancelados: number;
+  pendientes: number;
+  facturado: number;
+  tasa_asistencia: number;
+}
+
+export interface FinancieroData {
+  mes_actual: { facturado: number; turnos_completados: number; pagos: number };
+  mes_anterior: { facturado: number; turnos_completados: number; pagos: number };
+  variacion_facturado_pct: number;
+  variacion_turnos_pct: number;
+  ultimos_6_meses: { mes: string; facturado: number; pagos: number }[];
+}
+
 export interface PacientesReportData {
   total: number;
   nuevos_este_mes: number;
@@ -137,6 +158,12 @@ const reportsService = {
 
   getObraSocial: (params?: { desde?: string; hasta?: string }) =>
     api.get<ObraSocialReportData>("/reports/obra-social", { params }).then((r) => r.data),
+
+  getProductividad: (params?: { desde?: string; hasta?: string }) =>
+    api.get<ProductividadProfesional[]>("/reports/productividad", { params }).then((r) => r.data),
+
+  getFinanciero: () =>
+    api.get<FinancieroData>("/reports/financiero").then((r) => r.data),
 
   generarInformeIa: (params?: { desde?: string; hasta?: string }) =>
     api.get<InformeIaData>("/reports/informe-ia", { params }).then((r) => r.data),
