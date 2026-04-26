@@ -13,10 +13,18 @@ import { Pago } from '../pagos/entities/pago.entity';
 import { Inventario } from '../inventario/entities/inventario.entity';
 import { WebhookService } from '../../common/services/webhook.service';
 import { ClinicaMpModule } from '../clinica-mp/clinica-mp.module';
+import { TratamientosModule } from '../tratamientos/tratamientos.module';
+import { ObrasSocialesModule } from '../obras-sociales/obras-sociales.module';
+import { ListaEsperaModule } from '../lista-espera/lista-espera.module';
+import { PacientesModule } from '../pacientes/pacientes.module';
 
 @Module({
   imports: [
     ClinicaMpModule,
+    TratamientosModule,
+    ObrasSocialesModule,
+    ListaEsperaModule,
+    PacientesModule,
     TypeOrmModule.forFeature([
       Clinica,
       Paciente,

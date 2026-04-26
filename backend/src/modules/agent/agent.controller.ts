@@ -10,6 +10,10 @@ import {
 } from '@nestjs/common';
 import { ApiKeyAuth } from '../../common/decorators';
 import { AgentService } from './agent.service';
+import { TratamientosService } from '../tratamientos/tratamientos.service';
+import { ObrasSocialesService } from '../obras-sociales/obras-sociales.service';
+import { ListaEsperaService } from '../lista-espera/lista-espera.service';
+import { PacientesService } from '../pacientes/pacientes.service';
 import { EstadoTurno } from '../../common/enums';
 
 /**
@@ -20,7 +24,13 @@ import { EstadoTurno } from '../../common/enums';
 @Controller('agent')
 @ApiKeyAuth()
 export class AgentController {
-  constructor(private readonly agentService: AgentService) {}
+  constructor(
+    private readonly agentService: AgentService,
+    private readonly tratamientosService: TratamientosService,
+    private readonly obrasSocialesService: ObrasSocialesService,
+    private readonly listaEsperaService: ListaEsperaService,
+    private readonly pacientesService: PacientesService,
+  ) {}
 
   /* ─── Clínica ─── */
 
@@ -263,6 +273,57 @@ export class AgentController {
   @Get('clinica/:clinicaId/equipo')
   getEquipo(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
     return this.agentService.equipo(clinicaId);
+  }
+
+  /* ─── Catálogos para el agente ─── */
+
+  /**
+   * Tratamientos activos de la clínica con precio y duración.
+   * GET /agent/clinica/:clinicaId/tratamientos
+   */
+  @Get('clinica/:clinicaId/tratamientos')
+  getTratamientos(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
+    return this.tratamientosService.findActive(clinicaId);
+  }
+
+  /**
+   * Obras sociales activas que acepta la clínica.
+   * GET /agent/clinica/:clinicaId/obras-sociales
+   */
+  @Get('clinica/:clinicaId/obras-sociales')
+  getObrasSociales(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
+    return this.obrasSocialesService.findActive(clinicaId);
+  }
+
+  /**
+   * Ficha completa de paciente (turnos, historial, pagos).
+   * GET /agent/pacientes/:pacienteId/ficha?clinicaId=xxx
+   */
+  @Get('pacientes/:pacienteId/ficha')
+  getFichaPaciente(
+    @Param('pacienteId', ParseUUIDPipe) pacienteId: string,
+    @Query('clinicaId', ParseUUIDPipe) clinicaId: string,
+  ) {
+    return this.pacientesService.getFicha(pacienteId, clinicaId);
+  }
+
+  /**
+   * Agregar paciente a lista de espera.
+   * POST /agent/lista-espera
+   */
+  @Post('lista-espera')
+  agregarListaEspera(
+    @Body()
+    body: {
+      clinicaId: string;
+      paciente_id: string;
+      profesional_id?: string;
+      fecha_preferida?: string;
+      notas?: string;
+    },
+  ) {
+    const { clinicaId, ...data } = body;
+    return this.listaEsperaService.create(clinicaId, data);
   }
 
   /* ─── Webhooks ─── */
