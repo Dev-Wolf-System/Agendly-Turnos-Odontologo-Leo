@@ -20,11 +20,11 @@ export class BillingController {
   /** Checkout público para clínicas recién registradas con plan pago (sin JWT) */
   @Public()
   @Post('checkout-registro')
-  createCheckoutRegistro(@Body() body: { clinica_id: string; plan_id: string }) {
-    if (!body?.clinica_id || !body?.plan_id) {
-      throw new BadRequestException('clinica_id y plan_id son requeridos');
+  createCheckoutRegistro(@Body() body: { clinica_id: string; plan_id: string; email: string }) {
+    if (!body?.clinica_id || !body?.plan_id || !body?.email) {
+      throw new BadRequestException('clinica_id, plan_id y email son requeridos');
     }
-    return this.billingService.createCheckoutRegistro(body.clinica_id, body.plan_id);
+    return this.billingService.createCheckoutRegistro(body.clinica_id, body.plan_id, body.email);
   }
 
   @Public()

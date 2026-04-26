@@ -100,7 +100,7 @@ export class BillingService {
   }
 
   /** Checkout público para clínicas recién registradas (sin JWT) — solo estado Pendiente */
-  async createCheckoutRegistro(clinicaId: string, planId: string): Promise<{ checkout_url: string }> {
+  async createCheckoutRegistro(clinicaId: string, planId: string, payerEmail: string): Promise<{ checkout_url: string }> {
     const clinica = await this.clinicaRepo.findOne({ where: { id: clinicaId } });
     if (!clinica) throw new NotFoundException('Clínica no encontrada');
     if (clinica.estado_aprobacion !== 'Pendiente') {
@@ -125,6 +125,7 @@ export class BillingService {
         body: {
           reason: `Suscripción ${plan.nombre} — Avax Health`,
           external_reference: `sub_${sub.id}_plan_${planId}`,
+          payer_email: payerEmail,
           auto_recurring: {
             frequency: 1,
             frequency_type: 'months',

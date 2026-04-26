@@ -200,6 +200,7 @@ function RegisterForm() {
         const { data } = await api.post<{ checkout_url: string }>("/billing/checkout-registro", {
           clinica_id: result.clinica_id,
           plan_id: planIdFromQuery,
+          email: form.email,
         });
         window.location.href = data.checkout_url;
         return;
