@@ -63,6 +63,13 @@ const estadoConfig: Record<string, { label: string; className: string }> = {
   rechazado: { label: "Rechazado", className: "border-red-300 text-red-700 bg-red-50 dark:bg-red-950/30 dark:text-red-400" },
 };
 
+const FILTRO_ESTADO_OS_LABELS: Record<string, string> = {
+  all: "Todos",
+  pendiente: "Pendiente",
+  aprobado: "Aprobado",
+  rechazado: "Rechazado",
+};
+
 export default function ObrasSocialesPage() {
   const [activeTab, setActiveTab] = useState<"catalogo" | "prestaciones">("catalogo");
 
@@ -315,7 +322,9 @@ export default function ObrasSocialesPage() {
                 <span className="text-xs text-muted-foreground">Obra social</span>
                 <Select value={filtroOS} onValueChange={(v) => { setFiltroOS(v ?? "all"); setPagosPage(1); }}>
                   <SelectTrigger className="w-52">
-                    <SelectValue />
+                    <SelectValue>
+                      {filtroOS === "all" ? "Todas las obras sociales" : (obrasSociales.find((os) => os.id === filtroOS)?.nombre ?? filtroOS)}
+                    </SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todas las obras sociales</SelectItem>
@@ -329,7 +338,7 @@ export default function ObrasSocialesPage() {
                 <span className="text-xs text-muted-foreground">Estado</span>
                 <Select value={filtroEstado} onValueChange={(v) => { setFiltroEstado(v ?? "all"); setPagosPage(1); }}>
                   <SelectTrigger className="w-36">
-                    <SelectValue />
+                    <SelectValue>{FILTRO_ESTADO_OS_LABELS[filtroEstado] ?? filtroEstado}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="all">Todos</SelectItem>

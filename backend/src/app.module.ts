@@ -40,6 +40,7 @@ import { ClinicaMpModule } from './modules/clinica-mp/clinica-mp.module';
 import { ReportsModule } from './modules/reports/reports.module';
 import { ObrasSocialesModule } from './modules/obras-sociales/obras-sociales.module';
 import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
+import { MailModule } from './modules/mail/mail.module';
 
 @Module({
   imports: [
@@ -47,6 +48,7 @@ import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
     ScheduleModule.forRoot(),
     TypeOrmModule.forRootAsync(databaseConfig),
     CommonModule,
+    MailModule,
     AuthModule,
     ClinicasModule,
     UsersModule,

@@ -165,6 +165,12 @@ function exportCSV(pagos: Pago[]) {
 
 /* ─── Componente ─── */
 
+const ESTADO_PAGO_LABELS: Record<string, string> = {
+  pendiente: "Pendiente",
+  aprobado: "Aprobado",
+  rechazado: "Rechazado",
+};
+
 export default function PagosPage() {
   return (
     <RoleGuard allowedRoles={["admin", "assistant"]}>
@@ -1110,7 +1116,7 @@ function PagosContent() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>{ESTADO_PAGO_LABELS[form.estado] ?? form.estado}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="pendiente">Pendiente</SelectItem>

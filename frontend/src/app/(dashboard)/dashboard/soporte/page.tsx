@@ -91,6 +91,20 @@ function formatDate(dateStr: string | null | undefined): string {
   });
 }
 
+const TICKET_CATEGORIA_LABELS: Record<string, string> = {
+  tecnico: "Técnico",
+  facturacion: "Facturación",
+  consulta: "Consulta",
+  otro: "Otro",
+};
+
+const TICKET_PRIORIDAD_LABELS: Record<string, string> = {
+  baja: "Baja",
+  media: "Media",
+  alta: "Alta",
+  urgente: "Urgente",
+};
+
 export default function SoportePage() {
   const [tickets, setTickets] = useState<Ticket[]>([]);
   const [loading, setLoading] = useState(true);
@@ -321,11 +335,11 @@ export default function SoportePage() {
                   onValueChange={(v: string | null) => v && setNewTicket({ ...newTicket, categoria: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>{TICKET_CATEGORIA_LABELS[newTicket.categoria] ?? newTicket.categoria}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
-                    <SelectItem value="tecnico">Tecnico</SelectItem>
-                    <SelectItem value="facturacion">Facturacion</SelectItem>
+                    <SelectItem value="tecnico">Técnico</SelectItem>
+                    <SelectItem value="facturacion">Facturación</SelectItem>
                     <SelectItem value="consulta">Consulta</SelectItem>
                     <SelectItem value="otro">Otro</SelectItem>
                   </SelectContent>
@@ -339,7 +353,7 @@ export default function SoportePage() {
                   onValueChange={(v: string | null) => v && setNewTicket({ ...newTicket, prioridad: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>{TICKET_PRIORIDAD_LABELS[newTicket.prioridad] ?? newTicket.prioridad}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="baja">Baja</SelectItem>

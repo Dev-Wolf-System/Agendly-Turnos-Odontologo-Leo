@@ -61,6 +61,21 @@ function formatFecha(d: string | null) {
   return new Date(d).toLocaleDateString("es-AR", { day: "2-digit", month: "2-digit", year: "numeric" });
 }
 
+const FILTRO_ESTADO_LABELS: Record<string, string> = {
+  all: "Todos los estados",
+  activa: "En espera",
+  notificada: "Notificados",
+  convertida: "Convertidos",
+  vencida: "Vencidos",
+};
+
+const ESTADO_ENTRADA_LABELS: Record<string, string> = {
+  activa: "En espera",
+  notificada: "Notificada",
+  convertida: "Convertida (turno asignado)",
+  vencida: "Vencida",
+};
+
 export default function ListaEsperaPage() {
   const [lista, setLista] = useState<ListaEspera[]>([]);
   const [filtroEstado, setFiltroEstado] = useState("activa");
@@ -214,7 +229,7 @@ export default function ListaEsperaPage() {
           <h2 className="text-base font-semibold">Pacientes en espera</h2>
           <Select value={filtroEstado} onValueChange={(v) => setFiltroEstado(v ?? "activa")}>
             <SelectTrigger className="w-44">
-              <SelectValue />
+              <SelectValue>{FILTRO_ESTADO_LABELS[filtroEstado] ?? filtroEstado}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="all">Todos los estados</SelectItem>
@@ -396,7 +411,7 @@ export default function ListaEsperaPage() {
                 <Label>Estado</Label>
                 <Select value={form.estado} onValueChange={(v) => setForm({ ...form, estado: v as EstadoListaEspera })}>
                   <SelectTrigger>
-                    <SelectValue />
+                    <SelectValue>{ESTADO_ENTRADA_LABELS[form.estado] ?? form.estado}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="activa">En espera</SelectItem>

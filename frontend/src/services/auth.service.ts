@@ -73,4 +73,14 @@ export const authService = {
     const { data: { session } } = await supabase.auth.getSession();
     return !!session;
   },
+
+  async forgotPassword(email: string): Promise<void> {
+    await api.post('/auth/forgot-password', { email });
+  },
+
+  async resetPassword(newPassword: string): Promise<void> {
+    const supabase = getSupabaseClient();
+    const { error } = await supabase.auth.updateUser({ password: newPassword });
+    if (error) throw new Error(mapSupabaseError(error.message));
+  },
 };

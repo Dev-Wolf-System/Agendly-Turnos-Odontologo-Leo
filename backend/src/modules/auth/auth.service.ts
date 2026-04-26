@@ -2,6 +2,7 @@ import {
   Injectable,
   UnauthorizedException,
   ConflictException,
+  NotFoundException,
   Logger,
 } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
@@ -17,6 +18,7 @@ import { PlansService } from '../plans/plans.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { SupabaseService } from '../../common/services/supabase.service';
 import { AdminNotificacionesService } from '../admin/admin-notificaciones.service';
+import { MailService } from '../mail/mail.service';
 
 @Injectable()
 export class AuthService {
@@ -32,6 +34,7 @@ export class AuthService {
     private readonly subscriptionsService: SubscriptionsService,
     private readonly supabaseService: SupabaseService,
     private readonly adminNotifService: AdminNotificacionesService,
+    private readonly mailService: MailService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -111,10 +114,33 @@ export class AuthService {
     // Flujo trial: auto-asignar suscripción de prueba (queda inactiva hasta aprobación manual)
     const trialPlan = await this.plansService.findDefaultTrial();
     if (trialPlan) {
-      await this.subscriptionsService.createTrialForClinica(
+      const sub = await this.subscriptionsService.createTrialForClinica(
         savedClinica.id,
         trialPlan.id,
       );
+
+      const appUrl = this.configService.get<string>('FRONTEND_URL') ?? 'https://avaxhealth.com';
+      const formatDate = (d: Date) =>
+        d.toLocaleDateString('es-AR', { day: '2-digit', month: '2-digit', year: 'numeric' });
+      const now = new Date();
+      const fin = sub.fecha_fin ?? new Date(now.getTime() + 14 * 86400000);
+      const diasRestantes = Math.ceil((fin.getTime() - now.getTime()) / 86400000);
+
+      this.mailService
+        .sendBienvenida({
+          nombre: registerDto.nombre,
+          apellido: registerDto.apellido,
+          email: registerDto.email,
+          nombre_clinica: savedClinica.nombre,
+          nombre_plan: trialPlan.nombre,
+          fecha_inicio: formatDate(now),
+          fecha_vencimiento: formatDate(fin),
+          dias_restantes: diasRestantes,
+          app_url: appUrl,
+        })
+        .catch((err) =>
+          this.logger.warn(`No se pudo enviar email bienvenida: ${String(err)}`),
+        );
     }
 
     return {
@@ -124,6 +150,35 @@ export class AuthService {
       clinica: savedClinica,
       requires_payment: false,
     };
+  }
+
+  async forgotPassword(email: string): Promise<void> {
+    const user = await this.userRepository.findOne({ where: { email } });
+    if (!user) {
+      // No revelar si el email existe o no — respuesta silenciosa
+      return;
+    }
+
+    const appUrl = this.configService.get<string>('FRONTEND_URL') ?? 'https://avaxhealth.com';
+    const supabase = this.supabaseService.getClient();
+
+    const { data, error } = await supabase.auth.admin.generateLink({
+      type: 'recovery',
+      email,
+      options: { redirectTo: `${appUrl}/reset-password` },
+    });
+
+    if (error || !data?.properties?.action_link) {
+      this.logger.warn(`No se pudo generar link de reset para ${email}: ${error?.message}`);
+      throw new NotFoundException('No se pudo procesar la solicitud. Verificá que el email sea correcto.');
+    }
+
+    await this.mailService.sendResetPassword({
+      nombre: user.nombre,
+      email,
+      reset_url: data.properties.action_link,
+      app_url: appUrl,
+    });
   }
 
   /** Fallback de login para admin/internal (no se expone en producción normal) */

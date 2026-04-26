@@ -98,6 +98,14 @@ function toLocalDatetimeFromDate(d: Date) {
   return local.toISOString().slice(0, 16);
 }
 
+const ESTADO_TURNO_LABELS: Record<string, string> = {
+  pendiente: "Pendiente",
+  confirmado: "Confirmado",
+  completado: "Completado",
+  cancelado: "Cancelado",
+  perdido: "Perdido",
+};
+
 export default function TurnosPage() {
   const { user } = useAuth();
   const isProfessional = user?.role === "professional";
@@ -1128,7 +1136,7 @@ export default function TurnosPage() {
             }
           >
             <SelectTrigger>
-              <SelectValue />
+              <SelectValue>{ESTADO_TURNO_LABELS[newEstado] ?? newEstado}</SelectValue>
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="pendiente">Pendiente</SelectItem>
