@@ -65,7 +65,7 @@ export default function DashboardPage() {
 
   // Mostrar onboarding si la clinica no lo completó
   useEffect(() => {
-    if (clinica && isAdmin && clinica.onboarding_completado === false) {
+    if (clinica && isAdmin && !clinica.onboarding_completado) {
       setShowOnboarding(true);
     }
   }, [clinica, isAdmin]);
