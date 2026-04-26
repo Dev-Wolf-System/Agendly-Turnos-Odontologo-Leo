@@ -1637,7 +1637,7 @@ function TabEquipo({
                     setForm({ ...form, especialidad: "" });
                   } else {
                     setEspecialidadLibre(false);
-                    setForm({ ...form, especialidad: v });
+                    setForm({ ...form, especialidad: v ?? "" });
                   }
                 }}
               >
