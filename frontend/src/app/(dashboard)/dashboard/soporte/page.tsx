@@ -335,7 +335,7 @@ export default function SoportePage() {
                   onValueChange={(v: string | null) => v && setNewTicket({ ...newTicket, categoria: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue>{TICKET_CATEGORIA_LABELS[newTicket.categoria] ?? newTicket.categoria}</SelectValue>
+                    <SelectValue>{TICKET_CATEGORIA_LABELS[newTicket.categoria ?? ""] ?? newTicket.categoria}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tecnico">Técnico</SelectItem>
@@ -353,7 +353,7 @@ export default function SoportePage() {
                   onValueChange={(v: string | null) => v && setNewTicket({ ...newTicket, prioridad: v })}
                 >
                   <SelectTrigger>
-                    <SelectValue>{TICKET_PRIORIDAD_LABELS[newTicket.prioridad] ?? newTicket.prioridad}</SelectValue>
+                    <SelectValue>{TICKET_PRIORIDAD_LABELS[newTicket.prioridad ?? ""] ?? newTicket.prioridad}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="baja">Baja</SelectItem>

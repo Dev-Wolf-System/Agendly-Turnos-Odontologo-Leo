@@ -986,7 +986,7 @@ function SuscripcionContent() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue>{TICKET_CATEGORIA_LABELS[newTicket.categoria] ?? newTicket.categoria}</SelectValue>
+                    <SelectValue>{TICKET_CATEGORIA_LABELS[newTicket.categoria ?? ""] ?? newTicket.categoria}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="tecnico">Técnico</SelectItem>
@@ -1006,7 +1006,7 @@ function SuscripcionContent() {
                   }
                 >
                   <SelectTrigger>
-                    <SelectValue>{TICKET_PRIORIDAD_LABELS[newTicket.prioridad] ?? newTicket.prioridad}</SelectValue>
+                    <SelectValue>{TICKET_PRIORIDAD_LABELS[newTicket.prioridad ?? ""] ?? newTicket.prioridad}</SelectValue>
                   </SelectTrigger>
                   <SelectContent>
                     <SelectItem value="baja">Baja</SelectItem>
