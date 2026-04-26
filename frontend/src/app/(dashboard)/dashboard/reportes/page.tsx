@@ -118,8 +118,8 @@ export default function ReportesPage() {
         reportsService.getInsights({ desde, hasta }),
         reportsService.getNps({ desde, hasta }),
         reportsService.getObraSocial({ desde, hasta }),
-        reportsService.getProductividad({ desde, hasta }),
-        reportsService.getFinanciero(),
+        reportsService.getProductividad({ desde, hasta }).catch(() => [] as ProductividadProfesional[]),
+        reportsService.getFinanciero().catch(() => null),
       ]);
       setTurnosData(turnos);
       setPacientesData(pacientes);

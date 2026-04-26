@@ -992,7 +992,8 @@ FACTURACIÓN:
     clinicaId: string,
     desde?: string,
     hasta?: string,
-  ) {
+  ): Promise<object[]> {
+    try {
     const desdeDate = desde ? new Date(desde) : new Date(new Date().getFullYear(), new Date().getMonth(), 1);
     const hastaDate = hasta ? new Date(hasta) : new Date(new Date().getFullYear(), new Date().getMonth() + 1, 0, 23, 59, 59, 999);
     desdeDate.setHours(0, 0, 0, 0);
@@ -1051,9 +1052,13 @@ FACTURACIÓN:
       const tasa_asistencia = total > 0 ? Math.round((completados / total) * 100) : 0;
       return { id: r.user_id, nombre: r.nombre, apellido: r.apellido, especialidad: r.especialidad || null, total, completados, cancelados, pendientes, facturado, tasa_asistencia };
     });
+    } catch {
+      return [];
+    }
   }
 
   async getFinanciero(clinicaId: string) {
+    try {
     const now = new Date();
     const mesActualDesde = new Date(now.getFullYear(), now.getMonth(), 1, 0, 0, 0, 0);
     const mesActualHasta = new Date(now.getFullYear(), now.getMonth() + 1, 0, 23, 59, 59, 999);
@@ -1118,6 +1123,15 @@ FACTURACIÓN:
         pagos: parseInt(r.pagos, 10),
       })),
     };
+    } catch {
+      return {
+        mes_actual: { facturado: 0, turnos_completados: 0, pagos: 0 },
+        mes_anterior: { facturado: 0, turnos_completados: 0, pagos: 0 },
+        variacion_facturado_pct: 0,
+        variacion_turnos_pct: 0,
+        ultimos_6_meses: [],
+      };
+    }
   }
 
   async getNpsReport(clinicaId: string, desde?: string, hasta?: string) {
