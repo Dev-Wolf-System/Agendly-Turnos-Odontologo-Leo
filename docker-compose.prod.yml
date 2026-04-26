@@ -25,6 +25,8 @@ services:
       - MP_WEBHOOK_SECRET=${MP_WEBHOOK_SECRET}
       - BACKEND_URL=https://api.${DOMAIN_NAME}/api
       - OPENAI_API_KEY=${OPENAI_API_KEY}
+      - RESEND_API_KEY=${RESEND_API_KEY}
+      - MAIL_FROM=${MAIL_FROM}
     labels:
       - traefik.enable=true
       - traefik.docker.network=n8n_evoapi
