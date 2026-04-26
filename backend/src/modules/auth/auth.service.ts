@@ -189,16 +189,20 @@ export class AuthService {
       error = retry.error;
     }
 
-    if (error || !data?.properties?.action_link) {
+    if (error || !data?.properties?.hashed_token) {
       this.logger.warn(`[forgotPassword] generateLink falló: ${JSON.stringify(error)}`);
       throw new NotFoundException('No se pudo procesar la solicitud. Verificá que el email sea correcto.');
     }
     this.logger.log(`[forgotPassword] link generado OK, llamando mailService...`);
 
+    // Construimos la URL directamente en nuestro frontend con el hashed_token
+    // para no exponer la URL interna de Supabase en el email
+    const reset_url = `${appUrl}/reset-password?token_hash=${data.properties.hashed_token}&type=recovery`;
+
     await this.mailService.sendResetPassword({
       nombre: user.nombre,
       email,
-      reset_url: data.properties.action_link,
+      reset_url,
       app_url: appUrl,
     });
     this.logger.log(`[forgotPassword] sendResetPassword completado para: ${email}`);

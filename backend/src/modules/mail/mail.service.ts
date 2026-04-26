@@ -118,7 +118,10 @@ export class MailService {
             <td style="background:linear-gradient(135deg,#0EA5E9 0%,#0369A1 100%);padding:36px 40px 28px;">
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
-                  <td style="padding-left:0;vertical-align:middle;">
+                  <td style="vertical-align:middle;">
+                    <img src="${app_url}/logo.png" alt="Avax Health" width="44" height="44" style="display:block;border-radius:12px;box-shadow:0 4px 12px rgba(0,0,0,0.25);" />
+                  </td>
+                  <td style="padding-left:14px;vertical-align:middle;">
                     <p style="margin:0;font-size:11px;letter-spacing:0.12em;text-transform:uppercase;color:rgba(255,255,255,0.65);font-weight:500;">Avax Health</p>
                     <p style="margin:4px 0 0;font-size:22px;font-weight:700;color:#ffffff;line-height:1.2;">Bienvenido al sistema 👋</p>
                   </td>
@@ -347,6 +350,9 @@ export class MailService {
               <table role="presentation" cellpadding="0" cellspacing="0">
                 <tr>
                   <td style="vertical-align:middle;">
+                    <img src="${app_url}/logo.png" alt="Avax Health" width="40" height="40" style="display:block;border-radius:10px;box-shadow:0 4px 12px rgba(0,0,0,0.3);" />
+                  </td>
+                  <td style="padding-left:14px;vertical-align:middle;">
                     <p style="margin:0;font-size:11px;letter-spacing:0.13em;text-transform:uppercase;color:rgba(255,255,255,0.45);font-weight:500;">Avax Health</p>
                     <p style="margin:3px 0 0;font-size:18px;font-weight:700;color:#ffffff;line-height:1.2;">Seguridad de cuenta</p>
                   </td>

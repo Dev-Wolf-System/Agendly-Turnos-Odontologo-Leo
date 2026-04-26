@@ -19,27 +19,25 @@ export default function ResetPasswordPage() {
   const [error, setError] = useState("");
 
   useEffect(() => {
-    // Supabase detecta automáticamente el token del hash de la URL (detectSessionInUrl: true)
-    // Escuchamos el evento PASSWORD_RECOVERY para confirmar que el link es válido
+    const params = new URLSearchParams(window.location.search);
+    const token_hash = params.get("token_hash");
+    const type = params.get("type");
+
+    if (!token_hash || type !== "recovery") {
+      setPageState("invalid");
+      return;
+    }
+
     const supabase = getSupabaseClient();
-    const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-      if (event === "PASSWORD_RECOVERY" && session) {
-        setPageState("form");
-      } else if (event === "SIGNED_IN" && session) {
-        // Fallback: si ya hay sesión activa por el link
-        setPageState("form");
-      }
-    });
-
-    // Timeout: si en 5 segundos no hay respuesta de Supabase, el link es inválido
-    const timeout = setTimeout(() => {
-      setPageState((s) => s === "loading" ? "invalid" : s);
-    }, 5000);
-
-    return () => {
-      subscription.unsubscribe();
-      clearTimeout(timeout);
-    };
+    supabase.auth
+      .verifyOtp({ token_hash, type: "recovery" })
+      .then(({ error }) => {
+        if (error) {
+          setPageState("invalid");
+        } else {
+          setPageState("form");
+        }
+      });
   }, []);
 
   const handleSubmit = async (e: React.FormEvent) => {
