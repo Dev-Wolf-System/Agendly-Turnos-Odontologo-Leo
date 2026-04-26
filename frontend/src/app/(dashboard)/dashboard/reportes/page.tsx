@@ -1004,10 +1004,10 @@ export default function ReportesPage() {
                     </defs>
                     <CartesianGrid strokeDasharray="3 3" stroke="var(--border)" />
                     <XAxis dataKey="mes" tick={{ fontSize: 12 }} />
-                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v: number) => `$${(v / 1000).toFixed(0)}k`} />
+                    <YAxis tick={{ fontSize: 12 }} tickFormatter={(v) => `$${(Number(v) / 1000).toFixed(0)}k`} />
                     <Tooltip
                       contentStyle={{ borderRadius: "8px", border: "1px solid var(--border)", fontSize: 12 }}
-                      formatter={(v: number) => [`$${v.toLocaleString("es-AR", { minimumFractionDigits: 0 })}`, "Facturado"]}
+                      formatter={(v) => [`$${Number(v).toLocaleString("es-AR", { minimumFractionDigits: 0 })}`, "Facturado"]}
                     />
                     <Area type="monotone" dataKey="facturado" stroke="var(--ht-accent-dark)" fill="url(#gradFinanciero)" strokeWidth={2} dot={{ r: 3 }} />
                   </AreaChart>
