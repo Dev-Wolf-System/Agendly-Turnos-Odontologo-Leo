@@ -18,6 +18,7 @@ import { Pago } from '../pagos/entities/pago.entity';
 import { Turno } from '../turnos/entities/turno.entity';
 import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
 import { Clinica } from '../clinicas/entities/clinica.entity';
+import { User } from '../users/entities/user.entity';
 import { EstadoSubscription, EstadoPago, TipoNotificacion } from '../../common/enums';
 
 @Injectable()
@@ -39,6 +40,8 @@ export class BillingService {
     private readonly tratamientoRepo: Repository<Tratamiento>,
     @InjectRepository(Clinica)
     private readonly clinicaRepo: Repository<Clinica>,
+    @InjectRepository(User)
+    private readonly userRepo: Repository<User>,
   ) {
     this.mp = new MercadoPagoConfig({
       accessToken: this.config.getOrThrow<string>('MP_ACCESS_TOKEN'),
@@ -116,31 +119,52 @@ export class BillingService {
     const sub = await this.subscriptionsService.findByClinica(clinicaId);
     if (!sub) throw new BadRequestException('No se encontró suscripción para esta clínica');
 
+    // Obtener email del admin de la clínica para MP
+    const adminUser = await this.userRepo.findOne({
+      where: { clinica_id: clinicaId },
+      order: { created_at: 'ASC' },
+      select: ['email'],
+    });
+
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
 
     const preapproval = new PreApproval(this.mp);
-    const result = await preapproval.create({
-      body: {
-        reason: `Suscripción ${plan.nombre} — Avax Health`,
-        external_reference: `sub_${sub.id}_plan_${planId}`,
-        auto_recurring: {
-          frequency: 1,
-          frequency_type: 'months',
-          transaction_amount: precio,
-          currency_id: 'ARS',
+    let result;
+    try {
+      result = await preapproval.create({
+        body: {
+          reason: `Suscripción ${plan.nombre} — Avax Health`,
+          external_reference: `sub_${sub.id}_plan_${planId}`,
+          payer_email: adminUser?.email,
+          auto_recurring: {
+            frequency: 1,
+            frequency_type: 'months',
+            transaction_amount: precio,
+            currency_id: 'ARS',
+          },
+          back_url: `${frontendUrl}/bienvenida?status=success`,
         },
-        back_url: `${frontendUrl}/bienvenida?status=success`,
-      },
-    });
-
-    if (result.id) {
-      await this.subscriptionsService.update(sub.id, {
-        preapproval_id: result.id,
-        auto_renew: true,
       });
+    } catch (err: any) {
+      this.logger.error('Error creando PreApproval en MP', err?.cause ?? err);
+      throw new BadRequestException(
+        'No se pudo iniciar el checkout con Mercado Pago. Verificá las credenciales MP.',
+      );
     }
 
-    return { checkout_url: result.init_point ?? '' };
+    if (!result.init_point) {
+      throw new BadRequestException('Mercado Pago no devolvió una URL de pago válida.');
+    }
+
+    // Guardar preapproval_id de forma no bloqueante — la columna puede no existir aún
+    if (result.id) {
+      this.subscriptionsService.update(sub.id, {
+        preapproval_id: result.id,
+        auto_renew: true,
+      }).catch((err) => this.logger.warn(`No se pudo guardar preapproval_id: ${err?.message}`));
+    }
+
+    return { checkout_url: result.init_point };
   }
 
   async getLinkPagoPago(
