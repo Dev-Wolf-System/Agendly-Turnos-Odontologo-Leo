@@ -242,20 +242,52 @@ export class BillingService {
       }
     }
 
-    // ── Preapproval autorizado (primera vez que el usuario acepta el débito automático) ──
+    // ── Preapproval autorizado (el usuario aceptó el débito automático en MP) ──
     if (body.type === 'subscription_preapproval') {
       const preapprovalId = body?.data?.id;
       if (preapprovalId) {
         try {
           const preapproval = new PreApproval(this.mp);
           const pa = await preapproval.get({ id: String(preapprovalId) });
-          if (pa.external_reference) {
-            const subMatch = pa.external_reference.match(/^sub_([^_]+(?:_[^_]+)*?)_plan_/);
-            if (subMatch) {
-              const subId = subMatch[1];
-              await this.subscriptionsService.update(subId, { preapproval_id: String(preapprovalId) });
-              this.logger.log(`PreApproval ${preapprovalId} vinculado a sub ${subId}`);
+
+          const extRef = pa.external_reference ?? '';
+          const subMatch = extRef.match(/^sub_([^_]+(?:_[^_]+)*?)_plan_(.+)$/);
+          if (!subMatch) {
+            this.logger.warn(`subscription_preapproval: external_reference inválido: ${extRef}`);
+            return;
+          }
+
+          const [, subId, planId] = subMatch;
+
+          // Siempre persistir el preapproval_id
+          await this.subscriptionsService.update(subId, { preapproval_id: String(preapprovalId) });
+
+          // Activar suscripción y auto-aprobar clínica cuando MP confirma autorización
+          if (pa.status === 'authorized') {
+            const now = new Date();
+            const fechaFin = new Date(now);
+            fechaFin.setMonth(fechaFin.getMonth() + 1);
+
+            await this.subscriptionsService.update(subId, {
+              estado: EstadoSubscription.ACTIVA,
+              plan_id: planId,
+              fecha_inicio: now,
+              fecha_fin: fechaFin,
+              trial_ends_at: null as any,
+              auto_renew: true,
+            });
+
+            const sub = await this.subscriptionsService.findOne(subId);
+            const clinicaId = (sub as any).clinica_id;
+            if (clinicaId) {
+              const clinica = await this.clinicaRepo.findOne({ where: { id: clinicaId } });
+              if (clinica?.estado_aprobacion === 'Pendiente') {
+                await this.clinicaRepo.update(clinicaId, { estado_aprobacion: 'Aprobado' });
+                this.logger.log(`Clínica ${clinicaId} auto-aprobada — preapproval ${preapprovalId} autorizado`);
+              }
             }
+
+            this.logger.log(`Sub ${subId} activada — preapproval ${preapprovalId} authorized`);
           }
         } catch (err) {
           this.logger.warn(`Error procesando subscription_preapproval: ${err}`);
