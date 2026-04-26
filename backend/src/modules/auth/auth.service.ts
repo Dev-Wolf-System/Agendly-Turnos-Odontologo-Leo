@@ -165,11 +165,29 @@ export class AuthService {
     const appUrl = this.configService.get<string>('FRONTEND_URL') ?? 'https://avaxhealth.com';
     const supabase = this.supabaseService.getClient();
 
-    const { data, error } = await supabase.auth.admin.generateLink({
+    let { data, error } = await supabase.auth.admin.generateLink({
       type: 'recovery',
       email,
       options: { redirectTo: `${appUrl}/reset-password` },
     });
+
+    // Usuario no existe en Supabase Auth — migrarlo y reintentar
+    if (error?.code === 'user_not_found') {
+      this.logger.log(`[forgotPassword] usuario no está en Supabase Auth, migrando: ${email}`);
+      const migration = await this.migrateUserToSupabase(user.id);
+      if (migration.error) {
+        this.logger.warn(`[forgotPassword] migración falló: ${migration.error}`);
+        throw new NotFoundException('No se pudo procesar la solicitud.');
+      }
+      // Reintentar generateLink tras la migración
+      const retry = await supabase.auth.admin.generateLink({
+        type: 'recovery',
+        email,
+        options: { redirectTo: `${appUrl}/reset-password` },
+      });
+      data = retry.data;
+      error = retry.error;
+    }
 
     if (error || !data?.properties?.action_link) {
       this.logger.warn(`[forgotPassword] generateLink falló: ${JSON.stringify(error)}`);
