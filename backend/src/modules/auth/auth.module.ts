@@ -8,6 +8,7 @@ import { User } from '../users/entities/user.entity';
 import { Clinica } from '../clinicas/entities/clinica.entity';
 import { PlansModule } from '../plans/plans.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
+import { AdminNotificacionesModule } from '../admin/admin-notificaciones.module';
 
 @Module({
   imports: [
@@ -15,6 +16,7 @@ import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
     TypeOrmModule.forFeature([User, Clinica]),
     PlansModule,
     SubscriptionsModule,
+    AdminNotificacionesModule,
   ],
   controllers: [AuthController],
   providers: [AuthService, JwtStrategy],

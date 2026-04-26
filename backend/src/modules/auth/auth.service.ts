@@ -12,10 +12,11 @@ import { User } from '../users/entities/user.entity';
 import { Clinica } from '../clinicas/entities/clinica.entity';
 import { LoginDto } from './dto/login.dto';
 import { RegisterDto } from './dto/register.dto';
-import { UserRole, EstadoSubscription } from '../../common/enums';
+import { UserRole, EstadoSubscription, TipoAdminNotificacion } from '../../common/enums';
 import { PlansService } from '../plans/plans.service';
 import { SubscriptionsService } from '../subscriptions/subscriptions.service';
 import { SupabaseService } from '../../common/services/supabase.service';
+import { AdminNotificacionesService } from '../admin/admin-notificaciones.service';
 
 @Injectable()
 export class AuthService {
@@ -30,6 +31,7 @@ export class AuthService {
     private readonly plansService: PlansService,
     private readonly subscriptionsService: SubscriptionsService,
     private readonly supabaseService: SupabaseService,
+    private readonly adminNotifService: AdminNotificacionesService,
   ) {}
 
   async register(registerDto: RegisterDto) {
@@ -52,6 +54,23 @@ export class AuthService {
       estado_aprobacion: 'Pendiente',
     });
     const savedClinica = await this.clinicaRepository.save(clinica);
+
+    // Notificar al admin de la nueva clínica (no bloquea el registro)
+    this.adminNotifService
+      .crear(
+        TipoAdminNotificacion.CLINICA_NUEVA,
+        'Nueva clínica registrada',
+        `${savedClinica.nombre} (${registerDto.email}) solicita acceso a Avax Health.`,
+        {
+          clinica_id: savedClinica.id,
+          nombre: savedClinica.nombre,
+          especialidad: savedClinica.especialidad ?? null,
+          email: registerDto.email,
+        },
+      )
+      .catch((err) =>
+        this.logger.warn(`No se pudo crear notif admin para nueva clínica: ${String(err)}`),
+      );
 
     const hashedPassword = await bcrypt.hash(registerDto.password, 10);
 
