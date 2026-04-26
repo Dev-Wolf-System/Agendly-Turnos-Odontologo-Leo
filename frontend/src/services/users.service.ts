@@ -7,6 +7,7 @@ export interface User {
   apellido: string;
   email: string;
   role: "admin" | "professional" | "assistant";
+  especialidad?: string | null;
   created_at: string;
 }
 
@@ -16,6 +17,7 @@ export interface CreateUserPayload {
   email: string;
   password: string;
   role: string;
+  especialidad?: string | null;
 }
 
 export interface UpdateUserPayload {
@@ -24,6 +26,7 @@ export interface UpdateUserPayload {
   email?: string;
   password?: string;
   role?: string;
+  especialidad?: string | null;
 }
 
 const usersService = {
