@@ -14,6 +14,7 @@ import { Turno } from '../turnos/entities/turno.entity';
 import { PlansModule } from '../plans/plans.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { BillingModule } from '../billing/billing.module';
+import { AdminNotificacionesModule } from './admin-notificaciones.module';
 
 @Module({
   imports: [
@@ -21,6 +22,7 @@ import { BillingModule } from '../billing/billing.module';
     PlansModule,
     SubscriptionsModule,
     BillingModule,
+    AdminNotificacionesModule,
   ],
   controllers: [
     AdminClinicasController,
