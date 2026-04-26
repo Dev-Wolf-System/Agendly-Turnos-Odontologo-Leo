@@ -24,6 +24,9 @@ export class User extends TenantBaseEntity {
   @Column({ type: 'text' })
   role: UserRole;
 
+  @Column({ type: 'text', nullable: true })
+  especialidad: string | null;
+
   @ManyToOne(() => Clinica, (clinica) => clinica.users)
   @JoinColumn({ name: 'clinica_id' })
   clinica: Clinica;

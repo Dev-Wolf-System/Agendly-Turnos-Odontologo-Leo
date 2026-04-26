@@ -20,14 +20,14 @@ export class UsersService {
   async findAll(clinicaId: string): Promise<User[]> {
     return this.userRepository.find({
       where: { clinica_id: clinicaId },
-      select: ['id', 'clinica_id', 'nombre', 'apellido', 'email', 'role', 'created_at'],
+      select: ['id', 'clinica_id', 'nombre', 'apellido', 'email', 'role', 'especialidad', 'created_at'],
     });
   }
 
   async findOne(id: string, clinicaId: string): Promise<User> {
     const user = await this.userRepository.findOne({
       where: { id, clinica_id: clinicaId },
-      select: ['id', 'clinica_id', 'nombre', 'apellido', 'email', 'role', 'created_at'],
+      select: ['id', 'clinica_id', 'nombre', 'apellido', 'email', 'role', 'especialidad', 'created_at'],
     });
     if (!user) {
       throw new NotFoundException('Usuario no encontrado');

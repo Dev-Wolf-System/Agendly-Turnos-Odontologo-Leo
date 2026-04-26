@@ -77,6 +77,7 @@ interface User {
   apellido: string;
   email: string;
   role: string;
+  especialidad?: string | null;
   created_at: string;
 }
 
@@ -1346,11 +1347,12 @@ function TabEquipo({
     email: "",
     password: "",
     role: "professional",
+    especialidad: "",
   });
 
   const openCreate = () => {
     setEditing(null);
-    setForm({ nombre: "", apellido: "", email: "", password: "", role: "professional" });
+    setForm({ nombre: "", apellido: "", email: "", password: "", role: "professional", especialidad: "" });
     setDialogOpen(true);
   };
 
@@ -1362,6 +1364,7 @@ function TabEquipo({
       email: u.email,
       password: "",
       role: u.role,
+      especialidad: u.especialidad ?? "",
     });
     setDialogOpen(true);
   };
@@ -1376,6 +1379,7 @@ function TabEquipo({
           apellido: form.apellido,
           email: form.email,
           role: form.role,
+          especialidad: form.especialidad,
         };
         if (form.password) payload.password = form.password;
         await usersService.update(editing.id, payload);
@@ -1387,6 +1391,7 @@ function TabEquipo({
           email: form.email,
           password: form.password,
           role: form.role,
+          especialidad: form.especialidad,
         });
         toast.success("Usuario creado");
       }
@@ -1480,7 +1485,10 @@ function TabEquipo({
                         {ROLE_LABELS[u.role] || u.role}
                       </Badge>
                     </div>
-                    <p className="text-xs text-muted-foreground">{u.email}</p>
+                    <p className="text-xs text-muted-foreground">
+                      {u.especialidad && <span className="text-[var(--ht-primary)] font-medium">{u.especialidad} · </span>}
+                      {u.email}
+                    </p>
                   </div>
                   <div className="flex items-center gap-1 opacity-0 group-hover:opacity-100 transition-opacity shrink-0">
                     <Button
@@ -1556,6 +1564,14 @@ function TabEquipo({
                 required={!editing}
                 minLength={6}
                 placeholder="Mínimo 6 caracteres"
+              />
+            </div>
+            <div className="space-y-2">
+              <Label>Especialidad</Label>
+              <Input
+                value={form.especialidad}
+                onChange={(e) => setForm({ ...form, especialidad: e.target.value })}
+                placeholder="Ej: Cardiología, Ortodoncia, Clínica General"
               />
             </div>
             <div className="space-y-2">

@@ -933,7 +933,7 @@ export class AgentService {
   async equipo(clinicaId: string) {
     const miembros = await this.userRepo.find({
       where: { clinica_id: clinicaId },
-      select: ['id', 'nombre', 'apellido', 'email', 'role'],
+      select: ['id', 'nombre', 'apellido', 'email', 'role', 'especialidad'],
       order: { role: 'ASC', apellido: 'ASC' },
     });
 
@@ -944,6 +944,7 @@ export class AgentService {
         nombre: `${u.nombre} ${u.apellido}`,
         email: u.email,
         role: u.role,
+        especialidad: u.especialidad ?? null,
       })),
     };
   }
