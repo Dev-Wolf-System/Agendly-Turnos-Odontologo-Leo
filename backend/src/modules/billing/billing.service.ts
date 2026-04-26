@@ -18,7 +18,6 @@ import { Pago } from '../pagos/entities/pago.entity';
 import { Turno } from '../turnos/entities/turno.entity';
 import { Tratamiento } from '../tratamientos/entities/tratamiento.entity';
 import { Clinica } from '../clinicas/entities/clinica.entity';
-import { User } from '../users/entities/user.entity';
 import { EstadoSubscription, EstadoPago, TipoNotificacion } from '../../common/enums';
 
 @Injectable()
@@ -40,8 +39,6 @@ export class BillingService {
     private readonly tratamientoRepo: Repository<Tratamiento>,
     @InjectRepository(Clinica)
     private readonly clinicaRepo: Repository<Clinica>,
-    @InjectRepository(User)
-    private readonly userRepo: Repository<User>,
   ) {
     this.mp = new MercadoPagoConfig({
       accessToken: this.config.getOrThrow<string>('MP_ACCESS_TOKEN'),
@@ -119,13 +116,6 @@ export class BillingService {
     const sub = await this.subscriptionsService.findByClinica(clinicaId);
     if (!sub) throw new BadRequestException('No se encontró suscripción para esta clínica');
 
-    // Obtener email del admin de la clínica para MP
-    const adminUser = await this.userRepo.findOne({
-      where: { clinica_id: clinicaId },
-      order: { created_at: 'ASC' },
-      select: ['email'],
-    });
-
     const frontendUrl = this.config.get<string>('FRONTEND_URL', 'http://localhost:3000');
 
     const preapproval = new PreApproval(this.mp);
@@ -135,7 +125,6 @@ export class BillingService {
         body: {
           reason: `Suscripción ${plan.nombre} — Avax Health`,
           external_reference: `sub_${sub.id}_plan_${planId}`,
-          payer_email: adminUser?.email,
           auto_recurring: {
             frequency: 1,
             frequency_type: 'months',
