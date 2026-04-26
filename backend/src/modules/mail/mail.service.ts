@@ -44,29 +44,27 @@ export class MailService {
 
   async sendBienvenida(data: BienvenidaData): Promise<void> {
     if (!this.resend) return;
-    try {
-      await this.resend.emails.send({
-        from: this.from,
-        to: data.email,
-        subject: `¡Bienvenido a Avax Health, ${data.nombre_clinica}!`,
-        html: this.templateBienvenida(data),
-      });
-    } catch (err) {
-      this.logger.warn(`Error enviando bienvenida a ${data.email}: ${String(err)}`);
+    const { error } = await this.resend.emails.send({
+      from: this.from,
+      to: data.email,
+      subject: `¡Bienvenido a Avax Health, ${data.nombre_clinica}!`,
+      html: this.templateBienvenida(data),
+    });
+    if (error) {
+      this.logger.warn(`Error enviando bienvenida a ${data.email}: ${JSON.stringify(error)}`);
     }
   }
 
   async sendResetPassword(data: ResetPasswordData): Promise<void> {
     if (!this.resend) return;
-    try {
-      await this.resend.emails.send({
-        from: this.from,
-        to: data.email,
-        subject: 'Restablecer contraseña — Avax Health',
-        html: this.templateResetPassword(data),
-      });
-    } catch (err) {
-      this.logger.warn(`Error enviando reset password a ${data.email}: ${String(err)}`);
+    const { error } = await this.resend.emails.send({
+      from: this.from,
+      to: data.email,
+      subject: 'Restablecer contraseña — Avax Health',
+      html: this.templateResetPassword(data),
+    });
+    if (error) {
+      this.logger.warn(`Error enviando reset password a ${data.email}: ${JSON.stringify(error)}`);
     }
   }
 
