@@ -136,9 +136,10 @@ export class BillingService {
         },
       });
     } catch (err: any) {
-      this.logger.error('Error creando PreApproval en MP', err?.cause ?? err);
+      const mpError = err?.cause ?? err;
+      this.logger.error(`Error creando PreApproval en MP: ${JSON.stringify(mpError)}`);
       throw new BadRequestException(
-        'No se pudo iniciar el checkout con Mercado Pago. Verificá las credenciales MP.',
+        `MP error: ${mpError?.message ?? JSON.stringify(mpError)}`,
       );
     }
 
