@@ -63,6 +63,13 @@ import {
 type Rango = "este_mes" | "mes_anterior" | "3_meses" | "6_meses";
 type TabKey = "resumen" | "turnos" | "pacientes" | "finanzas" | "equipo" | "nps";
 
+const RANGO_LABELS: Record<Rango, string> = {
+  este_mes:     "Este mes",
+  mes_anterior: "Mes anterior",
+  "3_meses":    "Últimos 3 meses",
+  "6_meses":    "Últimos 6 meses",
+};
+
 function getRango(rango: Rango): { desde: string; hasta: string } {
   const hoy = new Date();
   const pad = (n: number) => String(n).padStart(2, "0");
@@ -203,7 +210,7 @@ export default function ReportesPage() {
           <div className="flex items-center gap-2">
             <Select value={rango} onValueChange={(v) => setRango(v as Rango)}>
               <SelectTrigger className="w-[180px] rounded-xl">
-                <SelectValue />
+                <SelectValue>{RANGO_LABELS[rango]}</SelectValue>
               </SelectTrigger>
               <SelectContent>
                 <SelectItem value="este_mes">Este mes</SelectItem>
