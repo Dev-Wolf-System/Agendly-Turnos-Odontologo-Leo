@@ -25,6 +25,23 @@ import { ClinicaMpService } from '../clinica-mp/clinica-mp.service';
 export class AgentService {
   private readonly logger = new Logger(AgentService.name);
 
+  // Cache en memoria para lookups frecuentes del agente IA
+  private cache = new Map<string, { value: unknown; expires: number }>();
+
+  private async cached<T>(key: string, ttlSeconds: number, fn: () => Promise<T>): Promise<T> {
+    const hit = this.cache.get(key);
+    if (hit && hit.expires > Date.now()) return hit.value as T;
+    const value = await fn();
+    this.cache.set(key, { value, expires: Date.now() + ttlSeconds * 1000 });
+    return value;
+  }
+
+  /** Invalida cache de una clínica (llamar cuando se edita info de la clínica) */
+  invalidateClinicaCache(clinicaId: string, instanceName?: string): void {
+    this.cache.delete(`clinica:info:${clinicaId}`);
+    if (instanceName) this.cache.delete(`clinica:inst:${instanceName}`);
+  }
+
   constructor(
     @InjectRepository(Clinica)
     private readonly clinicaRepo: Repository<Clinica>,
@@ -53,6 +70,12 @@ export class AgentService {
    * 1. Buscar clínica por instancia de Evolution
    * ───────────────────────────────────────────── */
   async findClinicaByInstance(instanceName: string) {
+    return this.cached(`clinica:inst:${instanceName}`, 3600, () =>
+      this.findClinicaByInstanceUncached(instanceName),
+    );
+  }
+
+  private async findClinicaByInstanceUncached(instanceName: string) {
     const clinica = await this.clinicaRepo.findOne({
       where: { evolution_instance: instanceName, is_active: true },
     });
@@ -95,6 +118,12 @@ export class AgentService {
    * 2. Info pública de clínica (para el agente)
    * ───────────────────────────────────────────── */
   async getClinicaInfo(clinicaId: string) {
+    return this.cached(`clinica:info:${clinicaId}`, 300, () =>
+      this.getClinicaInfoUncached(clinicaId),
+    );
+  }
+
+  private async getClinicaInfoUncached(clinicaId: string) {
     const clinica = await this.clinicaRepo.findOne({
       where: { id: clinicaId },
     });
