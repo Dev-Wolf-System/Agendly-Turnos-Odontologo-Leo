@@ -66,9 +66,11 @@ import {
 import type { Pago } from "@/services/pagos.service";
 import { WeekCalendar } from "@/components/calendar/WeekCalendar";
 import { DayCalendar } from "@/components/calendar/DayCalendar";
+import { KanbanBoard } from "@/components/kanban/KanbanBoard";
 import { getWeekDays, toDateString } from "@/lib/calendar-utils";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { STATUS_COLORS, ESTADO_TURNO_LABELS } from "@/lib/constants";
+import { LayoutList, KanbanSquare, Calendar, CalendarRange } from "lucide-react";
 
 function formatTime(dateStr: string) {
   return new Date(dateStr).toLocaleTimeString("es-AR", {
@@ -193,7 +195,7 @@ export default function TurnosPage() {
   const loadCalendarTurnos = useCallback(async () => {
     try {
       const myFilter = isProfessional && user?.id ? { user_id: user.id } : {};
-      if (activeView === "semana") {
+      if (activeView === "semana" || activeView === "kanban") {
         const days = getWeekDays(calendarDate);
         const data = await turnosService.getAll({
           fecha_desde: toDateString(days[0]),
@@ -237,7 +239,7 @@ export default function TurnosPage() {
   }, [loadTurnos, activeView]);
 
   useEffect(() => {
-    if (activeView === "semana" || activeView === "dia") {
+    if (activeView === "semana" || activeView === "dia" || activeView === "kanban") {
       loadCalendarTurnos();
     }
   }, [loadCalendarTurnos, activeView]);
@@ -328,6 +330,13 @@ export default function TurnosPage() {
     const perdidos = source.filter((t) => t.estado === "perdido" && !t.fue_reprogramado).length;
     return { total: source.length, pendientes, confirmados, completados, cancelados, perdidos };
   }, [turnos, calendarTurnos, activeView]);
+
+  const VIEW_OPTIONS = [
+    { id: "kanban", label: "Kanban", icon: KanbanSquare },
+    { id: "tabla", label: "Listado", icon: LayoutList },
+    { id: "dia", label: "Día", icon: Calendar },
+    { id: "semana", label: "Semana", icon: CalendarRange },
+  ] as const;
 
   // Actions
   const openCreate = () => {
@@ -489,6 +498,17 @@ export default function TurnosPage() {
       await turnosService.update(changingStatus.id, { estado: newEstado });
       toast.success("Estado actualizado");
       setStatusDialogOpen(false);
+      reloadAll();
+    } catch (err: any) {
+      const msg = err?.response?.data?.message || "Error al cambiar estado";
+      toast.error(Array.isArray(msg) ? msg[0] : msg);
+    }
+  };
+
+  const handleStatusUpdate = async (turnoId: string, nuevoEstado: EstadoTurno) => {
+    try {
+      await turnosService.update(turnoId, { estado: nuevoEstado });
+      toast.success(`Turno movido a ${ESTADO_TURNO_LABELS[nuevoEstado]}`);
       reloadAll();
     } catch (err: any) {
       const msg = err?.response?.data?.message || "Error al cambiar estado";
@@ -663,6 +683,62 @@ export default function TurnosPage() {
           gradient="from-orange-500 to-amber-600"
         />
       </div>
+
+      {/* View switcher: Kanban / Listado / Día / Semana */}
+      <div className="flex items-center justify-between gap-4 flex-wrap">
+        <div
+          role="tablist"
+          aria-label="Modo de visualización"
+          className="inline-flex rounded-xl border border-[var(--border-light)] bg-card p-1 shadow-[var(--shadow-card)]"
+        >
+          {VIEW_OPTIONS.map((opt) => {
+            const Icon = opt.icon;
+            const active = activeView === opt.id;
+            return (
+              <button
+                key={opt.id}
+                type="button"
+                role="tab"
+                aria-selected={active}
+                onClick={() => setActiveView(opt.id)}
+                className={`inline-flex items-center gap-2 rounded-lg px-3 py-1.5 text-xs font-medium transition-all ${
+                  active
+                    ? "bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-[var(--shadow-primary)]"
+                    : "text-muted-foreground hover:text-foreground hover:bg-muted/50"
+                }`}
+              >
+                <Icon className="h-3.5 w-3.5" />
+                {opt.label}
+              </button>
+            );
+          })}
+        </div>
+      </div>
+
+      {/* Vista Kanban */}
+      {activeView === "kanban" && (
+        <div className="rounded-xl border border-[var(--border-light)] bg-card p-4 shadow-[var(--shadow-card)]">
+          <div className="flex items-center justify-between pb-4 border-b border-border/50 mb-4">
+            <div>
+              <h2 className="text-base font-semibold">Tablero Kanban</h2>
+              <p className="text-xs text-muted-foreground mt-0.5">
+                Arrastrá las tarjetas entre columnas para cambiar el estado del turno
+              </p>
+            </div>
+          </div>
+          <KanbanBoard
+            turnos={calendarTurnos}
+            onEdit={openEdit}
+            onPago={openPago}
+            onStatusChange={openStatusChange}
+            onStatusUpdate={handleStatusUpdate}
+            onDelete={openDelete}
+            onReprogramar={handleReprogramar}
+            onConsentimiento={openConsentimiento}
+            onSlotClick={openCreateFromCalendar}
+          />
+        </div>
+      )}
 
       {/* Calendar / Table toggle */}
       {activeView === "semana" && (
