@@ -1,9 +1,8 @@
 "use client";
 
-import { useState } from "react";
+import { useEffect, useState } from "react";
 import Link from "next/link";
 import Image from "next/image";
-import { ThemeToggle } from "@/components/layout/theme-toggle";
 
 export default function PublicLayout({
   children,
@@ -11,225 +10,143 @@ export default function PublicLayout({
   children: React.ReactNode;
 }) {
   const [mobileOpen, setMobileOpen] = useState(false);
+  const [scrolled, setScrolled] = useState(false);
+  const [progress, setProgress] = useState(0);
+
+  useEffect(() => {
+    const onScroll = () => {
+      const y = window.scrollY;
+      setScrolled(y > 60);
+      const pct = (y / Math.max(1, document.body.scrollHeight - window.innerHeight)) * 100;
+      setProgress(pct);
+    };
+    onScroll();
+    window.addEventListener("scroll", onScroll, { passive: true });
+    return () => window.removeEventListener("scroll", onScroll);
+  }, []);
+
+  const close = () => setMobileOpen(false);
 
   return (
-    <div className="min-h-screen flex flex-col bg-background text-foreground">
-      {/* ── Navbar ── */}
-      <header className="sticky top-0 z-50 border-b border-border/40 bg-background/80 backdrop-blur-lg">
-        <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 py-3 sm:px-6 lg:px-8">
-          {/* Logo */}
-          <Link href="/" className="flex items-center gap-2.5">
-            <Image
-              src="/logo.png"
-              alt="Avax Health"
-              width={36}
-              height={36}
-              className="rounded-lg"
-            />
-            <span className="text-lg font-bold tracking-tight bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] bg-clip-text text-transparent">
-              Avax Health
-            </span>
+    <div className="min-h-screen flex flex-col bg-[#060f1e] text-white antialiased">
+      {/* Scroll progress bar */}
+      <div
+        className="fixed top-0 left-0 z-[200] h-[3px] bg-gradient-to-r from-[var(--ht-primary-light)] to-[#4ADE80] shadow-[0_0_12px_rgba(14,165,233,.6)] transition-[width] duration-100"
+        style={{ width: `${progress}%` }}
+      />
+
+      {/* Navbar */}
+      <header
+        className={`fixed top-[3px] left-0 right-0 z-[100] h-[66px] flex items-center justify-between px-[5%] backdrop-blur-2xl transition-colors duration-500 ${
+          scrolled
+            ? "bg-[rgba(6,15,30,0.96)] shadow-[0_4px_24px_rgba(0,0,0,0.3)] border-b border-white/[0.06]"
+            : "bg-[rgba(6,15,30,0.7)] border-b border-white/[0.06]"
+        }`}
+      >
+        <Link
+          href="/"
+          className="bg-white rounded-[9px] px-[9px] py-1 inline-flex items-center shadow-[0_2px_12px_rgba(0,0,0,0.25)] hover:shadow-[0_4px_20px_rgba(0,0,0,0.4)] transition-shadow"
+        >
+          <Image src="/logo.png" alt="Avax Health" width={120} height={34} className="h-[34px] w-auto" priority />
+        </Link>
+
+        <ul className="hidden md:flex gap-7 list-none">
+          <li><Link href="/#funcionalidades" className="text-[0.875rem] font-medium text-white/65 hover:text-[var(--ht-primary-light)] transition-colors">Funcionalidades</Link></li>
+          <li><Link href="/#agente" className="text-[0.875rem] font-medium text-white/65 hover:text-[var(--ht-primary-light)] transition-colors">Agente IA</Link></li>
+          <li><Link href="/planes" className="text-[0.875rem] font-medium text-white/65 hover:text-[var(--ht-primary-light)] transition-colors">Precios</Link></li>
+          <li><Link href="/#faq" className="text-[0.875rem] font-medium text-white/65 hover:text-[var(--ht-primary-light)] transition-colors">FAQ</Link></li>
+        </ul>
+
+        <div className="hidden md:flex items-center gap-3">
+          <Link
+            href="/login"
+            className="text-[0.85rem] font-medium text-white/65 hover:text-white transition-colors"
+          >
+            Iniciar sesión
           </Link>
+          <Link
+            href="/register"
+            className="inline-block rounded-full px-[22px] py-[10px] text-[0.85rem] font-bold text-white bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-primary)] shadow-[0_4px_20px_rgba(2,132,199,0.35)] hover:-translate-y-px hover:shadow-[0_6px_28px_rgba(2,132,199,0.55)] transition-all"
+          >
+            Prueba gratis 14 días
+          </Link>
+        </div>
 
-          {/* Desktop nav */}
-          <div className="hidden md:flex items-center gap-6">
-            <Link
-              href="/"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Inicio
-            </Link>
-            <Link
-              href="/#funcionalidades"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Funcionalidades
-            </Link>
-            <Link
-              href="/planes"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Planes
-            </Link>
-            <Link
-              href="/#faq"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              FAQ
-            </Link>
-          </div>
-
-          {/* Desktop actions */}
-          <div className="hidden md:flex items-center gap-3">
-            <ThemeToggle />
-            <Link
-              href="/login"
-              className="text-sm font-medium text-muted-foreground hover:text-foreground transition-colors"
-            >
-              Iniciar sesión
-            </Link>
-            <Link
-              href="/planes"
-              className="inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-4 py-2 text-sm font-semibold text-white shadow-md hover:from-[var(--ht-primary)] hover:to-[var(--ht-accent)] transition-all"
-            >
-              Comenzar gratis
-            </Link>
-          </div>
-
-          {/* Mobile hamburger */}
-          <div className="flex md:hidden items-center gap-2">
-            <ThemeToggle />
-            <button
-              onClick={() => setMobileOpen(!mobileOpen)}
-              className="p-2 rounded-lg hover:bg-muted transition-colors"
-              aria-label="Menu"
-            >
-              {mobileOpen ? (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <path d="M18 6 6 18" />
-                  <path d="m6 6 12 12" />
-                </svg>
-              ) : (
-                <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-                  <line x1="4" x2="20" y1="12" y2="12" />
-                  <line x1="4" x2="20" y1="6" y2="6" />
-                  <line x1="4" x2="20" y1="18" y2="18" />
-                </svg>
-              )}
-            </button>
-          </div>
-        </nav>
-
-        {/* Mobile menu */}
-        {mobileOpen && (
-          <div className="md:hidden border-t border-border/40 bg-background/95 backdrop-blur-lg">
-            <div className="flex flex-col gap-1 px-4 py-3">
-              <Link
-                href="/"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                Inicio
-              </Link>
-              <Link
-                href="/#funcionalidades"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                Funcionalidades
-              </Link>
-              <Link
-                href="/planes"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                Planes
-              </Link>
-              <Link
-                href="/#faq"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                FAQ
-              </Link>
-              <hr className="my-2 border-border/40" />
-              <Link
-                href="/login"
-                onClick={() => setMobileOpen(false)}
-                className="rounded-lg px-3 py-2.5 text-sm font-medium text-muted-foreground hover:bg-muted hover:text-foreground transition-colors"
-              >
-                Iniciar sesión
-              </Link>
-              <Link
-                href="/planes"
-                onClick={() => setMobileOpen(false)}
-                className="mt-1 inline-flex items-center justify-center rounded-lg bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-4 py-2.5 text-sm font-semibold text-white shadow-md"
-              >
-                Comenzar gratis
-              </Link>
-            </div>
-          </div>
-        )}
+        <button
+          onClick={() => setMobileOpen(!mobileOpen)}
+          className="md:hidden flex flex-col gap-[5px] p-2"
+          aria-label="Menu"
+        >
+          <span className={`w-[22px] h-0.5 bg-white rounded transition-transform duration-200 ${mobileOpen ? "translate-y-[7px] rotate-45" : ""}`} />
+          <span className={`w-[22px] h-0.5 bg-white rounded transition-opacity duration-200 ${mobileOpen ? "opacity-0" : ""}`} />
+          <span className={`w-[22px] h-0.5 bg-white rounded transition-transform duration-200 ${mobileOpen ? "-translate-y-[7px] -rotate-45" : ""}`} />
+        </button>
       </header>
 
-      {/* ── Content ── */}
+      {mobileOpen && (
+        <div
+          className="md:hidden fixed inset-0 top-[69px] z-[99] flex flex-col items-center justify-center gap-7 bg-[rgba(6,15,30,0.98)] backdrop-blur-xl"
+        >
+          <Link href="/#funcionalidades" onClick={close} className="text-lg font-semibold text-white/85 font-display">Funcionalidades</Link>
+          <Link href="/#agente" onClick={close} className="text-lg font-semibold text-white/85 font-display">Agente IA</Link>
+          <Link href="/planes" onClick={close} className="text-lg font-semibold text-white/85 font-display">Precios</Link>
+          <Link href="/#faq" onClick={close} className="text-lg font-semibold text-white/85 font-display">FAQ</Link>
+          <Link href="/login" onClick={close} className="text-lg font-semibold text-white/85 font-display">Iniciar sesión</Link>
+          <Link
+            href="/register"
+            onClick={close}
+            className="rounded-full px-7 py-3 text-base font-bold text-white bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-primary)] shadow-[0_4px_20px_rgba(2,132,199,0.35)]"
+          >
+            Empezar gratis →
+          </Link>
+        </div>
+      )}
+
+      {/* Content */}
       <main className="flex-1">{children}</main>
 
-      {/* ── Footer ── */}
-      <footer className="border-t border-border/40 bg-muted/30">
-        <div className="mx-auto max-w-7xl px-4 py-12 sm:px-6 lg:px-8">
-          <div className="grid grid-cols-2 gap-8 sm:grid-cols-4">
-            {/* Brand */}
-            <div className="col-span-2 sm:col-span-1">
-              <Link href="/" className="flex items-center gap-2.5 mb-4">
-                <Image
-                  src="/logo.png"
-                  alt="Avax Health"
-                  width={32}
-                  height={32}
-                  className="rounded-lg"
-                />
-                <span className="text-base font-bold tracking-tight bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] bg-clip-text text-transparent">
-                  Avax Health
-                </span>
-              </Link>
-              <p className="text-sm text-muted-foreground leading-relaxed">
-                Plataforma SaaS para la gestión integral de clínicas y consultorios de salud.
-              </p>
-            </div>
-
-            {/* Producto */}
-            <div>
-              <h4 className="text-sm font-semibold mb-3">Producto</h4>
-              <ul className="space-y-2">
-                <li><Link href="/planes" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Planes</Link></li>
-                <li><Link href="/register" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Registrarse</Link></li>
-                <li><Link href="/login" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Iniciar sesión</Link></li>
-              </ul>
-            </div>
-
-            {/* Empresa */}
-            <div>
-              <h4 className="text-sm font-semibold mb-3">Empresa</h4>
-              <ul className="space-y-2">
-                <li><a href="mailto:ventas@avaxhealth.com" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Contacto</a></li>
-                <li><a href="mailto:soporte@avaxhealth.com" className="text-sm text-muted-foreground hover:text-foreground transition-colors">Soporte</a></li>
-              </ul>
-            </div>
-
-            {/* Legal */}
-            <div>
-              <h4 className="text-sm font-semibold mb-3">Legal</h4>
-              <ul className="space-y-2">
-                <li><span className="text-sm text-muted-foreground">Términos de servicio</span></li>
-                <li><span className="text-sm text-muted-foreground">Política de privacidad</span></li>
-              </ul>
-            </div>
-          </div>
-
-          <div className="mt-10 pt-6 border-t border-border/40 flex flex-col items-center gap-3 sm:flex-row sm:justify-between">
-            <p className="text-sm text-muted-foreground">
-              &copy; 2026 Avax Health. Todos los derechos reservados.
-            </p>
-            <div className="flex items-center gap-4">
-              {/* Social placeholder icons */}
-              <a href="mailto:soporte@avaxhealth.com" className="text-muted-foreground hover:text-foreground transition-colors" aria-label="Email">
-                <svg className="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-                  <rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-                </svg>
-              </a>
-            </div>
-          </div>
-
-          {/* DevWolf credit */}
-          <div className="mt-4 flex justify-center">
-            <p className="text-xs text-muted-foreground/50 tracking-wide select-none">
-              Desarrollado por{" "}
-              <span className="font-medium text-muted-foreground/70">
-                DevWolf Soluciones IT
-              </span>
+      {/* Footer */}
+      <footer className="bg-[#02050b] border-t border-white/5 px-[5%] pt-14 pb-8">
+        <div className="grid grid-cols-1 md:grid-cols-[2fr_1fr_1fr_1fr] gap-10 max-w-[1100px] mx-auto mb-10">
+          <div>
+            <Link href="/" className="inline-flex bg-white rounded-[9px] px-[9px] py-1 shadow-[0_2px_12px_rgba(0,0,0,0.3)]">
+              <Image src="/logo.png" alt="Avax Health" width={120} height={34} className="h-[34px] w-auto" />
+            </Link>
+            <p className="text-[0.83rem] text-white/30 leading-[1.7] max-w-[240px] mt-3">
+              La plataforma inteligente que libera a los profesionales de la salud del caos administrativo.
             </p>
           </div>
+          <div>
+            <div className="text-[0.7rem] font-bold text-white/40 uppercase tracking-[0.1em] mb-3 font-display">Producto</div>
+            <ul className="flex flex-col gap-2 list-none">
+              <li><Link href="/#funcionalidades" className="text-[0.83rem] text-white/35 hover:text-[var(--ht-primary-light)] transition-colors">Funcionalidades</Link></li>
+              <li><Link href="/#agente" className="text-[0.83rem] text-white/35 hover:text-[var(--ht-primary-light)] transition-colors">Agente Avax IA</Link></li>
+              <li><Link href="/planes" className="text-[0.83rem] text-white/35 hover:text-[var(--ht-primary-light)] transition-colors">Precios</Link></li>
+              <li><Link href="/login" className="text-[0.83rem] text-white/35 hover:text-[var(--ht-primary-light)] transition-colors">Iniciar sesión</Link></li>
+            </ul>
+          </div>
+          <div>
+            <div className="text-[0.7rem] font-bold text-white/40 uppercase tracking-[0.1em] mb-3 font-display">Integraciones</div>
+            <ul className="flex flex-col gap-2 list-none">
+              <li><span className="text-[0.83rem] text-white/35">WhatsApp</span></li>
+              <li><span className="text-[0.83rem] text-white/35">Mercado Pago</span></li>
+              <li><span className="text-[0.83rem] text-white/35">Google Calendar</span></li>
+              <li><span className="text-[0.83rem] text-white/35">n8n / Zapier</span></li>
+            </ul>
+          </div>
+          <div>
+            <div className="text-[0.7rem] font-bold text-white/40 uppercase tracking-[0.1em] mb-3 font-display">Empresa</div>
+            <ul className="flex flex-col gap-2 list-none">
+              <li><a href="mailto:ventas@avaxhealth.com" className="text-[0.83rem] text-white/35 hover:text-[var(--ht-primary-light)] transition-colors">Contacto</a></li>
+              <li><a href="mailto:soporte@avaxhealth.com" className="text-[0.83rem] text-white/35 hover:text-[var(--ht-primary-light)] transition-colors">Soporte</a></li>
+              <li><span className="text-[0.83rem] text-white/35">Términos</span></li>
+              <li><span className="text-[0.83rem] text-white/35">Privacidad</span></li>
+            </ul>
+          </div>
+        </div>
+        <div className="max-w-[1100px] mx-auto pt-6 border-t border-white/5 flex flex-col sm:flex-row justify-between items-center gap-3 text-center sm:text-left">
+          <div className="text-xs text-white/[0.22]">© 2026 Avax Health. Todos los derechos reservados.</div>
+          <div className="text-[0.7rem] text-white/[0.18]">Desarrollado por DevWolf Soluciones IT</div>
         </div>
       </footer>
     </div>
