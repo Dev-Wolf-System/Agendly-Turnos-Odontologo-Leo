@@ -1952,7 +1952,7 @@ function TabIntegraciones({ clinica, onUpdate }: { clinica: Clinica; onUpdate: (
 // ═══════════════════════════════════════════════════════════
 function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => void }) {
   const [agentActivo, setAgentActivo] = useState<boolean>(!!clinica.agent_habilitado);
-  const [agentNombre, setAgentNombre] = useState(clinica.agent_nombre || "Zoe");
+  const [agentNombre, setAgentNombre] = useState(clinica.agent_nombre || "Avax");
   const [agentInstrucciones, setAgentInstrucciones] = useState(clinica.agent_instrucciones || "");
   const [isSaving, setIsSaving] = useState(false);
 
@@ -2032,10 +2032,10 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
                   id="agent_nombre"
                   value={agentNombre}
                   onChange={(e) => setAgentNombre(e.target.value)}
-                  placeholder="Zoe"
+                  placeholder="Avax"
                 />
                 <p className="text-xs text-muted-foreground">
-                  El nombre con el que se presentará el asistente a los pacientes (ej: &ldquo;Zoe&rdquo;, &ldquo;Ana&rdquo;, &ldquo;Asistente&rdquo;).
+                  El nombre con el que se presentará el asistente a los pacientes (ej: &ldquo;Avax&rdquo;, &ldquo;Ana&rdquo;, &ldquo;Asistente&rdquo;).
                 </p>
               </div>
 

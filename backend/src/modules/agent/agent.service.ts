@@ -167,7 +167,7 @@ export class AgentService {
       email: clinica.email,
       horarios: clinica.horarios,
       duracion_turno_default: clinica.duracion_turno_default,
-      agent_nombre: clinica.agent_nombre ?? 'Zoe',
+      agent_nombre: clinica.agent_nombre ?? 'Avax',
       agent_instrucciones: clinica.agent_instrucciones,
       profesionales: profesionales.map((p) => ({
         id: p.id,

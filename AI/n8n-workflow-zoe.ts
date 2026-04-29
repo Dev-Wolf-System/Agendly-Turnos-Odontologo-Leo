@@ -334,7 +334,7 @@ const obtenerInfoClinica = node({
     credentials: { httpHeaderAuth: newCredential('Avax Health API Key') },
     position: [3120, -120]
   },
-  output: [{ clinicaId: 'uuid', nombre: 'Clinica Demo', direccion: 'Calle 123', especialidad: 'odontologia', cel: '1234567', email: 'info@clinica.com', horarios: {}, duracion_turno_default: 30, agent_nombre: 'Zoe', agent_instrucciones: '', profesionales: [{ id: 'p1', nombre: 'Dr. Lopez', role: 'professional' }], tratamientos: [{ id: 't1', nombre: 'Limpieza', precio: 5000, duracion_min: 30 }] }]
+  output: [{ clinicaId: 'uuid', nombre: 'Clinica Demo', direccion: 'Calle 123', especialidad: 'odontologia', cel: '1234567', email: 'info@clinica.com', horarios: {}, duracion_turno_default: 30, agent_nombre: 'Avax', agent_instrucciones: '', profesionales: [{ id: 'p1', nombre: 'Dr. Lopez', role: 'professional' }], tratamientos: [{ id: 't1', nombre: 'Limpieza', precio: 5000, duracion_min: 30 }] }]
 });
 
 // ──────────────────────────────────────────────────
@@ -550,17 +550,17 @@ const toolModificarEstado = tool({
 });
 
 // --- AGENTE PRINCIPAL ---
-const agenteZoe = node({
+const agenteAvax = node({
   type: '@n8n/n8n-nodes-langchain.agent',
   version: 3.1,
   config: {
-    name: 'Agente Zoe IA',
+    name: 'Agente Avax IA',
     parameters: {
       promptType: 'define',
       text: expr('{{ $json.final_message }}'),
       options: {
         systemMessage: expr(
-          'Sos {{ $("Obtener Info Clinica").item.json.agent_nombre ?? "Zoe" }}, asistente virtual profesional de {{ $("Obtener Info Clinica").item.json.nombre }}.' +
+          'Sos {{ $("Obtener Info Clinica").item.json.agent_nombre ?? "Avax" }}, asistente virtual profesional de {{ $("Obtener Info Clinica").item.json.nombre }}.' +
           '\\n\\nZona horaria: America/Argentina/Buenos_Aires (UTC-3)' +
           '\\nFecha y hora actuales: {{ $now }}' +
           '\\nEspecialidad: {{ $("Obtener Info Clinica").item.json.especialidad }}' +
@@ -603,7 +603,7 @@ const agenteZoe = node({
     },
     position: [3360, -120]
   },
-  output: [{ output: 'Hola! Soy Zoe, asistente virtual de Clinica Demo. En que puedo ayudarte?' }]
+  output: [{ output: 'Hola! Soy Avax, asistente virtual de Clinica Demo. En que puedo ayudarte?' }]
 });
 
 // ──────────────────────────────────────────────────
@@ -627,7 +627,7 @@ const calcularDelay = node({
     },
     position: [3600, -120]
   },
-  output: [{ delay: 2000, response_text: 'Hola! Soy Zoe, asistente virtual de Clinica Demo.' }]
+  output: [{ delay: 2000, response_text: 'Hola! Soy Avax, asistente virtual de Clinica Demo.' }]
 });
 
 const enviarRespuesta = node({
@@ -670,13 +670,13 @@ const stickyConfig = sticky(`## CONFIGURAR\n1. Cambiar API (linea 12) a tu URL b
 const stickyEntrada = sticky('## Entrada WhatsApp\nRecibe mensajes de Evolution API y extrae datos.', [extraerDatos], { color: 4 });
 const stickyClinica = sticky('## Multi-Tenant\nIdentifica la clinica por el nombre de instancia de Evolution API.\nGET /api/agent/clinica/by-instance/:name', [buscarClinica], { color: 2 });
 const stickyBuffer = sticky('## Debounce\nAgrupa mensajes rapidos (5s) del mismo usuario.\nSi llegan mas mensajes durante la espera, solo el ultimo los procesa.', [bufferMensaje, esperarDebounce, leerBuffer], { color: 3 });
-const stickyAgente = sticky('## Cerebro Agente Zoe IA\nAgente multi-tenant con GPT-4.1-mini.\nEndpoints: /api/agent/pacientes/* y /api/agent/turnos/*\nMemoria de conversacion persistente en PostgreSQL.', [agenteZoe], { color: 5 });
+const stickyAgente = sticky('## Cerebro Agente Avax IA\nAgente multi-tenant con GPT-4.1-mini.\nEndpoints: /api/agent/pacientes/* y /api/agent/turnos/*\nMemoria de conversacion persistente en PostgreSQL.', [agenteAvax], { color: 5 });
 const stickyRespuesta = sticky(`## Respuesta WhatsApp\nCalcula delay de escritura natural.\nEnvia via Evolution API: POST /message/sendText/{instance}`, [enviarRespuesta], { color: 4 });
 
 // ──────────────────────────────────────────────────
 // WORKFLOW COMPOSITION
 // ──────────────────────────────────────────────────
-export default workflow('d68rLn6WSlnfkvZo', 'Asistente Avax Health IA Virtual - Zoé')
+export default workflow('d68rLn6WSlnfkvZo', 'Asistente Avax Health IA Virtual - Avax')
   .add(webhookEvolution)
   .to(extraerDatos)
   .to(buscarClinica)
@@ -689,7 +689,7 @@ export default workflow('d68rLn6WSlnfkvZo', 'Asistente Avax Health IA Virtual - 
   .to(esperarDebounce)
   .to(leerBuffer)
   .to(esUltimoMensaje
-    .onTrue(eliminarBuffer.to(combinarMensajes).to(obtenerInfoClinica).to(agenteZoe).to(calcularDelay).to(enviarRespuesta))
+    .onTrue(eliminarBuffer.to(combinarMensajes).to(obtenerInfoClinica).to(agenteAvax).to(calcularDelay).to(enviarRespuesta))
     .onFalse(nodoIgnorar)
   )
   .add(mensajeFinalAudio)

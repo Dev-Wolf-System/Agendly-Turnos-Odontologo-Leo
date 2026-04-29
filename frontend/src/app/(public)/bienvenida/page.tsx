@@ -155,7 +155,7 @@ function BienvenidaContent() {
                 "Iniciá sesión con tu email y contraseña",
                 "Completá la configuración de tu clínica",
                 "Invitá a tu equipo de profesionales",
-                "Conectá WhatsApp para activar el agente IA Zoé",
+                "Conectá WhatsApp para activar el agente IA Avax",
               ].map((step, i) => (
                 <div key={i} className="flex items-start gap-3">
                   <span className="flex h-5 w-5 shrink-0 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent)] text-[10px] font-bold text-white">{i + 1}</span>

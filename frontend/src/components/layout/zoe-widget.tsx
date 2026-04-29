@@ -42,7 +42,7 @@ export function ZoeWidget() {
   const messagesEndRef = useRef<HTMLDivElement>(null);
   const inputRef = useRef<HTMLInputElement>(null);
 
-  const agentName = clinica?.agent_nombre || "Zoe";
+  const agentName = clinica?.agent_nombre || "Avax";
   const clinicaName = clinica?.nombre || "tu clínica";
   const isActive = !!clinica?.agent_nombre;
 

@@ -13,7 +13,7 @@ Su propósito es **eliminar el caos administrativo** que viven los profesionales
 
 ### Lo que hace diferente a Avax Health
 
-- **Impulsado por IA:** el agente virtual Zoé gestiona turnos por WhatsApp de forma autónoma, responde pacientes, registra nuevos usuarios y confirma citas sin intervención humana
+- **Impulsado por IA:** el agente virtual Avax gestiona turnos por WhatsApp de forma autónoma, responde pacientes, registra nuevos usuarios y confirma citas sin intervención humana
 - **Multi-especialidad desde el diseño:** no es una app de odontología adaptada — fue construida para servir a cualquier tipo de consultorio
 - **Multi-tenant nativo:** cada clínica tiene sus datos completamente aislados; cientos de clínicas pueden coexistir en la misma plataforma
 - **Sin fricción:** las clínicas empiezan con un trial gratuito de 14 días sin necesidad de ingresar datos de pago
@@ -73,7 +73,7 @@ Los profesionales de la salud pierden horas cada día en tareas que deberían se
 - Auto-generación de pago pendiente al crear un turno con tratamiento con precio
 - Profesionales solo ven sus propios turnos (aislamiento por rol)
 
-### 🤖 Agente IA Zoé (WhatsApp)
+### 🤖 Agente IA Avax (WhatsApp)
 - Agente virtual que atiende a los pacientes por WhatsApp de forma autónoma
 - Puede: buscar pacientes, registrar nuevos, ver disponibilidad, crear turnos, dar información de la clínica
 - Personalizable: nombre del agente e instrucciones por clínica
@@ -152,7 +152,7 @@ Panel de configuración con 5 tabs:
 2. **Horarios** — mañana y tarde independientes por día de la semana
 3. **Equipo** — CRUD de usuarios, roles, horarios individuales por profesional
 4. **Tratamientos** — catálogo propio de tratamientos con precios y colores
-5. **Integraciones** — webhooks por estado de turno, recordatorios, configuración del agente Zoé
+5. **Integraciones** — webhooks por estado de turno, recordatorios, configuración del agente Avax
 
 ### 🔗 Webhooks Configurables
 - 6 eventos: turno confirmado, completado, cancelado, perdido, pendiente, recordatorio
@@ -343,7 +343,7 @@ Paleta completa con equivalentes oscuros:
 ```
 Backend:       NestJS (Node.js) + TypeScript + PostgreSQL (Supabase) + Redis
 Frontend:      Next.js (App Router) + React + TailwindCSS + shadcn/ui
-IA:            OpenAI GPT (informe IA + agente Zoé)
+IA:            OpenAI GPT (informe IA + agente Avax)
 Automatización: n8n (workflows WhatsApp) + Evolution API (WhatsApp gateway)
 Storage:       Supabase Storage (archivos médicos, logos, consentimientos)
 Realtime:      Supabase Realtime + Presence (chat, notificaciones)

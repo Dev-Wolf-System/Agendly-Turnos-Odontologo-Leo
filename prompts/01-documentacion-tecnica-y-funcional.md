@@ -23,7 +23,7 @@ La documentación debe ser:
 **Dominio en producción:** `avaxhealth.com` (frontend) · `api.avaxhealth.com` (backend) · TLS vía Traefik.
 
 **Diferenciadores:**
-1. Agente IA Zoé que atiende WhatsApp de forma autónoma (n8n + Evolution API + OpenAI).
+1. Agente IA Avax que atiende WhatsApp de forma autónoma (n8n + Evolution API + OpenAI).
 2. Multi-tenant desde el diseño: aislamiento total de datos por clínica.
 3. Trial gratuito 14 días sin tarjeta + onboarding wizard.
 4. Cada clínica conecta sus propias credenciales de Mercado Pago para cobrar a sus pacientes.
@@ -36,7 +36,7 @@ La documentación debe ser:
 ```
 Backend:        NestJS (Node.js) + TypeScript estricto + PostgreSQL (Supabase) + Redis
 Frontend:       Next.js 16 App Router + React + TailwindCSS + shadcn/ui (base-ui underneath)
-IA:             OpenAI GPT (informe IA + agente Zoé)
+IA:             OpenAI GPT (informe IA + agente Avax)
 Automatización: n8n (workflows WhatsApp) + Evolution API (WhatsApp gateway)
 Storage:        Supabase Storage (archivos médicos, logos, consentimientos)
 Realtime:       Supabase Realtime + Presence (chat, notificaciones)
@@ -82,11 +82,11 @@ Documentá cada uno de estos módulos en detalle (qué hace, casos de uso, campo
 - Detección de solapamiento en tiempo real al crear/editar.
 - Auto-generación de pago pendiente si el tratamiento tiene precio.
 - Reprogramación: marca `fue_reprogramado`, link al turno original.
-- Source: `dashboard` (manual) o `whatsapp` (creado por Zoé).
+- Source: `dashboard` (manual) o `whatsapp` (creado por Avax).
 - Filtros: profesional, fecha, estado, tratamiento, paciente.
 - KPIs en cards: pendientes, confirmados, completados, cancelados, perdidos.
 
-#### 4.3 Agente IA Zoé (WhatsApp + n8n)
+#### 4.3 Agente IA Avax (WhatsApp + n8n)
 - Workflow n8n único (`fdPc4lAYuj9x71JD`) compartido por todas las clínicas, multi-tenant por instance Evolution API.
 - **17 tools del agente:** registrar paciente, consultar tratamientos, consultar obras sociales, ficha del paciente, lista de espera, "quién escribe" (paciente/profesional/admin), mis turnos (profesional), resumen, finanzas, inventario alertas, pacientes stats, consultar equipo, ver disponibilidad por profesional con horarios propios, crear turno, cancelar, reprogramar, dar info de la clínica.
 - Personalización por clínica: nombre del agente + instrucciones específicas.
@@ -156,7 +156,7 @@ Documentá cada uno de estos módulos en detalle (qué hace, casos de uso, campo
 2. **Horarios:** mañana/tarde independientes por día.
 3. **Equipo:** CRUD usuarios + horarios individuales por profesional (`HorarioProfesional`).
 4. **Tratamientos:** catálogo con precios y colores.
-5. **Integraciones:** webhooks por evento, recordatorios, agente Zoé.
+5. **Integraciones:** webhooks por evento, recordatorios, agente Avax.
 
 #### 4.16 Webhooks Configurables (6 eventos)
 `turno_confirmado · turno_completado · turno_cancelado · turno_perdido · turno_pendiente · recordatorio` — switch individual + URL por evento. Payload completo (paciente, profesional, tratamiento, clínica, estado). Compatible con n8n / Zapier / Make / endpoint propio.
@@ -227,7 +227,7 @@ Flujo self-service completo:
 - **Supabase Auth** + custom JWT con `clinica_id` y `role`.
 - Migración automática de usuarios legacy a Supabase Auth en `forgot-password`.
 - Reset password con `hashed_token` + `verifyOtp({ token_hash, type: 'recovery' })` en frontend.
-- API Key separada para el agente Zoé (n8n llama al backend con esa key).
+- API Key separada para el agente Avax (n8n llama al backend con esa key).
 - RLS en tablas críticas de Supabase.
 - Email transaccional vía Resend (bienvenida + reset). Plantillas brandadas con logo Avax Health.
 
@@ -263,7 +263,7 @@ Token reference (ya implementado):
 - MP por clínica
 - R1–R7 (reportes, OS, NPS, lista espera)
 - Email transaccional + reset password verificado
-- Agente Zoé n8n con 17 tools
+- Agente Avax n8n con 17 tools
 
 **Code-complete, deploy pendiente:**
 - Billing self-service MP + fallback trial

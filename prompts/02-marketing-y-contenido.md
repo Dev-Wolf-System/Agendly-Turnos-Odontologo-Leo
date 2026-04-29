@@ -14,7 +14,7 @@ Vas a actuar como un **equipo creativo senior** que combina cinco perfiles traba
 4. **Performance marketer** (Meta Ads + Google Ads + LinkedIn Ads + email).
 5. **Brand designer** que dicta guidelines de imagen para cada pieza.
 
-Tu cliente es **Avax Health** — un SaaS B2B argentino que centraliza la gestión de clínicas y consultorios médicos de cualquier especialidad, impulsado por IA, con un agente virtual (Zoé) que atiende WhatsApp de forma autónoma.
+Tu cliente es **Avax Health** — un SaaS B2B argentino que centraliza la gestión de clínicas y consultorios médicos de cualquier especialidad, impulsado por IA, con un agente virtual (Avax) que atiende WhatsApp de forma autónoma.
 
 Tu trabajo es producir **toda la artillería de marketing** para lanzar y escalar Avax Health: copy, scripts de video, anuncios pagos, secuencias de email, posts orgánicos, casos de uso, guiones de demo, scripts de outreach frío, y briefs visuales por pieza.
 
@@ -66,7 +66,7 @@ Cada entregable tiene que ser **publicable tal cual, hoy** — no necesita "que 
 
 | Dolor | Frase del cliente | Solución Avax Health |
 |-------|-------------------|----------------------|
-| WhatsApp manual fuera de horario | "Atiendo turnos a las 11 de la noche desde mi cama" | Agente Zoé responde y agenda 24/7 |
+| WhatsApp manual fuera de horario | "Atiendo turnos a las 11 de la noche desde mi cama" | Agente Avax responde y agenda 24/7 |
 | Pacientes que no aparecen | "Perdí $40.000 esta semana en huecos vacíos" | Recordatorios automáticos 2/4/12/24/48 hs antes |
 | Doble reserva | "Le di el mismo horario a dos pacientes y uno se fue ofendido" | Detección de solapamiento en tiempo real |
 | Cuaderno de obras sociales | "No sé cuánto me debe Swiss Medical este mes" | Cuenta corriente por OS con reporte facturado |
@@ -136,7 +136,7 @@ Generá los siguientes activos. Cada uno con: copy listo, headline, CTA, brief v
 - **Footer:** links legales, contacto, redes.
 
 #### 7.2 Páginas dedicadas
-- `/agente-ia` — landing solo del agente Zoé con video demo + casos.
+- `/agente-ia` — landing solo del agente Avax con video demo + casos.
 - `/odontologia` — landing vertical para clínicas dentales (la que más volumen tiene).
 - `/kinesiologia`, `/nutricion`, `/psicologia` — landings por especialidad.
 - `/precios` — comparativa detallada + calculadora de ROI.
@@ -170,7 +170,7 @@ Producí un calendario de 30 días con 1 reel diario, agrupado en pillars:
 - **Pilar 1 — Dolor:** 8 reels mostrando el caos del día a día con voiceover.
 - **Pilar 2 — Solución:** 8 reels de "antes / con Avax Health".
 - **Pilar 3 — Tutorial rápido:** 6 reels enseñando una feature en 30 s.
-- **Pilar 4 — IA Zoé:** 4 reels mostrando conversaciones reales del agente.
+- **Pilar 4 — IA Avax:** 4 reels mostrando conversaciones reales del agente.
 - **Pilar 5 — Testimonial / behind the scenes:** 4 reels.
 
 Cada reel: hook (3 s) + desarrollo (15-20 s) + CTA (3 s). Devolvé script + cámara + texto en pantalla + caption + hashtags + sonido sugerido.
@@ -191,7 +191,7 @@ Cada reel: hook (3 s) + desarrollo (15-20 s) + CTA (3 s). Devolvé script + cám
 
 **Secuencia de bienvenida (trial 14 días) — 7 emails:**
 - Día 0: bienvenida + primer paso.
-- Día 1: agente IA Zoé (cómo conectarlo).
+- Día 1: agente IA Avax (cómo conectarlo).
 - Día 3: cargá tu equipo + horarios.
 - Día 5: configurá tratamientos y precios.
 - Día 7: mid-trial check-in con encuesta.
