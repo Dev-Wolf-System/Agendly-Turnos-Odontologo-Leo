@@ -10,9 +10,11 @@ import {
   getEventPosition,
   getNowPosition,
   timeFromY,
+  formatHourLabel,
   SLOT_HEIGHT,
   HOUR_START,
   HOUR_END,
+  SNAP_MINUTES,
 } from "@/lib/calendar-utils";
 
 interface DayCalendarProps {
@@ -22,6 +24,7 @@ interface DayCalendarProps {
   onSlotClick: (start: Date, end: Date) => void;
   onEventClick: (turno: Turno) => void;
   onViewChange: (view: string) => void;
+  onMoveTurno?: (turno: Turno, newStart: Date, newEnd: Date) => Promise<void> | void;
 }
 
 function layoutOverlapping(
@@ -76,12 +79,21 @@ export function DayCalendar({
   onSlotClick,
   onEventClick,
   onViewChange,
+  onMoveTurno,
 }: DayCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [nowPos, setNowPos] = useState(getNowPosition());
   const hourLabels = useMemo(() => getHourLabels(), []);
   const totalHeight = (HOUR_END - HOUR_START + 1) * SLOT_HEIGHT;
   const today = isToday(currentDate);
+
+  // Drag state
+  const [draggedTurno, setDraggedTurno] = useState<Turno | null>(null);
+  const [dragPreview, setDragPreview] = useState<{
+    top: number;
+    height: number;
+    label: string;
+  } | null>(null);
 
   const dayLabel = currentDate.toLocaleDateString("es-AR", {
     weekday: "long",
@@ -135,6 +147,75 @@ export function DayCalendar({
     [currentDate, onSlotClick],
   );
 
+  // ---- Drag handlers ----
+
+  const handleDragStart = useCallback((turno: Turno) => {
+    setDraggedTurno(turno);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedTurno(null);
+    setDragPreview(null);
+  }, []);
+
+  const computeDropTarget = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      if (!draggedTurno) return null;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const newStart = timeFromY(y, currentDate);
+      const durationMs =
+        new Date(draggedTurno.end_time).getTime() -
+        new Date(draggedTurno.start_time).getTime();
+      const newEnd = new Date(newStart.getTime() + durationMs);
+      const startMinutes = newStart.getHours() * 60 + newStart.getMinutes();
+      const top = ((startMinutes - HOUR_START * 60) / 60) * SLOT_HEIGHT;
+      const height = (durationMs / 3600000) * SLOT_HEIGHT;
+      return { newStart, newEnd, top, height };
+    },
+    [draggedTurno, currentDate],
+  );
+
+  const handleDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>) => {
+      if (!draggedTurno) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      const target = computeDropTarget(e);
+      if (!target) return;
+      setDragPreview({
+        top: target.top,
+        height: Math.max(target.height, 24),
+        label: formatHourLabel(target.newStart),
+      });
+    },
+    [draggedTurno, computeDropTarget],
+  );
+
+  const handleDrop = useCallback(
+    async (e: React.DragEvent<HTMLDivElement>) => {
+      if (!draggedTurno || !onMoveTurno) {
+        handleDragEnd();
+        return;
+      }
+      e.preventDefault();
+      const target = computeDropTarget(e);
+      if (!target) {
+        handleDragEnd();
+        return;
+      }
+      const originalStart = new Date(draggedTurno.start_time);
+      if (originalStart.getTime() === target.newStart.getTime()) {
+        handleDragEnd();
+        return;
+      }
+      const turnoToMove = draggedTurno;
+      handleDragEnd();
+      await onMoveTurno(turnoToMove, target.newStart, target.newEnd);
+    },
+    [draggedTurno, onMoveTurno, computeDropTarget, handleDragEnd],
+  );
+
   const dayNames = ["domingo", "lunes", "martes", "miércoles", "jueves", "viernes", "sábado"];
   const dayNameShort = dayNames[currentDate.getDay()].slice(0, 3).toUpperCase();
 
@@ -150,7 +231,7 @@ export function DayCalendar({
       />
 
       {/* Day header */}
-      <div className="grid grid-cols-[56px_1fr] border-b border-border bg-muted/30">
+      <div className="grid grid-cols-[64px_1fr] border-b border-border bg-muted/30">
         <div className="border-r border-border" />
         <div className="flex flex-col items-center py-2.5">
           <span
@@ -179,10 +260,10 @@ export function DayCalendar({
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto"
-        style={{ maxHeight: "calc(100vh - 400px)" }}
+        style={{ maxHeight: "calc(100vh - 240px)" }}
       >
         <div
-          className="grid grid-cols-[56px_1fr] relative"
+          className="grid grid-cols-[64px_1fr] relative"
           style={{ height: totalHeight }}
         >
           {/* Time labels */}
@@ -202,8 +283,13 @@ export function DayCalendar({
 
           {/* Day column */}
           <div
-            className={`relative ${today ? "bg-primary/[0.03]" : ""}`}
+            className={`relative ${today ? "bg-primary/[0.03]" : ""} ${
+              draggedTurno ? "bg-[var(--ht-primary)]/5 ring-1 ring-inset ring-[var(--ht-primary)]/30" : ""
+            } transition-colors`}
             onClick={handleColumnClick}
+            onDragOver={handleDragOver}
+            onDrop={handleDrop}
+            onDragLeave={() => setDragPreview(null)}
           >
             {hourLabels.map((_, i) => (
               <div
@@ -227,10 +313,25 @@ export function DayCalendar({
                 top={ev.top}
                 height={ev.height}
                 onClick={onEventClick}
+                onDragStart={onMoveTurno ? handleDragStart : undefined}
+                onDragEnd={onMoveTurno ? handleDragEnd : undefined}
+                isDragging={draggedTurno?.id === ev.turno.id}
                 columnCount={ev.colCount}
                 columnIndex={ev.colIndex}
               />
             ))}
+
+            {/* Drag preview */}
+            {dragPreview && (
+              <div
+                className="pointer-events-none absolute inset-x-2 z-40 rounded-lg border-2 border-dashed border-[var(--ht-primary)] bg-[var(--ht-primary)]/10 px-2 py-1"
+                style={{ top: dragPreview.top, height: dragPreview.height }}
+              >
+                <span className="text-[11px] font-bold tabular-nums text-[var(--ht-primary)]">
+                  {dragPreview.label}
+                </span>
+              </div>
+            )}
 
             {today && nowPos > 0 && nowPos < totalHeight && (
               <div
@@ -246,6 +347,14 @@ export function DayCalendar({
           </div>
         </div>
       </div>
+
+      {/* Hint footer */}
+      {onMoveTurno && (
+        <div className="flex items-center justify-center gap-1.5 border-t border-border/60 bg-muted/20 px-3 py-1.5 text-[10px] text-muted-foreground">
+          <span>💡</span>
+          <span>Arrastrá un turno para reprogramarlo · Snap cada {SNAP_MINUTES} min</span>
+        </div>
+      )}
     </div>
   );
 }

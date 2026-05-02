@@ -516,6 +516,56 @@ export default function TurnosPage() {
     }
   };
 
+  // Mover turno (drag & drop desde calendario): optimistic update + rollback
+  const handleMoveTurno = useCallback(
+    async (turno: Turno, newStart: Date, newEnd: Date) => {
+      // Validar overlap con otros turnos del mismo profesional
+      const conflict = calendarTurnos.find((t) => {
+        if (t.id === turno.id) return false;
+        if (t.user_id !== turno.user_id) return false;
+        if (t.estado === "cancelado" || t.estado === "perdido") return false;
+        const tStart = new Date(t.start_time);
+        const tEnd = new Date(t.end_time);
+        return tStart < newEnd && tEnd > newStart;
+      });
+      if (conflict) {
+        const pacName = conflict.paciente
+          ? `${conflict.paciente.nombre} ${conflict.paciente.apellido}`
+          : "otro paciente";
+        toast.error(
+          `Choca con turno de ${pacName} (${formatTime(conflict.start_time)} – ${formatTime(conflict.end_time)})`,
+        );
+        return;
+      }
+
+      const newStartIso = newStart.toISOString();
+      const newEndIso = newEnd.toISOString();
+      const previous = calendarTurnos;
+
+      // Optimistic update
+      setCalendarTurnos((prev) =>
+        prev.map((t) =>
+          t.id === turno.id ? { ...t, start_time: newStartIso, end_time: newEndIso } : t,
+        ),
+      );
+
+      try {
+        await turnosService.update(turno.id, {
+          start_time: newStartIso,
+          end_time: newEndIso,
+        });
+        const dia = newStart.toLocaleDateString("es-AR", { weekday: "short", day: "numeric", month: "short" });
+        toast.success(`Turno movido a ${dia} · ${formatTime(newStartIso)}`);
+      } catch (err: any) {
+        // Rollback
+        setCalendarTurnos(previous);
+        const msg = err?.response?.data?.message || "No se pudo mover el turno";
+        toast.error(Array.isArray(msg) ? msg[0] : msg);
+      }
+    },
+    [calendarTurnos],
+  );
+
   const handlePago = async (e: React.FormEvent) => {
     e.preventDefault();
     if (!pagoTurno) return;
@@ -749,6 +799,7 @@ export default function TurnosPage() {
           onSlotClick={openCreateFromCalendar}
           onEventClick={openEdit}
           onViewChange={setActiveView}
+          onMoveTurno={handleMoveTurno}
         />
       )}
 
@@ -760,6 +811,7 @@ export default function TurnosPage() {
           onSlotClick={openCreateFromCalendar}
           onEventClick={openEdit}
           onViewChange={setActiveView}
+          onMoveTurno={handleMoveTurno}
         />
       )}
 

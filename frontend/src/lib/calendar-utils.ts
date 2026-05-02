@@ -50,7 +50,8 @@ export function toDateString(date: Date): string {
 
 export const HOUR_START = 7;
 export const HOUR_END = 21;
-export const SLOT_HEIGHT = 56; // px per hour
+export const SLOT_HEIGHT = 64; // px per hour — más respiro visual
+export const SNAP_MINUTES = 15;
 
 export function getHourLabels(): string[] {
   const labels: string[] = [];
@@ -85,11 +86,21 @@ export function getNowPosition(): number {
 
 export function timeFromY(y: number, date: Date): Date {
   const totalMinutes = HOUR_START * 60 + (y / SLOT_HEIGHT) * 60;
-  // Snap to 15 min intervals
-  const snapped = Math.round(totalMinutes / 15) * 15;
-  const hours = Math.floor(snapped / 60);
-  const minutes = snapped % 60;
+  const snapped = Math.round(totalMinutes / SNAP_MINUTES) * SNAP_MINUTES;
+  const clamped = Math.max(
+    HOUR_START * 60,
+    Math.min(snapped, HOUR_END * 60 + 60 - SNAP_MINUTES),
+  );
+  const hours = Math.floor(clamped / 60);
+  const minutes = clamped % 60;
   const result = new Date(date);
   result.setHours(hours, minutes, 0, 0);
   return result;
+}
+
+export function formatHourLabel(date: Date): string {
+  return date.toLocaleTimeString("es-AR", {
+    hour: "2-digit",
+    minute: "2-digit",
+  });
 }

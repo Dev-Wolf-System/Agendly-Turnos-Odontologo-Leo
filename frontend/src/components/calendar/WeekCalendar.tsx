@@ -13,9 +13,11 @@ import {
   getEventPosition,
   getNowPosition,
   timeFromY,
+  formatHourLabel,
   SLOT_HEIGHT,
   HOUR_START,
   HOUR_END,
+  SNAP_MINUTES,
 } from "@/lib/calendar-utils";
 
 interface WeekCalendarProps {
@@ -25,6 +27,7 @@ interface WeekCalendarProps {
   onSlotClick: (start: Date, end: Date) => void;
   onEventClick: (turno: Turno) => void;
   onViewChange: (view: string) => void;
+  onMoveTurno?: (turno: Turno, newStart: Date, newEnd: Date) => Promise<void> | void;
 }
 
 function layoutOverlapping(
@@ -83,12 +86,22 @@ export function WeekCalendar({
   onSlotClick,
   onEventClick,
   onViewChange,
+  onMoveTurno,
 }: WeekCalendarProps) {
   const scrollRef = useRef<HTMLDivElement>(null);
   const [nowPos, setNowPos] = useState(getNowPosition());
   const days = useMemo(() => getWeekDays(currentDate), [currentDate]);
   const hourLabels = useMemo(() => getHourLabels(), []);
   const totalHeight = (HOUR_END - HOUR_START + 1) * SLOT_HEIGHT;
+
+  // Drag & drop state
+  const [draggedTurno, setDraggedTurno] = useState<Turno | null>(null);
+  const [dragPreview, setDragPreview] = useState<{
+    dayKey: string;
+    top: number;
+    height: number;
+    label: string;
+  } | null>(null);
 
   useEffect(() => {
     if (scrollRef.current) {
@@ -137,6 +150,77 @@ export function WeekCalendar({
     [onSlotClick],
   );
 
+  // ---- Drag handlers ----
+
+  const handleDragStart = useCallback((turno: Turno) => {
+    setDraggedTurno(turno);
+  }, []);
+
+  const handleDragEnd = useCallback(() => {
+    setDraggedTurno(null);
+    setDragPreview(null);
+  }, []);
+
+  const computeDropTarget = useCallback(
+    (e: React.DragEvent<HTMLDivElement>, day: Date) => {
+      if (!draggedTurno) return null;
+      const rect = e.currentTarget.getBoundingClientRect();
+      const y = e.clientY - rect.top;
+      const newStart = timeFromY(y, day);
+      const durationMs =
+        new Date(draggedTurno.end_time).getTime() -
+        new Date(draggedTurno.start_time).getTime();
+      const newEnd = new Date(newStart.getTime() + durationMs);
+      const startMinutes = newStart.getHours() * 60 + newStart.getMinutes();
+      const top = ((startMinutes - HOUR_START * 60) / 60) * SLOT_HEIGHT;
+      const height = (durationMs / 3600000) * SLOT_HEIGHT;
+      return { newStart, newEnd, top, height };
+    },
+    [draggedTurno],
+  );
+
+  const handleColumnDragOver = useCallback(
+    (e: React.DragEvent<HTMLDivElement>, day: Date) => {
+      if (!draggedTurno) return;
+      e.preventDefault();
+      e.dataTransfer.dropEffect = "move";
+      const target = computeDropTarget(e, day);
+      if (!target) return;
+      setDragPreview({
+        dayKey: toDateString(day),
+        top: target.top,
+        height: Math.max(target.height, 24),
+        label: formatHourLabel(target.newStart),
+      });
+    },
+    [draggedTurno, computeDropTarget],
+  );
+
+  const handleColumnDrop = useCallback(
+    async (e: React.DragEvent<HTMLDivElement>, day: Date) => {
+      if (!draggedTurno || !onMoveTurno) {
+        handleDragEnd();
+        return;
+      }
+      e.preventDefault();
+      const target = computeDropTarget(e, day);
+      if (!target) {
+        handleDragEnd();
+        return;
+      }
+      const originalStart = new Date(draggedTurno.start_time);
+      const sameMoment =
+        originalStart.getTime() === target.newStart.getTime() &&
+        toDateString(originalStart) === toDateString(target.newStart);
+
+      const turnoToMove = draggedTurno;
+      handleDragEnd();
+      if (sameMoment) return;
+      await onMoveTurno(turnoToMove, target.newStart, target.newEnd);
+    },
+    [draggedTurno, onMoveTurno, computeDropTarget, handleDragEnd],
+  );
+
   const dayNames = ["Lun", "Mar", "Mié", "Jue", "Vie", "Sáb", "Dom"];
 
   return (
@@ -152,7 +236,7 @@ export function WeekCalendar({
       />
 
       {/* Day Headers */}
-      <div className="grid grid-cols-[56px_repeat(7,1fr)] border-b border-border bg-muted/30">
+      <div className="grid grid-cols-[64px_repeat(7,1fr)] border-b border-border bg-muted/30">
         <div className="border-r border-border" />
         {days.map((day, i) => {
           const today = isToday(day);
@@ -197,7 +281,7 @@ export function WeekCalendar({
       <div
         ref={scrollRef}
         className="flex-1 overflow-y-auto"
-        style={{ maxHeight: "calc(100vh - 400px)" }}
+        style={{ maxHeight: "calc(100vh - 240px)" }}
       >
         <div
           className="relative"
@@ -220,7 +304,7 @@ export function WeekCalendar({
           ))}
 
           {/* Grid overlay with columns */}
-          <div className="absolute inset-0 grid grid-cols-[56px_repeat(7,1fr)]">
+          <div className="absolute inset-0 grid grid-cols-[64px_repeat(7,1fr)]">
             {/* Time labels column */}
             <div className="relative border-r border-border bg-muted/20">
               {hourLabels.map((label, i) => (
@@ -246,6 +330,7 @@ export function WeekCalendar({
               }));
               const laidOut = layoutOverlapping(events);
               const today = isToday(day);
+              const isPreviewDay = dragPreview?.dayKey === key;
 
               return (
                 <div
@@ -254,8 +339,15 @@ export function WeekCalendar({
                     dayIndex < 6
                       ? "border-r border-border/40"
                       : ""
-                  } ${today ? "bg-primary/[0.03]" : "hover:bg-muted/20"} transition-colors`}
+                  } ${today ? "bg-primary/[0.03]" : "hover:bg-muted/20"} ${
+                    draggedTurno && isPreviewDay ? "bg-[var(--ht-primary)]/5 ring-1 ring-inset ring-[var(--ht-primary)]/30" : ""
+                  } transition-colors`}
                   onClick={(e) => handleColumnClick(e, day)}
+                  onDragOver={(e) => handleColumnDragOver(e, day)}
+                  onDrop={(e) => handleColumnDrop(e, day)}
+                  onDragLeave={() => {
+                    if (isPreviewDay) setDragPreview(null);
+                  }}
                 >
                   {/* Events */}
                   {laidOut.map((ev) => (
@@ -265,10 +357,25 @@ export function WeekCalendar({
                       top={ev.top}
                       height={ev.height}
                       onClick={onEventClick}
+                      onDragStart={onMoveTurno ? handleDragStart : undefined}
+                      onDragEnd={onMoveTurno ? handleDragEnd : undefined}
+                      isDragging={draggedTurno?.id === ev.turno.id}
                       columnCount={ev.colCount}
                       columnIndex={ev.colIndex}
                     />
                   ))}
+
+                  {/* Drag preview line + ghost */}
+                  {isPreviewDay && dragPreview && (
+                    <div
+                      className="pointer-events-none absolute inset-x-1 z-40 rounded-lg border-2 border-dashed border-[var(--ht-primary)] bg-[var(--ht-primary)]/10 px-2 py-1"
+                      style={{ top: dragPreview.top, height: dragPreview.height }}
+                    >
+                      <span className="text-[10px] font-bold tabular-nums text-[var(--ht-primary)]">
+                        {dragPreview.label}
+                      </span>
+                    </div>
+                  )}
 
                   {/* Current time indicator */}
                   {today && nowPos > 0 && nowPos < totalHeight && (
@@ -288,6 +395,14 @@ export function WeekCalendar({
           </div>
         </div>
       </div>
+
+      {/* Hint footer (solo si DnD habilitado) */}
+      {onMoveTurno && (
+        <div className="flex items-center justify-center gap-1.5 border-t border-border/60 bg-muted/20 px-3 py-1.5 text-[10px] text-muted-foreground">
+          <span>💡</span>
+          <span>Arrastrá un turno para reprogramarlo · Snap cada {SNAP_MINUTES} min</span>
+        </div>
+      )}
     </div>
   );
 }

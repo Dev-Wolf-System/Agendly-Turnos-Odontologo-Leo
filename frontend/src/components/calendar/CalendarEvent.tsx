@@ -41,6 +41,8 @@ const estadoStyles: Record<string, { bg: string; border: string; text: string; d
   },
 };
 
+const ESTADOS_FINALES = new Set(["cancelado", "completado", "perdido"]);
+
 interface CalendarEventProps {
   turno: Turno;
   top: number;
@@ -48,6 +50,9 @@ interface CalendarEventProps {
   onClick: (turno: Turno) => void;
   columnCount?: number;
   columnIndex?: number;
+  onDragStart?: (turno: Turno) => void;
+  onDragEnd?: () => void;
+  isDragging?: boolean;
 }
 
 export function CalendarEvent({
@@ -57,6 +62,9 @@ export function CalendarEvent({
   onClick,
   columnCount = 1,
   columnIndex = 0,
+  onDragStart,
+  onDragEnd,
+  isDragging = false,
 }: CalendarEventProps) {
   const style = estadoStyles[turno.estado] || estadoStyles.pendiente;
   const startTime = new Date(turno.start_time).toLocaleTimeString("es-AR", {
@@ -69,6 +77,7 @@ export function CalendarEvent({
   });
   const isCancelled = turno.estado === "cancelado";
   const isLost = turno.estado === "perdido";
+  const canDrag = !!onDragStart && !ESTADOS_FINALES.has(turno.estado);
 
   const widthPercent = 100 / columnCount;
   const leftPercent = columnIndex * widthPercent;
@@ -77,16 +86,36 @@ export function CalendarEvent({
   return (
     <button
       type="button"
-      className={`absolute group rounded-lg border-l-[3px] ${style.border} ${style.bg} ${style.hover} px-2 py-1 text-left transition-all duration-150 hover:shadow-lg hover:scale-[1.02] cursor-pointer overflow-hidden`}
+      draggable={canDrag}
+      onDragStart={(e) => {
+        if (!canDrag || !onDragStart) return;
+        e.stopPropagation();
+        // dataTransfer requerido en Firefox para que el drag se inicie
+        e.dataTransfer.effectAllowed = "move";
+        try {
+          e.dataTransfer.setData("text/plain", turno.id);
+        } catch {
+          // algunos browsers lanzan en setData; ignorar
+        }
+        onDragStart(turno);
+      }}
+      onDragEnd={(e) => {
+        e.stopPropagation();
+        onDragEnd?.();
+      }}
+      className={`absolute group rounded-lg border-l-[3px] ${style.border} ${style.bg} ${style.hover} px-2 py-1 text-left transition-all duration-150 hover:shadow-lg hover:scale-[1.02] overflow-hidden ${
+        canDrag ? "cursor-grab active:cursor-grabbing" : "cursor-pointer"
+      } ${isDragging ? "opacity-40 scale-[0.98] shadow-none" : ""}`}
       style={{
         top: top + 1,
         height: Math.max(height - 2, 20),
         left: `calc(${leftPercent}% + 2px)`,
         width: `calc(${widthPercent}% - ${insetRight}px)`,
-        zIndex: 10 + columnIndex,
+        zIndex: isDragging ? 50 : 10 + columnIndex,
       }}
       onClick={(e) => {
         e.stopPropagation();
+        if (isDragging) return;
         onClick(turno);
       }}
     >
