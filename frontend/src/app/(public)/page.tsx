@@ -1,172 +1,246 @@
 "use client";
 
-import { useEffect, useRef } from "react";
+import { useEffect, useRef, useState } from "react";
 import Link from "next/link";
+import {
+  IconArrowRight,
+  IconCheck,
+  IconChatChaos,
+  IconPaperStack,
+  IconRevenueUnknown,
+  IconCalendarMedical,
+  IconFilePulse,
+  IconReceiptChart,
+  IconBoxMedical,
+  IconTeamMedical,
+  IconShieldCheck,
+  IconUserSearch,
+  IconCalendarPlus,
+  IconBotChat,
+  IconSliders,
+  IconSignup,
+  IconTune,
+  IconGrow,
+  IconWhatsapp,
+  IconMercadoPago,
+  IconGoogle,
+  IconPlus,
+  IconStar,
+  IconClock,
+} from "@/components/landing/landing-icons";
 
-/* ── Intersection Observer hook for fade-in animations ── */
-
-function useScrollReveal() {
+/* ─── Reveal hook ─── */
+function useReveal() {
   const ref = useRef<HTMLDivElement>(null);
   useEffect(() => {
-    const el = ref.current;
-    if (!el) return;
-    const observer = new IntersectionObserver(
+    const root = ref.current;
+    if (!root) return;
+    const io = new IntersectionObserver(
       (entries) => {
         entries.forEach((e) => {
           if (e.isIntersecting) {
-            e.target.classList.add("animate-in");
-            observer.unobserve(e.target);
+            e.target.classList.add("is-visible");
+            io.unobserve(e.target);
           }
         });
       },
-      { threshold: 0.12 }
+      { threshold: 0.12, rootMargin: "0px 0px -40px 0px" },
     );
-    const children = el.querySelectorAll(".reveal");
-    children.forEach((c) => observer.observe(c));
-    return () => observer.disconnect();
+    root.querySelectorAll(".reveal").forEach((el) => io.observe(el));
+    return () => io.disconnect();
   }, []);
   return ref;
 }
 
-/* ── Inline SVG Icons ── */
-
-function CalendarIcon({ className = "w-7 h-7" }: { className?: string }) {
+/* ─── CountUp animado ─── */
+function CountUp({
+  target,
+  prefix = "",
+  suffix = "",
+  decimals = "",
+}: {
+  target: number;
+  prefix?: string;
+  suffix?: string;
+  decimals?: string;
+}) {
+  const ref = useRef<HTMLSpanElement>(null);
+  const [val, setVal] = useState(0);
+  useEffect(() => {
+    const el = ref.current;
+    if (!el) return;
+    let started = false;
+    const obs = new IntersectionObserver(
+      (entries) => {
+        entries.forEach((e) => {
+          if (!e.isIntersecting || started) return;
+          started = true;
+          const dur = 1700;
+          let start: number | null = null;
+          const tick = (ts: number) => {
+            if (start === null) start = ts;
+            const p = Math.min((ts - start) / dur, 1);
+            const ease = 1 - Math.pow(1 - p, 3);
+            setVal(Math.floor(ease * target));
+            if (p < 1) requestAnimationFrame(tick);
+            else setVal(target);
+          };
+          requestAnimationFrame(tick);
+          obs.unobserve(el);
+        });
+      },
+      { threshold: 0.5 },
+    );
+    obs.observe(el);
+    return () => obs.disconnect();
+  }, [target]);
+  const formatted = val >= 1000 ? val.toLocaleString("es-AR") : String(val);
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="18" height="18" x="3" y="4" rx="2" />
-      <path d="M16 2v4" /><path d="M8 2v4" /><path d="M3 10h18" />
-      <path d="M8 14h.01" /><path d="M12 14h.01" /><path d="M16 14h.01" />
-      <path d="M8 18h.01" /><path d="M12 18h.01" />
-    </svg>
+    <span ref={ref}>
+      {prefix}
+      {formatted}
+      {decimals}
+      {suffix}
+    </span>
   );
 }
 
-function ClipboardIcon({ className = "w-7 h-7" }: { className?: string }) {
+/* ─── Dashboard mock ─── */
+function DashboardMock() {
   return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="8" height="4" x="8" y="2" rx="1" />
-      <path d="M16 4h2a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H6a2 2 0 0 1-2-2V6a2 2 0 0 1 2-2h2" />
-      <path d="M12 11h4" /><path d="M12 16h4" /><path d="M8 11h.01" /><path d="M8 16h.01" />
-    </svg>
-  );
-}
-
-function CreditCardIcon({ className = "w-7 h-7" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="20" height="14" x="2" y="5" rx="2" /><path d="M2 10h20" />
-    </svg>
-  );
-}
-
-function PackageIcon({ className = "w-7 h-7" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m7.5 4.27 9 5.15" />
-      <path d="M21 8a2 2 0 0 0-1-1.73l-7-4a2 2 0 0 0-2 0l-7 4A2 2 0 0 0 3 8v8a2 2 0 0 0 1 1.73l7 4a2 2 0 0 0 2 0l7-4A2 2 0 0 0 21 16Z" />
-      <path d="m3.3 7 8.7 5 8.7-5" /><path d="M12 22V12" />
-    </svg>
-  );
-}
-
-function MessageIcon({ className = "w-7 h-7" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M7.9 20A9 9 0 1 0 4 16.1L2 22Z" />
-      <path d="M8 12h.01" /><path d="M12 12h.01" /><path d="M16 12h.01" />
-    </svg>
-  );
-}
-
-function BuildingIcon({ className = "w-7 h-7" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="16" height="20" x="4" y="2" rx="2" />
-      <path d="M9 22v-4h6v4" />
-      <path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M12 6h.01" />
-      <path d="M12 10h.01" /><path d="M12 14h.01" />
-      <path d="M16 10h.01" /><path d="M16 14h.01" />
-      <path d="M8 10h.01" /><path d="M8 14h.01" />
-    </svg>
-  );
-}
-
-function CheckCircleIcon({ className = "w-5 h-5" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14" /><path d="m9 11 3 3L22 4" />
-    </svg>
-  );
-}
-
-function ArrowRightIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M5 12h14" /><path d="m12 5 7 7-7 7" />
-    </svg>
-  );
-}
-
-function ChevronDownIcon({ className = "w-4 h-4" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
-      <path d="m6 9 6 6 6-6" />
-    </svg>
-  );
-}
-
-/* ── Dashboard Mockup ── */
-
-function DashboardMockup() {
-  return (
-    <div className="relative mx-auto w-full max-w-4xl">
-      <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[var(--ht-primary)]/20 via-[var(--ht-primary-light)]/20 to-[var(--ht-accent-dark)]/10 blur-2xl" />
-      <div className="relative rounded-xl border border-border/60 bg-card shadow-2xl shadow-[var(--ht-primary)]/10 overflow-hidden">
-        {/* Browser chrome */}
-        <div className="flex items-center gap-2 border-b border-border/40 bg-muted/50 px-4 py-2.5">
-          <div className="flex gap-1.5">
-            <div className="w-3 h-3 rounded-full bg-red-400/70" />
-            <div className="w-3 h-3 rounded-full bg-yellow-400/70" />
-            <div className="w-3 h-3 rounded-full bg-green-400/70" />
+    <div className="relative">
+      {/* Float card 1: −60% inasistencias */}
+      <div className="hidden md:block absolute -top-5 -right-7 z-20 rounded-2xl border border-border bg-card px-4 py-3 shadow-xl animate-float-in">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[var(--ht-accent)]/10 text-[var(--ht-accent-dark)]">
+            <IconClock size={16} />
           </div>
-          <div className="flex-1 mx-8">
-            <div className="mx-auto max-w-sm rounded-md bg-background/80 border border-border/30 px-3 py-1 text-xs text-muted-foreground text-center">
-              avaxhealth.com/dashboard
-            </div>
+          <div>
+            <div className="text-lg font-extrabold leading-none tracking-tight">−60%</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">inasistencias con IA</div>
           </div>
         </div>
-        {/* Dashboard content mockup */}
-        <div className="p-4 sm:p-6 bg-background/50">
-          <div className="grid grid-cols-3 gap-3 mb-4">
+      </div>
+
+      {/* Float card 2: 3 turnos agendados por Avax */}
+      <div className="hidden md:block absolute bottom-7 -left-9 z-20 rounded-2xl border border-border bg-card px-4 py-3 shadow-xl animate-float-in-delay">
+        <div className="flex items-center gap-2.5">
+          <div className="flex h-8 w-8 items-center justify-center rounded-lg bg-[#25D366] text-white">
+            <IconWhatsapp size={16} />
+          </div>
+          <div>
+            <div className="text-lg font-extrabold leading-none tracking-tight">3 turnos</div>
+            <div className="text-[11px] text-muted-foreground mt-0.5">agendados por Avax hoy</div>
+          </div>
+        </div>
+      </div>
+
+      <div className="relative rounded-2xl border border-border bg-card overflow-hidden shadow-2xl shadow-[var(--ht-primary)]/15">
+        {/* Browser chrome */}
+        <div className="flex items-center gap-2 border-b border-border bg-muted/40 px-4 py-2.5">
+          <div className="flex gap-1.5">
+            <div className="h-2.5 w-2.5 rounded-full bg-[#FF5F57]" />
+            <div className="h-2.5 w-2.5 rounded-full bg-[#FEBC2E]" />
+            <div className="h-2.5 w-2.5 rounded-full bg-[#28C840]" />
+          </div>
+          <div className="ml-2 flex-1 max-w-[220px] rounded-md border border-border bg-background px-2.5 py-0.5 text-[11px] font-mono text-muted-foreground">
+            avaxhealth.com/dashboard
+          </div>
+        </div>
+        <div className="grid grid-cols-[140px_1fr] min-h-[360px]">
+          {/* Sidebar */}
+          <aside className="border-r border-border bg-card p-3">
+            <div className="flex items-center gap-2 px-2 mb-4 text-[11px] font-extrabold tracking-tight">
+              <span className="h-1.5 w-1.5 rounded-full bg-[var(--ht-primary-light)] shadow-[0_0_8px] shadow-[var(--ht-primary-light)]" />
+              Avax Health
+            </div>
             {[
-              { label: "Turnos Hoy", value: "12", color: "from-blue-500 to-[var(--ht-primary)]" },
-              { label: "Pacientes", value: "847", color: "from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)]" },
-              { label: "Ingresos", value: "$284k", color: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]" },
-            ].map((kpi) => (
-              <div key={kpi.label} className="rounded-xl border border-border/40 bg-card p-3">
-                <p className="text-[10px] sm:text-xs text-muted-foreground">{kpi.label}</p>
-                <p className={`text-lg sm:text-2xl font-bold bg-gradient-to-r ${kpi.color} bg-clip-text text-transparent`}>
-                  {kpi.value}
-                </p>
+              { label: "Dashboard", active: true },
+              { label: "Pacientes" },
+              { label: "Agenda" },
+              { label: "Cobros" },
+              { label: "Inventario" },
+              { label: "Reportes" },
+              { label: "Avax IA" },
+            ].map((it) => (
+              <div
+                key={it.label}
+                className={`flex items-center gap-2 rounded-md px-2 py-1.5 text-[11px] mb-0.5 ${
+                  it.active
+                    ? "bg-[var(--ht-primary-light)]/10 font-semibold text-[var(--ht-primary-dark)]"
+                    : "text-muted-foreground"
+                }`}
+              >
+                <span className="h-1 w-1 rounded-full bg-current" />
+                {it.label}
               </div>
             ))}
-          </div>
-          <div className="rounded-xl border border-border/40 bg-card p-3 sm:p-4">
-            <div className="flex items-center justify-between mb-3">
-              <div className="text-xs sm:text-sm font-semibold">Agenda del día</div>
-              <div className="text-[10px] sm:text-xs text-muted-foreground">Abril 2026</div>
+          </aside>
+
+          {/* Main */}
+          <div className="bg-muted/30 p-4">
+            <div className="flex items-center justify-between mb-3.5">
+              <div className="text-[12px] font-bold tracking-tight">Resumen</div>
+              <div className="text-[10px] text-muted-foreground">Mayo 2026</div>
             </div>
-            <div className="space-y-2">
+
+            {/* KPIs */}
+            <div className="grid grid-cols-3 gap-2 mb-3">
               {[
-                { time: "09:00", name: "María García", type: "Consulta", bg: "bg-blue-500/10 border-blue-500/20" },
-                { time: "10:30", name: "Juan López", type: "Control", bg: "bg-[var(--ht-accent)]/10 border-[var(--ht-accent)]/20" },
-                { time: "11:00", name: "Ana Martínez", type: "Limpieza", bg: "bg-purple-500/10 border-purple-500/20" },
-                { time: "14:00", name: "Carlos Ruiz", type: "Ortodoncia", bg: "bg-amber-500/10 border-amber-500/20" },
-              ].map((apt) => (
-                <div key={apt.time} className={`flex items-center gap-3 rounded-lg border ${apt.bg} px-3 py-2`}>
-                  <span className="text-[10px] sm:text-xs font-mono text-muted-foreground w-10">{apt.time}</span>
-                  <span className="text-xs sm:text-sm font-medium flex-1 truncate">{apt.name}</span>
-                  <span className="text-[10px] sm:text-xs text-muted-foreground hidden sm:inline">{apt.type}</span>
+                { l: "Turnos hoy", v: "12", t: "↑ 18%" },
+                { l: "Pacientes", v: "847", t: "↑ 24%" },
+                { l: "Ingresos", v: "$284k", t: "↑ 32%" },
+              ].map((k, i) => (
+                <div
+                  key={k.l}
+                  className="rounded-lg border border-border bg-card p-2.5 animate-kpi-in"
+                  style={{ animationDelay: `${0.5 + i * 0.15}s` }}
+                >
+                  <div className="text-[9px] font-medium text-muted-foreground">{k.l}</div>
+                  <div className="text-base font-extrabold tracking-tight">{k.v}</div>
+                  <div className="text-[9px] font-bold text-[var(--ht-accent-dark)] mt-0.5">{k.t}</div>
+                </div>
+              ))}
+            </div>
+
+            {/* Bars chart */}
+            <div className="rounded-lg border border-border bg-card p-3 mb-2.5 animate-chart-in">
+              <div className="text-[10px] font-semibold text-muted-foreground mb-2">Turnos esta semana</div>
+              <div className="flex items-end gap-1.5 h-12">
+                {[60, 45, 82, 55, 96, 70, 38].map((h, i) => (
+                  <div
+                    key={i}
+                    className={`flex-1 rounded-t-sm origin-bottom animate-bar-grow ${
+                      i % 2 === 0 ? "bg-gradient-to-t from-[var(--ht-primary-light)]/40 to-[var(--ht-primary-light)]" : "bg-gradient-to-t from-[var(--ht-accent)]/40 to-[var(--ht-accent)]"
+                    }`}
+                    style={{ height: `${h}%`, animationDelay: `${1.2 + i * 0.1}s` }}
+                  />
+                ))}
+              </div>
+            </div>
+
+            {/* Apts list */}
+            <div className="rounded-lg border border-border bg-card p-3 animate-chart-in" style={{ animationDelay: "1.4s" }}>
+              <div className="text-[10px] font-semibold text-muted-foreground mb-1.5">Agenda del día</div>
+              {[
+                { name: "María García", time: "09:00", dot: "var(--ht-primary-light)", badgeBg: "var(--ht-accent)/0.12", badgeColor: "var(--ht-accent-dark)", badge: "✓ conf." },
+                { name: "Juan López", time: "10:30", dot: "var(--ht-accent)", badgeBg: "rgba(245,158,11,0.12)", badgeColor: "#B45309", badge: "pend." },
+                { name: "Ana Martínez", time: "11:00", dot: "var(--ht-primary)", badgeBg: "var(--ht-primary-light)/0.12", badgeColor: "var(--ht-primary-dark)", badge: "nuevo" },
+              ].map((a, i) => (
+                <div
+                  key={a.name}
+                  className="flex items-center gap-2 py-1.5 border-b last:border-0 border-border/60 animate-apt-in"
+                  style={{ animationDelay: `${1.6 + i * 0.15}s` }}
+                >
+                  <span className="h-1.5 w-1.5 rounded-full" style={{ background: a.dot }} />
+                  <span className="text-[10px] font-medium flex-1 truncate">{a.name}</span>
+                  <span className="text-[9px] font-mono text-muted-foreground">{a.time}</span>
+                  <span
+                    className="text-[8px] px-1.5 py-0.5 rounded-full font-semibold"
+                    style={{ background: a.badgeBg, color: a.badgeColor }}
+                  >
+                    {a.badge}
+                  </span>
                 </div>
               ))}
             </div>
@@ -177,661 +251,607 @@ function DashboardMockup() {
   );
 }
 
-/* ── Data ── */
+/* ─── Data ─── */
 
-const features = [
+const problems = [
   {
-    icon: CalendarIcon,
-    title: "Gestión de Turnos",
-    description: "Calendario inteligente con vistas diaria, semanal y lista. Control de solapamiento y recordatorios automáticos por WhatsApp.",
-    gradient: "from-blue-500 to-[var(--ht-primary)]",
+    Icon: IconChatChaos,
+    iconBg: "bg-[var(--ht-primary-light)]/10 text-[var(--ht-primary-dark)]",
+    q: "¿Seguís coordinando turnos por WhatsApp?",
+    a: "Con Avax Health tu agenda se gestiona sola — recordatorios automáticos, confirmaciones y cancelaciones sin intervención manual.",
   },
   {
-    icon: ClipboardIcon,
-    title: "Historial Médico",
-    description: "Fichas completas por paciente con timeline de procedimientos, diagnósticos y documentos adjuntos.",
-    gradient: "from-[var(--ht-primary)] to-[var(--ht-accent)]",
+    Icon: IconPaperStack,
+    iconBg: "bg-[var(--ht-accent)]/10 text-[var(--ht-accent-dark)]",
+    q: "¿El historial de tus pacientes está en papel o planillas?",
+    a: "Digitalizá fichas médicas, diagnósticos y documentos. Buscá cualquier paciente en segundos desde cualquier dispositivo.",
   },
   {
-    icon: CreditCardIcon,
-    title: "Pagos y Facturación",
-    description: "Control financiero con KPIs en tiempo real, múltiples métodos de pago y reportes detallados por período.",
-    gradient: "from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)]",
-  },
-  {
-    icon: PackageIcon,
-    title: "Inventario y Proveedores",
-    description: "Stock en tiempo real, alertas de bajo inventario y gestión de proveedores con categorías.",
-    gradient: "from-[var(--ht-accent)] to-fuchsia-500",
-  },
-  {
-    icon: MessageIcon,
-    title: "WhatsApp + IA",
-    description: "Agente inteligente que atiende pacientes 24/7: agenda turnos, responde consultas y envía recordatorios automáticamente.",
-    gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]",
-  },
-  {
-    icon: BuildingIcon,
-    title: "Multi-Clínica",
-    description: "Panel de administración SaaS para gestionar múltiples clínicas, planes y suscripciones desde un lugar.",
-    gradient: "from-amber-500 to-orange-500",
+    Icon: IconRevenueUnknown,
+    iconBg: "bg-amber-500/10 text-amber-600",
+    q: "¿No sabés cuánto facturaste este mes por profesional?",
+    a: "Dashboard financiero en tiempo real con KPIs de ingresos, pagos pendientes y métricas de ocupación.",
   },
 ];
 
-const howItWorks = [
+const metrics = [
+  { target: 200, suffix: "+", label: "Clínicas activas" },
+  { target: 40000, suffix: "+", label: "Turnos gestionados" },
+  { target: 60, prefix: "−", suffix: "%", label: "Inasistencias con IA" },
+  { target: 99, decimals: ".9", suffix: "%", label: "Uptime garantizado" },
+];
+
+const features = [
   {
-    step: "01",
-    title: "Registrate",
-    description: "Creá tu cuenta en menos de 2 minutos. Sin tarjeta de crédito ni instalaciones.",
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M16 21v-2a4 4 0 0 0-4-4H6a4 4 0 0 0-4 4v2" />
-        <circle cx="9" cy="7" r="4" />
-        <path d="M22 21v-2a4 4 0 0 0-3-3.87" />
-        <path d="M16 3.13a4 4 0 0 1 0 7.75" />
-      </svg>
-    ),
+    Icon: IconCalendarMedical,
+    title: "Gestión de Turnos Inteligente",
+    desc: "Calendario con vistas diaria, semanal y lista. Drag & drop para reprogramar, control de solapamiento, recordatorios automáticos por WhatsApp.",
+    iconBg: "bg-[var(--ht-primary-light)]/10 text-[var(--ht-primary-dark)]",
+    span: "lg:col-span-3 lg:row-span-2",
+    isHero: true,
   },
   {
-    step: "02",
-    title: "Configurá",
-    description: "Personalizá horarios, profesionales, tratamientos y más desde un panel intuitivo. Listo en minutos.",
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M12.22 2h-.44a2 2 0 0 0-2 2v.18a2 2 0 0 1-1 1.73l-.43.25a2 2 0 0 1-2 0l-.15-.08a2 2 0 0 0-2.73.73l-.22.38a2 2 0 0 0 .73 2.73l.15.1a2 2 0 0 1 1 1.72v.51a2 2 0 0 1-1 1.74l-.15.09a2 2 0 0 0-.73 2.73l.22.38a2 2 0 0 0 2.73.73l.15-.08a2 2 0 0 1 2 0l.43.25a2 2 0 0 1 1 1.73V20a2 2 0 0 0 2 2h.44a2 2 0 0 0 2-2v-.18a2 2 0 0 1 1-1.73l.43-.25a2 2 0 0 1 2 0l.15.08a2 2 0 0 0 2.73-.73l.22-.39a2 2 0 0 0-.73-2.73l-.15-.08a2 2 0 0 1-1-1.74v-.5a2 2 0 0 1 1-1.74l.15-.09a2 2 0 0 0 .73-2.73l-.22-.38a2 2 0 0 0-2.73-.73l-.15.08a2 2 0 0 1-2 0l-.43-.25a2 2 0 0 1-1-1.73V4a2 2 0 0 0-2-2z" />
-        <circle cx="12" cy="12" r="3" />
-      </svg>
-    ),
+    Icon: IconFilePulse,
+    title: "Historial Médico Digital",
+    desc: "Fichas completas con timeline de procedimientos, diagnósticos y documentos adjuntos. Búsqueda instantánea.",
+    iconBg: "bg-[var(--ht-accent)]/10 text-[var(--ht-accent-dark)]",
+    span: "lg:col-span-3",
   },
   {
-    step: "03",
-    title: "Gestioná",
-    description: "Empezá a atender pacientes, agendar turnos y hacer crecer tu negocio desde el día uno.",
-    icon: (
-      <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M22 12h-2.48a2 2 0 0 0-1.93 1.46l-2.35 8.36a.25.25 0 0 1-.48 0L9.24 2.18a.25.25 0 0 0-.48 0l-2.35 8.36A2 2 0 0 1 4.49 12H2" />
-      </svg>
-    ),
+    Icon: IconReceiptChart,
+    title: "Pagos y Facturación",
+    desc: "Control financiero con KPIs en tiempo real, múltiples métodos de pago y reportes detallados por período.",
+    iconBg: "bg-amber-500/10 text-amber-600",
+    span: "lg:col-span-3",
+  },
+  {
+    Icon: IconBoxMedical,
+    title: "Inventario y Proveedores",
+    desc: "Stock en tiempo real, alertas de bajo inventario y gestión completa de proveedores.",
+    iconBg: "bg-[var(--ht-primary-light)]/10 text-[var(--ht-primary-dark)]",
+    span: "lg:col-span-2",
+  },
+  {
+    Icon: IconTeamMedical,
+    title: "Multi-Profesional",
+    desc: "Cada profesional con su agenda, sus pacientes y sus estadísticas. Roles y permisos.",
+    iconBg: "bg-[var(--ht-accent)]/10 text-[var(--ht-accent-dark)]",
+    span: "lg:col-span-2",
+  },
+  {
+    Icon: IconShieldCheck,
+    title: "Seguridad y Privacidad",
+    desc: "Datos encriptados, aislados por clínica y estándares de protección sanitaria.",
+    iconBg: "bg-slate-100 dark:bg-slate-800 text-slate-700 dark:text-slate-300",
+    span: "lg:col-span-2",
+  },
+];
+
+const steps = [
+  { n: "01", Icon: IconSignup, title: "Registrate", desc: "Creá tu cuenta en menos de 2 minutos. Sin tarjeta de crédito ni instalaciones." },
+  { n: "02", Icon: IconTune, title: "Configurá", desc: "Personalizá horarios, profesionales, tratamientos y más desde un panel intuitivo." },
+  { n: "03", Icon: IconGrow, title: "Gestioná", desc: "Empezá a atender pacientes, agendar turnos y hacer crecer tu negocio desde el día uno." },
+];
+
+const compareRows = [
+  { f: "Agenda y turnos", us: "Automatizado 24/7", them: "WhatsApp manual" },
+  { f: "Recordatorios automáticos", us: "−60% inasistencias", them: "Inasistencias frecuentes" },
+  { f: "Historia clínica", us: "Digital, búsqueda 1s", them: "Carpetas / papel" },
+  { f: "Reportes financieros", us: "KPIs en tiempo real", them: "Excel manual", partial: true },
+  { f: "Acceso multi-dispositivo", us: "Web · móvil · tablet", them: "Solo en oficina" },
+  { f: "Agente IA por WhatsApp", us: "Avax — 24/7", them: "No disponible" },
+];
+
+const agentFeatures = [
+  { Icon: IconUserSearch, title: "Busca y registra pacientes", desc: "Identifica pacientes existentes o crea nuevos perfiles automáticamente." },
+  { Icon: IconCalendarPlus, title: "Agenda turnos en tiempo real", desc: "Consulta disponibilidad y crea el turno directamente en tu agenda." },
+  { Icon: IconBotChat, title: "Responde consultas frecuentes", desc: "Dirección, horarios, precios, obras sociales — todo sin intervenir." },
+  { Icon: IconSliders, title: "Personalizable por clínica", desc: "Nombre, instrucciones específicas y tono configurables." },
+];
+
+const integrations = [
+  {
+    name: "WhatsApp",
+    desc: "Avax gestiona turnos, envía recordatorios y consentimientos automáticamente vía WhatsApp.",
+    Icon: IconWhatsapp,
+    iconStyle: "bg-[#25D366] text-white",
+    accent: "bg-[#25D366]",
+  },
+  {
+    name: "Mercado Pago",
+    desc: "Cada clínica conecta sus credenciales para cobrar turnos y servicios en línea.",
+    Icon: IconMercadoPago,
+    iconStyle: "bg-gradient-to-br from-[#009EE3] to-[#0070BA] text-white",
+    accent: "bg-gradient-to-r from-[#009EE3] to-[#00B0FF]",
+  },
+  {
+    name: "Google",
+    desc: "Sincronización con Google Calendar, exportación a Sheets y Docs.",
+    Icon: IconGoogle,
+    iconStyle: "bg-white border border-border",
+    accent: "bg-gradient-to-r from-[#4285F4] via-[#34A853] to-[#EA4335]",
+    badges: ["Calendar", "Sheets", "Docs"],
   },
 ];
 
 const testimonials = [
   {
+    text: "Desde que usamos Avax Health, la gestión de turnos pasó de ser un caos a algo automático. Nuestros pacientes reciben recordatorios y la agenda se organiza sola.",
     name: "Dra. Laura Méndez",
     role: "Directora — Centro Odontológico Sonrisa",
-    text: "Desde que usamos Avax Health, la gestión de turnos pasó de ser un caos a algo automático. Nuestros pacientes reciben recordatorios y la agenda se organiza sola.",
     avatar: "LM",
+    avatarBg: "from-[var(--ht-primary)] to-[var(--ht-primary-dark)]",
   },
   {
+    text: "El historial médico digital nos ahorró horas de papeleo. Ahora tengo todo el historial de cada paciente en segundos, desde cualquier dispositivo.",
     name: "Dr. Martín Álvarez",
     role: "Kinesiólogo — Kinesis Centro",
-    text: "El historial médico digital nos ahorró horas de papeleo. Ahora tengo todo el historial de cada paciente en segundos, desde cualquier dispositivo.",
     avatar: "MA",
+    avatarBg: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]",
   },
   {
+    text: "El control financiero y los reportes nos dieron visibilidad real del negocio. Por primera vez sabemos exactamente cuánto facturamos por profesional.",
     name: "Lic. Carolina Vega",
     role: "Administradora — Clínica Integral Salud",
-    text: "El control financiero y los reportes nos dieron visibilidad real del negocio. Por primera vez sabemos exactamente cuánto facturamos por profesional.",
     avatar: "CV",
+    avatarBg: "from-amber-500 to-amber-700",
   },
 ];
 
-const integrations = [
-  { name: "WhatsApp", icon: (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="currentColor">
-      <path d="M17.472 14.382c-.297-.149-1.758-.867-2.03-.967-.273-.099-.471-.148-.67.15-.197.297-.767.966-.94 1.164-.173.199-.347.223-.644.075-.297-.15-1.255-.463-2.39-1.475-.883-.788-1.48-1.761-1.653-2.059-.173-.297-.018-.458.13-.606.134-.133.298-.347.446-.52.149-.174.198-.298.298-.497.099-.198.05-.371-.025-.52-.075-.149-.669-1.612-.916-2.207-.242-.579-.487-.5-.669-.51-.173-.008-.371-.01-.57-.01-.198 0-.52.074-.792.372-.272.297-1.04 1.016-1.04 2.479 0 1.462 1.065 2.875 1.213 3.074.149.198 2.096 3.2 5.077 4.487.709.306 1.262.489 1.694.625.712.227 1.36.195 1.871.118.571-.085 1.758-.719 2.006-1.413.248-.694.248-1.289.173-1.413-.074-.124-.272-.198-.57-.347m-5.421 7.403h-.004a9.87 9.87 0 01-5.031-1.378l-.361-.214-3.741.982.998-3.648-.235-.374a9.86 9.86 0 01-1.51-5.26c.001-5.45 4.436-9.884 9.888-9.884 2.64 0 5.122 1.03 6.988 2.898a9.825 9.825 0 012.893 6.994c-.003 5.45-4.437 9.884-9.885 9.884m8.413-18.297A11.815 11.815 0 0012.05 0C5.495 0 .16 5.335.157 11.892c0 2.096.547 4.142 1.588 5.945L.057 24l6.305-1.654a11.882 11.882 0 005.683 1.448h.005c6.554 0 11.89-5.335 11.893-11.893a11.821 11.821 0 00-3.48-8.413z" />
-    </svg>
-  )},
-  { name: "Google Calendar", icon: (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="18" height="18" x="3" y="4" rx="2" /><path d="M16 2v4" /><path d="M8 2v4" /><path d="M3 10h18" />
-      <path d="m9 16 2 2 4-4" />
-    </svg>
-  )},
-  { name: "Mercado Pago", icon: (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <circle cx="12" cy="12" r="10" /><path d="M16 8h-6a2 2 0 1 0 0 4h4a2 2 0 1 1 0 4H8" />
-      <path d="M12 18V6" />
-    </svg>
-  )},
-  { name: "Gmail", icon: (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="20" height="16" x="2" y="4" rx="2" /><path d="m22 7-8.97 5.7a1.94 1.94 0 0 1-2.06 0L2 7" />
-    </svg>
-  )},
-  { name: "Inteligencia Artificial", icon: (
-    <svg className="w-8 h-8" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M12 2a4 4 0 0 1 4 4v1h2a2 2 0 0 1 2 2v1a3 3 0 0 1-3 3h-1v2h1a3 3 0 0 1 3 3v1a2 2 0 0 1-2 2h-2v1a4 4 0 0 1-8 0v-1H6a2 2 0 0 1-2-2v-1a3 3 0 0 1 3-3h1v-2H7a3 3 0 0 1-3-3V9a2 2 0 0 1 2-2h2V6a4 4 0 0 1 4-4z" />
-    </svg>
-  )},
+const faq = [
+  { q: "¿Necesito instalar algo?", a: "No. Avax Health funciona 100% en la nube desde cualquier navegador. Sin instalaciones, sin servidores propios." },
+  { q: "¿Funciona para cualquier especialidad médica?", a: "Sí. Odontología, kinesiología, nutrición, psicología, medicina general y más. Podés configurar la especialidad y los tratamientos a medida." },
+  { q: "¿Qué pasa con mis datos si cancelo?", a: "Tus datos son tuyos. Si decidís cancelar, tenés 30 días para exportarlos. No eliminamos nada sin tu consentimiento." },
+  { q: "¿Puedo tener múltiples profesionales en la misma clínica?", a: "Sí. Cada profesional tiene su propia agenda, sus pacientes y sus estadísticas. El plan define cuántos usuarios podés tener." },
+  { q: "¿El agente de WhatsApp agenda turnos automáticamente?", a: "Sí. Avax puede buscar disponibilidad, confirmar turnos y enviar recordatorios sin intervención manual, las 24 horas." },
+  { q: "¿Hay período de prueba gratuito?", a: "Sí, 14 días gratis sin tarjeta de crédito. Acceso completo a todas las funcionalidades desde el primer día." },
 ];
 
-const stats = [
-  { value: "+200", label: "Clínicas activas" },
-  { value: "+40.000", label: "Turnos gestionados" },
-  { value: "−60%", label: "Inasistencias con IA" },
-  { value: "99.9%", label: "Uptime garantizado" },
-];
-
-function SmartphoneIcon({ className = "w-7 h-7" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <rect width="14" height="20" x="5" y="2" rx="2" />
-      <path d="M12 18h.01" />
-    </svg>
-  );
-}
-
-function FileTextIcon({ className = "w-7 h-7" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <path d="M15 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V7Z" />
-      <path d="M14 2v4a2 2 0 0 0 2 2h4" />
-      <path d="M10 9H8" /><path d="M16 13H8" /><path d="M16 17H8" />
-    </svg>
-  );
-}
-
-function TrendingUpIcon({ className = "w-7 h-7" }: { className?: string }) {
-  return (
-    <svg className={className} viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-      <polyline points="22 7 13.5 15.5 8.5 10.5 2 17" />
-      <polyline points="16 7 22 7 22 13" />
-    </svg>
-  );
-}
-
-const painPoints = [
-  {
-    Icon: SmartphoneIcon,
-    gradient: "from-[var(--ht-primary)] to-[var(--ht-primary-light)]",
-    problem: "¿Seguís coordinando turnos por WhatsApp?",
-    solution: "Con Avax Health tu agenda se gestiona sola — recordatorios automáticos, confirmaciones y cancelaciones sin intervención manual.",
-  },
-  {
-    Icon: FileTextIcon,
-    gradient: "from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)]",
-    problem: "¿El historial de tus pacientes está en papel o en planillas?",
-    solution: "Digitalizá fichas médicas, diagnósticos y documentos. Buscá cualquier paciente en segundos desde cualquier dispositivo.",
-  },
-  {
-    Icon: TrendingUpIcon,
-    gradient: "from-[var(--ht-accent)] to-[var(--ht-accent-dark)]",
-    problem: "¿No sabés cuánto facturaste este mes por profesional?",
-    solution: "Dashboard financiero en tiempo real con KPIs de ingresos, pagos pendientes y métricas de ocupación.",
-  },
-];
-
-const audiences = [
-  {
-    title: "Consultorios",
-    description: "Profesionales independientes que quieren digitalizar su práctica y ahorrar tiempo en administración.",
-    icon: (
-      <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M18 20V6a2 2 0 0 0-2-2H8a2 2 0 0 0-2 2v14" /><path d="M2 20h20" /><path d="M14 12v.01" />
-      </svg>
-    ),
-  },
-  {
-    title: "Clínicas",
-    description: "Equipos de 2 a 20 profesionales que necesitan coordinar agendas y compartir historiales clínicos.",
-    icon: (
-      <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <rect width="16" height="20" x="4" y="2" rx="2" /><path d="M9 22v-4h6v4" />
-        <path d="M8 6h.01" /><path d="M16 6h.01" /><path d="M12 6h.01" />
-        <path d="M12 10h.01" /><path d="M12 14h.01" /><path d="M16 10h.01" /><path d="M16 14h.01" />
-        <path d="M8 10h.01" /><path d="M8 14h.01" />
-      </svg>
-    ),
-  },
-  {
-    title: "Centros Médicos",
-    description: "Redes de salud con múltiples sedes que necesitan gestión centralizada y reportes consolidados.",
-    icon: (
-      <svg className="w-7 h-7" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round">
-        <path d="M6 22V4a2 2 0 0 1 2-2h8a2 2 0 0 1 2 2v18Z" /><path d="M6 12H4a2 2 0 0 0-2 2v6a2 2 0 0 0 2 2h2" />
-        <path d="M18 9h2a2 2 0 0 1 2 2v9a2 2 0 0 1-2 2h-2" /><path d="M10 6h4" /><path d="M10 10h4" /><path d="M10 14h4" /><path d="M10 18h4" />
-      </svg>
-    ),
-  },
-];
-
-const faqItems = [
-  {
-    q: "¿Necesito instalar algo?",
-    a: "No. Avax Health funciona 100% en la nube desde cualquier navegador. Sin instalaciones, sin servidores propios.",
-  },
-  {
-    q: "¿Funciona para cualquier especialidad médica?",
-    a: "Sí. Odontología, kinesiología, nutrición, psicología, medicina general y más. Podés configurar la especialidad y los tratamientos a medida.",
-  },
-  {
-    q: "¿Qué pasa con mis datos si cancelo?",
-    a: "Tus datos son tuyos. Si decidís cancelar, tenés 30 días para exportarlos. No eliminamos nada sin tu consentimiento.",
-  },
-  {
-    q: "¿Puedo tener múltiples profesionales en la misma clínica?",
-    a: "Sí. Cada profesional tiene su propia agenda, sus pacientes y sus estadísticas. El plan define cuántos usuarios podés tener.",
-  },
-  {
-    q: "¿El agente de WhatsApp agenda turnos automáticamente?",
-    a: "Sí. El agente IA puede buscar disponibilidad, confirmar turnos y enviar recordatorios sin intervención manual, las 24 horas.",
-  },
-  {
-    q: "¿Hay período de prueba gratuito?",
-    a: "Sí, 14 días gratis sin tarjeta de crédito. Acceso completo a todas las funcionalidades desde el primer día.",
-  },
-];
-
-/* ── FAQ Item component ── */
-function FaqItem({ q, a }: { q: string; a: string }) {
-  return (
-    <details className="group rounded-xl border border-border/50 bg-card">
-      <summary className="flex cursor-pointer items-center justify-between gap-4 px-6 py-4 font-medium text-sm sm:text-base select-none list-none">
-        {q}
-        <ChevronDownIcon className="w-5 h-5 shrink-0 text-muted-foreground transition-transform duration-200 group-open:rotate-180" />
-      </summary>
-      <div className="px-6 pb-5 pt-0 text-sm text-muted-foreground leading-relaxed border-t border-border/40 mt-0 pt-4">
-        {a}
-      </div>
-    </details>
-  );
-}
+/* ─── PAGE ─── */
 
 export default function LandingPage() {
-  const containerRef = useScrollReveal();
+  const ref = useReveal();
 
   return (
-    <div ref={containerRef}>
+    <div ref={ref}>
+      {/* Animaciones globales propias de la landing */}
       <style jsx global>{`
         .reveal {
           opacity: 0;
           transform: translateY(28px);
-          transition: opacity 0.65s cubic-bezier(0.16, 1, 0.3, 1), transform 0.65s cubic-bezier(0.16, 1, 0.3, 1);
+          transition: opacity 0.7s cubic-bezier(0.16, 1, 0.3, 1), transform 0.7s cubic-bezier(0.16, 1, 0.3, 1);
         }
-        .reveal.animate-in {
-          opacity: 1;
-          transform: translateY(0);
+        .reveal.is-visible { opacity: 1; transform: translateY(0); }
+        .reveal-d1 { transition-delay: 0.1s; }
+        .reveal-d2 { transition-delay: 0.2s; }
+        .reveal-d3 { transition-delay: 0.3s; }
+        .reveal-d4 { transition-delay: 0.4s; }
+
+        @keyframes float-in { from { opacity: 0; transform: scale(0.8); } to { opacity: 1; transform: scale(1); } }
+        @keyframes float-soft { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(-8px); } }
+        .animate-float-in { animation: float-in 0.6s 0.9s ease both, float-soft 4s 1.5s ease-in-out infinite; }
+        .animate-float-in-delay { animation: float-in 0.6s 1.2s ease both, float-soft 5s 1.8s ease-in-out infinite; }
+
+        @keyframes kpi-in { from { opacity: 0; transform: translateY(8px); } to { opacity: 1; transform: translateY(0); } }
+        .animate-kpi-in { opacity: 0; animation: kpi-in 0.5s ease forwards; }
+
+        @keyframes chart-in { from { opacity: 0; } to { opacity: 1; } }
+        .animate-chart-in { opacity: 0; animation: chart-in 0.6s ease forwards; }
+
+        @keyframes bar-grow { from { transform: scaleY(0); } to { transform: scaleY(1); } }
+        .animate-bar-grow { transform: scaleY(0); animation: bar-grow 0.7s ease forwards; }
+
+        @keyframes apt-in { from { opacity: 0; transform: translateX(-10px); } to { opacity: 1; transform: translateX(0); } }
+        .animate-apt-in { opacity: 0; animation: apt-in 0.4s ease forwards; }
+
+        @keyframes pulse-dot { 0%, 100% { opacity: 1; transform: scale(1); } 50% { opacity: 0.4; transform: scale(0.85); } }
+        .animate-pulse-dot { animation: pulse-dot 2s infinite; }
+
+        @keyframes underline-draw { from { transform: scaleX(0); } to { transform: scaleX(1); } }
+        .hero-underline::after {
+          content: '';
+          position: absolute;
+          left: 0; right: 0; bottom: 4px;
+          height: 12px;
+          background: linear-gradient(90deg, color-mix(in srgb, var(--ht-primary-light) 30%, transparent), color-mix(in srgb, var(--ht-accent) 30%, transparent));
+          z-index: -1;
+          border-radius: 4px;
+          transform: scaleX(0); transform-origin: 0 50%;
+          animation: underline-draw 0.9s 0.9s ease forwards;
         }
-        .reveal-delay-1 { transition-delay: 0.1s; }
-        .reveal-delay-2 { transition-delay: 0.2s; }
-        .reveal-delay-3 { transition-delay: 0.3s; }
-        .reveal-delay-4 { transition-delay: 0.4s; }
+
+        @keyframes typing-dot { 0%, 80%, 100% { opacity: 0.3; transform: scale(0.8); } 40% { opacity: 1; transform: scale(1); } }
+        .animate-typing-dot:nth-child(1) { animation: typing-dot 1.2s infinite; }
+        .animate-typing-dot:nth-child(2) { animation: typing-dot 1.2s 0.2s infinite; }
+        .animate-typing-dot:nth-child(3) { animation: typing-dot 1.2s 0.4s infinite; }
+
         details > summary::-webkit-details-marker { display: none; }
+        details > summary::marker { content: ''; }
       `}</style>
 
-      {/* ══════════════════ HERO ══════════════════ */}
+      {/* ════════ HERO ════════ */}
       <section className="relative overflow-hidden">
+        {/* Background gradients + grid */}
         <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute -top-24 left-1/2 -translate-x-1/2 h-[600px] w-[900px] rounded-full bg-gradient-to-br from-[var(--ht-primary)]/20 via-[var(--ht-primary-light)]/20 to-[var(--ht-accent-dark)]/10 blur-3xl" />
-          <div className="absolute top-40 -left-40 h-72 w-72 rounded-full bg-[var(--ht-primary-dark)]/10 blur-3xl" />
-          <div className="absolute top-60 -right-40 h-72 w-72 rounded-full bg-[var(--ht-accent)]/10 blur-3xl" />
+          <div className="absolute -top-32 -left-32 h-[420px] w-[420px] rounded-full bg-[var(--ht-primary-light)]/15 blur-3xl" />
+          <div className="absolute bottom-0 right-0 h-[380px] w-[380px] rounded-full bg-[var(--ht-accent)]/12 blur-3xl" />
+          <div
+            className="absolute inset-0 opacity-50"
+            style={{
+              backgroundImage:
+                "linear-gradient(rgba(14,165,233,0.05) 1px, transparent 1px), linear-gradient(90deg, rgba(14,165,233,0.05) 1px, transparent 1px)",
+              backgroundSize: "60px 60px",
+              maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+              WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+            }}
+          />
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 pt-16 pb-8 sm:px-6 sm:pt-24 sm:pb-12 lg:px-8 lg:pt-28">
-          <div className="mx-auto max-w-3xl text-center">
-            {/* Badge */}
-            <div className="reveal mb-6 inline-flex items-center gap-2 rounded-full border border-[var(--ht-primary)]/20 bg-[var(--ht-primary)]/8 px-4 py-1.5 text-sm font-medium text-[var(--ht-primary)]">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-[var(--ht-primary)] opacity-75" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-[var(--ht-primary)]" />
-              </span>
-              Plataforma SaaS para salud · 14 días gratis
+        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8 py-16 sm:py-24 lg:py-28">
+          <div className="grid gap-16 lg:gap-20 lg:grid-cols-[1.05fr_1fr] items-center">
+            {/* Copy */}
+            <div className="reveal">
+              <div className="inline-flex items-center gap-2 rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3.5 py-1.5 text-xs font-semibold text-[var(--ht-primary-dark)] mb-6">
+                <span className="h-1.5 w-1.5 rounded-full bg-[var(--ht-accent)] animate-pulse-dot" />
+                Plataforma SaaS para salud · 14 días gratis
+              </div>
+
+              <h1 className="text-[2.4rem] sm:text-[3.2rem] lg:text-[4rem] font-extrabold leading-[1.05] tracking-[-0.03em]">
+                Tu clínica merece una<br />
+                gestión del{" "}
+                <span className="hero-underline relative inline-block">siglo XXI</span>,<br />
+                impulsada por{" "}
+                <span className="bg-gradient-to-r from-[var(--ht-primary-light)] to-[var(--ht-accent)] bg-clip-text text-transparent">
+                  IA.
+                </span>
+              </h1>
+
+              <p className="mt-6 text-base sm:text-[1.075rem] text-muted-foreground leading-relaxed max-w-[540px]">
+                Turnos, pacientes, historial médico, pagos e inventario. Todo en un solo lugar, con tu agente{" "}
+                <strong className="text-foreground font-bold">Avax</strong> trabajando 24/7 por WhatsApp.{" "}
+                <strong className="text-foreground font-bold">Sin papel, sin planillas, sin caos.</strong>
+              </p>
+
+              <div className="mt-9 flex flex-wrap gap-3">
+                <Link
+                  href="/planes"
+                  className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-primary)] px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_32px] shadow-[var(--ht-primary)]/30 hover:shadow-[var(--ht-primary)]/45 hover:-translate-y-0.5 transition-all"
+                >
+                  <IconArrowRight size={16} />
+                  Empezar gratis — 14 días
+                </Link>
+                <Link
+                  href="/planes"
+                  className="inline-flex items-center gap-2 rounded-xl border-[1.5px] border-border bg-card px-7 py-3.5 text-sm font-semibold text-foreground hover:border-[var(--ht-primary-light)] hover:bg-[var(--ht-primary-light)]/5 hover:-translate-y-0.5 transition-all"
+                >
+                  Ver planes
+                </Link>
+              </div>
+
+              <div className="mt-10 flex flex-wrap gap-x-6 gap-y-2.5">
+                {["Sin tarjeta de crédito", "Cancelás cuando quieras", "Soporte incluido"].map((t) => (
+                  <div key={t} className="flex items-center gap-2 text-sm font-medium text-muted-foreground">
+                    <IconCheck size={14} className="text-[var(--ht-accent-dark)] shrink-0" />
+                    {t}
+                  </div>
+                ))}
+              </div>
             </div>
 
-            <h1 className="reveal reveal-delay-1 text-4xl font-extrabold tracking-tight sm:text-5xl lg:text-6xl">
-              Tu clínica merece una gestión{" "}
-              <span className="bg-gradient-to-r from-[var(--ht-primary)] via-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] bg-clip-text text-transparent">
-                del siglo XXI
-              </span>
-            </h1>
-
-            <p className="reveal reveal-delay-2 mt-6 text-lg leading-relaxed text-muted-foreground sm:text-xl">
-              Turnos, pacientes, historial médico, pagos e inventario. Todo en
-              un solo lugar, impulsado por inteligencia artificial.{" "}
-              <strong className="text-foreground">Sin papel, sin planillas, sin caos.</strong>
-            </p>
-
-            <div className="reveal reveal-delay-3 mt-10 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-8 py-3.5 text-base font-semibold text-white shadow-lg shadow-[var(--ht-primary)]/25 hover:opacity-90 hover:shadow-[var(--ht-primary)]/40 transition-all"
-              >
-                Empezar gratis — 14 días
-                <ArrowRightIcon className="ml-2 w-4 h-4" />
-              </Link>
-              <Link
-                href="/planes"
-                className="inline-flex items-center justify-center rounded-xl border border-border px-8 py-3.5 text-base font-semibold text-foreground hover:bg-muted transition-colors"
-              >
-                Ver planes y precios
-              </Link>
+            {/* Visual */}
+            <div className="reveal reveal-d1">
+              <DashboardMock />
             </div>
-
-            <div className="reveal reveal-delay-4 mt-5 flex items-center justify-center gap-6 text-sm text-muted-foreground flex-wrap">
-              <span className="flex items-center gap-1.5">
-                <CheckCircleIcon className="w-4 h-4 text-[var(--ht-accent)]" />
-                Sin tarjeta de crédito
-              </span>
-              <span className="flex items-center gap-1.5">
-                <CheckCircleIcon className="w-4 h-4 text-[var(--ht-accent)]" />
-                Cancelás cuando quieras
-              </span>
-              <span className="flex items-center gap-1.5">
-                <CheckCircleIcon className="w-4 h-4 text-[var(--ht-accent)]" />
-                Soporte incluido
-              </span>
-            </div>
-          </div>
-
-          {/* Dashboard Mockup */}
-          <div className="reveal mt-16 sm:mt-20">
-            <DashboardMockup />
           </div>
         </div>
       </section>
 
-      {/* ══════════════════ PAIN POINTS ══════════════════ */}
-      <section className="relative py-16 sm:py-20">
+      {/* ════════ LOGO STRIP ════════ */}
+      <div className="border-y border-border bg-muted/30">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8 py-10">
+          <p className="text-center text-xs font-semibold uppercase tracking-[0.1em] text-muted-foreground mb-6">
+            +200 clínicas activas confían en Avax Health
+          </p>
+          <div className="flex flex-wrap items-center justify-center gap-x-12 gap-y-4 opacity-60">
+            {[
+              "Centro Odontológico Sonrisa",
+              "Kinesis Centro",
+              "Clínica Integral Salud",
+              "Mente Plena",
+              "Dermalux",
+              "Visión 360",
+            ].map((c) => (
+              <div key={c} className="text-base font-bold tracking-tight text-muted-foreground hover:text-foreground transition-colors">
+                {c}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* ════════ PROBLEM ════════ */}
+      <section className="bg-muted/30 py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal mx-auto max-w-2xl text-center mb-12">
-            <h2 className="text-2xl font-bold tracking-tight sm:text-3xl">
+          <div className="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-4">
+              El problema
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight">
               ¿Te suena familiar alguna de estas situaciones?
             </h2>
-          </div>
-          <div className="grid gap-6 sm:grid-cols-3">
-            {painPoints.map((p, i) => (
-              <div
-                key={p.problem}
-                className={`reveal reveal-delay-${i + 1} rounded-xl border border-border/50 bg-card p-6 space-y-4`}
-              >
-                <div className={`inline-flex rounded-xl bg-gradient-to-br ${p.gradient} p-3 text-white shadow-md`}>
-                  <p.Icon className="w-6 h-6" />
-                </div>
-                <p className="font-semibold text-sm leading-snug text-foreground">
-                  {p.problem}
-                </p>
-                <p className="text-sm text-muted-foreground leading-relaxed">
-                  {p.solution}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════ PARA QUIÉN ══════════════════ */}
-      <section className="relative py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Pensado para profesionales de la salud
-            </h2>
-            <p className="mt-4 text-muted-foreground text-lg">
-              Desde consultorios individuales hasta redes de clínicas.
+            <p className="mt-3 text-base text-muted-foreground max-w-[560px] mx-auto">
+              Tres frustraciones que escuchamos todos los días de profesionales de la salud.
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-3">
-            {audiences.map((a, i) => (
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            {problems.map((p, i) => (
               <div
-                key={a.title}
-                className={`reveal reveal-delay-${i + 1} group relative rounded-xl border border-border/50 bg-card p-8 text-center transition-all hover:border-accent/30 hover:shadow-lg hover:shadow-[var(--ht-primary)]/5`}
+                key={p.q}
+                className={`group relative overflow-hidden rounded-2xl border border-border bg-card p-7 hover:-translate-y-1 hover:shadow-xl hover:border-[var(--ht-primary-light)]/40 transition-all reveal reveal-d${i + 1}`}
               >
-                <div className="mx-auto mb-4 inline-flex rounded-xl bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] p-3 text-white shadow-md">
-                  {a.icon}
+                <div className="absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 bg-gradient-to-r from-[var(--ht-primary-light)] to-[var(--ht-accent)] transition-transform duration-300 group-hover:scale-x-100" />
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl mb-4 ${p.iconBg}`}>
+                  <p.Icon size={22} />
                 </div>
-                <h3 className="text-lg font-semibold">{a.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {a.description}
-                </p>
+                <h3 className="font-bold text-base sm:text-[1.05rem] leading-tight mb-2">{p.q}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{p.a}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════════ FEATURES ══════════════════ */}
-      <section className="relative py-20 sm:py-28" id="funcionalidades">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-b from-[var(--ht-primary)]/[0.02] to-transparent" />
+      {/* ════════ BIG METRICS (dark) ════════ */}
+      <section className="relative overflow-hidden py-24 sm:py-28 bg-[#0F172A]">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-1/4 left-1/5 h-96 w-96 rounded-full bg-[var(--ht-primary-light)]/15 blur-3xl" />
+          <div className="absolute bottom-1/4 right-1/5 h-96 w-96 rounded-full bg-[var(--ht-accent)]/12 blur-3xl" />
         </div>
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#7DD3FC] mb-4">
+              Resultados reales
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight text-white">
+              Los números hablan por sí solos
+            </h2>
+            <p className="mt-3 text-base text-white/60">
+              Más de 200 clínicas en Argentina ya transformaron su gestión.
+            </p>
+          </div>
 
+          <div className="grid sm:grid-cols-2 lg:grid-cols-4 gap-6">
+            {metrics.map((m, i) => (
+              <div
+                key={m.label}
+                className={`text-center rounded-2xl border border-white/10 bg-white/[0.03] backdrop-blur-md px-6 py-7 hover:-translate-y-1 hover:border-[var(--ht-primary-light)]/40 hover:bg-white/[0.06] transition-all reveal reveal-d${i + 1}`}
+              >
+                <div
+                  className="text-[2.8rem] sm:text-[3.6rem] font-black tracking-[-0.03em] leading-none mb-2"
+                  style={{ background: "linear-gradient(120deg, #fff 30%, #7DD3FC)", WebkitBackgroundClip: "text", WebkitTextFillColor: "transparent", backgroundClip: "text" }}
+                >
+                  <CountUp target={m.target} prefix={m.prefix} suffix={m.suffix} decimals={m.decimals} />
+                </div>
+                <div className="text-sm text-white/70 font-medium">{m.label}</div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════ FEATURES BENTO ════════ */}
+      <section id="funcionalidades" className="py-24 sm:py-28">
         <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
+          <div className="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-4">
+              Funcionalidades
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight">
               Todo lo que tu clínica necesita
             </h2>
-            <p className="mt-4 text-muted-foreground text-lg">
+            <p className="mt-3 text-base text-muted-foreground">
               Una plataforma integral que reemplaza múltiples herramientas dispersas.
             </p>
           </div>
 
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {features.map((f, i) => (
+          <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-6 gap-4 sm:gap-5 max-w-6xl mx-auto auto-rows-[minmax(180px,auto)]">
+            {features.map((f) => (
               <div
                 key={f.title}
-                className={`reveal reveal-delay-${(i % 3) + 1} group relative rounded-xl border border-border/50 bg-card p-6 transition-all hover:border-border hover:shadow-lg hover:shadow-[var(--ht-primary)]/5`}
+                className={`group relative overflow-hidden rounded-2xl border border-border ${f.isHero ? "bg-gradient-to-br from-[var(--ht-primary-light)]/8 to-[var(--ht-accent)]/8" : "bg-card"} p-7 hover:-translate-y-1 hover:shadow-xl hover:border-[var(--ht-primary-light)]/40 transition-all flex flex-col reveal ${f.span}`}
               >
-                <div className={`mb-4 inline-flex rounded-xl bg-gradient-to-br ${f.gradient} p-3 text-white shadow-md`}>
-                  <f.icon className="w-6 h-6" />
+                <div className={`flex h-12 w-12 items-center justify-center rounded-xl mb-4 ${f.iconBg}`}>
+                  <f.Icon size={22} />
                 </div>
-                <h3 className="text-lg font-semibold">{f.title}</h3>
-                <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
-                  {f.description}
-                </p>
-                <div className="pointer-events-none absolute inset-0 -z-10 rounded-xl opacity-0 transition-opacity group-hover:opacity-100">
-                  <div className={`absolute -inset-px rounded-xl bg-gradient-to-br ${f.gradient} opacity-[0.06]`} />
-                </div>
+                <h3 className={`font-bold ${f.isHero ? "text-xl sm:text-2xl" : "text-lg"} tracking-tight mb-2`}>{f.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{f.desc}</p>
+
+                {f.isHero && (
+                  <div className="mt-auto pt-6">
+                    {/* Mini calendario decorativo */}
+                    <div className="space-y-1.5 -mx-7 px-7">
+                      {[
+                        ["", "f", "", "h", "fa", "", "h"],
+                        ["h", "", "f", "", "", "f", ""],
+                        ["", "fa", "", "f", "h", "", "f"],
+                      ].map((row, ri) => (
+                        <div key={ri} className="flex gap-1.5">
+                          {row.map((c, ci) => (
+                            <div
+                              key={ci}
+                              className={`flex-1 h-7 rounded-md border ${
+                                c === "f" ? "bg-[var(--ht-primary-light)] border-[var(--ht-primary)]" :
+                                c === "fa" ? "bg-[var(--ht-accent)] border-[var(--ht-accent-dark)]" :
+                                c === "h" ? "bg-[var(--ht-primary-light)]/15 border-[var(--ht-primary-light)]/30" :
+                                "bg-card border-border"
+                              }`}
+                            />
+                          ))}
+                        </div>
+                      ))}
+                    </div>
+                  </div>
+                )}
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════════ CÓMO FUNCIONA ══════════════════ */}
-      <section className="relative py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Empezá en 3 pasos simples
+      {/* ════════ HOW IT WORKS ════════ */}
+      <section className="bg-muted/30 py-24 sm:py-28 relative overflow-hidden">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-4">
+              Empezá hoy
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight">
+              En 3 pasos simples
             </h2>
-            <p className="mt-4 text-muted-foreground text-lg">
+            <p className="mt-3 text-base text-muted-foreground">
               Registrate y tenés tu clínica funcionando en minutos.
             </p>
           </div>
 
-          <div className="relative grid gap-8 sm:grid-cols-3">
-            <div className="pointer-events-none absolute top-16 left-[16.67%] right-[16.67%] hidden sm:block">
-              <div className="h-px w-full bg-gradient-to-r from-[var(--ht-primary)]/20 via-[var(--ht-primary-light)]/30 to-[var(--ht-accent-dark)]/20" />
-            </div>
-
-            {howItWorks.map((s, i) => (
-              <div key={s.step} className={`reveal reveal-delay-${i + 1} relative text-center`}>
-                <div className="relative mx-auto mb-6 inline-flex">
-                  <div className="flex h-20 w-20 items-center justify-center rounded-xl bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white shadow-lg shadow-[var(--ht-primary)]/20">
-                    {s.icon}
-                  </div>
-                  <div className="absolute -top-2 -right-2 flex h-7 w-7 items-center justify-center rounded-full bg-background border-2 border-accent text-xs font-bold text-primary">
-                    {s.step}
-                  </div>
-                </div>
-                <h3 className="text-xl font-semibold">{s.title}</h3>
-                <p className="mt-2 text-sm text-muted-foreground max-w-xs mx-auto">
-                  {s.description}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════ STATS ══════════════════ */}
-      <section className="relative py-16 sm:py-20 reveal">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="rounded-3xl border border-border/50 bg-card/50 backdrop-blur-sm px-6 py-12 sm:px-12">
-            <div className="grid grid-cols-2 gap-8 lg:grid-cols-4">
-              {stats.map((s) => (
-                <div key={s.label} className="text-center">
-                  <p className="text-3xl font-extrabold tracking-tight bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] bg-clip-text text-transparent sm:text-4xl">
-                    {s.value}
-                  </p>
-                  <p className="mt-1 text-sm font-medium text-muted-foreground">
-                    {s.label}
-                  </p>
-                </div>
-              ))}
-            </div>
-          </div>
-        </div>
-      </section>
-
-      {/* ══════════════════ TESTIMONIALS ══════════════════ */}
-      <section className="relative py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Lo que dicen nuestros clientes
-            </h2>
-            <p className="mt-4 text-muted-foreground text-lg">
-              Profesionales de la salud que transformaron su gestión.
-            </p>
-          </div>
-
-          <div className="grid gap-6 sm:grid-cols-2 lg:grid-cols-3">
-            {testimonials.map((t, i) => (
+          <div className="relative grid sm:grid-cols-3 gap-6">
+            {/* Línea conectora */}
+            <div className="hidden sm:block absolute top-7 left-[16%] right-[16%] h-[2px] -z-0" style={{ backgroundImage: "linear-gradient(90deg, var(--ht-primary-light) 50%, transparent 50%)", backgroundSize: "12px 2px" }} />
+            {steps.map((s, i) => (
               <div
-                key={t.name}
-                className={`reveal reveal-delay-${i + 1} rounded-xl border border-border/50 bg-card p-6 transition-all hover:shadow-lg hover:shadow-[var(--ht-primary)]/5`}
+                key={s.n}
+                className={`relative z-10 rounded-2xl border border-border bg-card p-7 text-center hover:-translate-y-1 hover:shadow-xl transition-all reveal reveal-d${i + 1}`}
               >
-                <div className="mb-4 flex gap-1">
-                  {[...Array(5)].map((_, j) => (
-                    <svg key={j} className="w-4 h-4 text-amber-400 fill-current" viewBox="0 0 24 24">
-                      <path d="M12 2l3.09 6.26L22 9.27l-5 4.87 1.18 6.88L12 17.77l-6.18 3.25L7 14.14 2 9.27l6.91-1.01L12 2z" />
-                    </svg>
-                  ))}
+                <div className="mx-auto mb-4 flex h-14 w-14 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-primary)] text-white font-extrabold text-lg shadow-[0_8px_24px] shadow-[var(--ht-primary)]/35">
+                  {s.n}
                 </div>
-                <p className="text-sm leading-relaxed text-muted-foreground mb-6">
-                  &ldquo;{t.text}&rdquo;
-                </p>
-                <div className="flex items-center gap-3 border-t border-border/40 pt-4">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-xs font-bold text-white shrink-0">
-                    {t.avatar}
-                  </div>
-                  <div>
-                    <p className="text-sm font-semibold">{t.name}</p>
-                    <p className="text-xs text-muted-foreground">{t.role}</p>
-                  </div>
+                <div className="mb-2 flex justify-center text-[var(--ht-primary)] opacity-70">
+                  <s.Icon size={24} />
                 </div>
+                <h3 className="font-bold text-lg tracking-tight mb-1.5">{s.title}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{s.desc}</p>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════════ INTEGRATIONS ══════════════════ */}
-      <section className="relative py-20 sm:py-28">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-b from-transparent via-[var(--ht-primary)]/[0.02] to-transparent" />
-        </div>
-
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Se integra con tus herramientas
+      {/* ════════ COMPARISON ════════ */}
+      <section className="py-24 sm:py-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-4">
+              Por qué Avax Health
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight">
+              Avax Health vs. el método tradicional
             </h2>
-            <p className="mt-4 text-muted-foreground text-lg">
-              Conectá WhatsApp, calendario, pagos y más desde un solo lugar.
+            <p className="mt-3 text-base text-muted-foreground">
+              Lo que hacés hoy con planillas y cuadernos, Avax lo automatiza completamente.
             </p>
           </div>
 
-          <div className="reveal flex flex-wrap items-center justify-center gap-6 sm:gap-10">
-            {integrations.map((ig) => (
+          <div className="reveal max-w-4xl mx-auto rounded-2xl border border-border bg-card overflow-hidden shadow-md">
+            {/* Head */}
+            <div className="hidden sm:grid grid-cols-[1.4fr_1fr_1fr] bg-muted/40">
+              <div className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.06em]">Característica</div>
+              <div className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.06em] text-[var(--ht-primary-dark)] text-center">✦ Avax Health</div>
+              <div className="px-6 py-4 text-[11px] font-bold uppercase tracking-[0.06em] text-muted-foreground text-center">Método tradicional</div>
+            </div>
+            {compareRows.map((row, i) => (
               <div
-                key={ig.name}
-                className="group flex flex-col items-center gap-2 rounded-xl border border-border/50 bg-card px-6 py-5 transition-all hover:border-accent/30 hover:shadow-md"
+                key={row.f}
+                className={`grid grid-cols-1 sm:grid-cols-[1.4fr_1fr_1fr] ${i > 0 ? "border-t border-border" : ""}`}
               >
-                <div className="text-muted-foreground group-hover:text-primary transition-colors">
-                  {ig.icon}
+                <div className="px-6 py-4 text-sm font-medium sm:font-medium">{row.f}</div>
+                <div className="px-6 py-4 flex flex-col items-center justify-center gap-1 text-sm bg-gradient-to-b from-transparent to-[var(--ht-primary-light)]/8">
+                  <span className="flex h-6 w-6 items-center justify-center rounded-full bg-[var(--ht-accent)]/15 text-[var(--ht-accent-dark)] font-bold">✓</span>
+                  <span className="text-xs text-muted-foreground font-medium">{row.us}</span>
                 </div>
-                <span className="text-xs font-medium text-muted-foreground group-hover:text-foreground transition-colors">
-                  {ig.name}
-                </span>
+                <div className="px-6 py-4 flex flex-col items-center justify-center gap-1 text-sm">
+                  <span className={`flex h-6 w-6 items-center justify-center rounded-full font-bold ${row.partial ? "bg-amber-500/15 text-amber-600" : "bg-muted text-muted-foreground/60"}`}>
+                    {row.partial ? "~" : "✕"}
+                  </span>
+                  <span className="text-xs text-muted-foreground">{row.them}</span>
+                </div>
               </div>
             ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════════ FEATURE HIGHLIGHTS ══════════════════ */}
-      <section className="relative py-20 sm:py-28">
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal mx-auto max-w-2xl text-center mb-16">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Diseñado para crecer con vos
-            </h2>
-            <p className="mt-4 text-muted-foreground">
-              Cada funcionalidad pensada para ahorrar tiempo y reducir errores.
-            </p>
-          </div>
+      {/* ════════ AGENT IA (dark) ════════ */}
+      <section id="agente" className="relative overflow-hidden py-24 sm:py-28 bg-gradient-to-br from-[#0F172A] via-[#0a1628] to-[#0F172A]">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[15%] left-[15%] h-96 w-96 rounded-full bg-[var(--ht-primary-light)]/15 blur-3xl" />
+          <div className="absolute bottom-[15%] right-[15%] h-96 w-96 rounded-full bg-[var(--ht-accent)]/12 blur-3xl" />
+        </div>
 
-          <div className="grid gap-12 lg:grid-cols-2 lg:gap-16 items-center">
-            <div className="reveal space-y-6">
-              {[
-                { title: "Recordatorios automáticos", desc: "Tus pacientes reciben recordatorios por WhatsApp antes de cada turno. Reducí inasistencias hasta un 60%." },
-                { title: "Reportes en tiempo real", desc: "Dashboard con KPIs de turnos, ingresos, pacientes y ocupación. Tomá decisiones basadas en datos reales." },
-                { title: "Multi-profesional", desc: "Cada profesional tiene su agenda, sus pacientes y sus estadísticas. Gestión centralizada con roles y permisos." },
-                { title: "Seguridad y privacidad", desc: "Datos encriptados, roles y permisos por usuario. Cumplimos con los estándares de protección de datos de salud." },
-              ].map((f) => (
-                <div key={f.title} className="flex gap-4">
-                  <div className="flex-shrink-0 mt-1">
-                    <CheckCircleIcon className="w-5 h-5 text-[var(--ht-accent)]" />
+        <div className="relative mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="grid lg:grid-cols-2 gap-16 items-center">
+            <div className="reveal">
+              <span className="inline-block rounded-full border border-[var(--ht-accent)]/30 bg-[var(--ht-accent)]/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[#6EE7B7] mb-4">
+                Agente IA
+              </span>
+              <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-[1.15] text-white mb-4">
+                Avax trabaja mientras vos atendés.
+              </h2>
+              <p className="text-base text-white/65 leading-relaxed mb-7">
+                Tu agente virtual por WhatsApp gestiona turnos de forma completamente autónoma, 24/7 — sin que tengas que tocar el teléfono.
+              </p>
+
+              <div className="flex flex-col gap-3">
+                {agentFeatures.map((f) => (
+                  <div
+                    key={f.title}
+                    className="group flex items-start gap-3.5 rounded-2xl border border-white/10 bg-white/[0.04] p-4 hover:translate-x-1 hover:border-[var(--ht-accent)]/40 hover:bg-white/[0.06] transition-all"
+                  >
+                    <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-[var(--ht-accent)]/15 text-[#6EE7B7]">
+                      <f.Icon size={16} />
+                    </div>
+                    <div>
+                      <div className="font-bold text-sm text-white">{f.title}</div>
+                      <div className="text-xs text-white/55 mt-0.5 leading-relaxed">{f.desc}</div>
+                    </div>
                   </div>
-                  <div>
-                    <h4 className="font-semibold">{f.title}</h4>
-                    <p className="mt-1 text-sm text-muted-foreground">{f.desc}</p>
-                  </div>
-                </div>
-              ))}
+                ))}
+              </div>
             </div>
 
-            <div className="reveal reveal-delay-2 relative">
-              <div className="absolute -inset-4 rounded-3xl bg-gradient-to-br from-[var(--ht-primary)]/10 via-[var(--ht-primary-light)]/10 to-transparent blur-2xl" />
-              <div className="relative rounded-xl border border-border/60 bg-card shadow-xl p-6 space-y-4">
-                <div className="flex items-center gap-3 pb-4 border-b border-border/40">
-                  <div className="h-10 w-10 rounded-xl bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-accent-dark)] flex items-center justify-center">
-                    <CalendarIcon className="w-5 h-5 text-white" />
+            {/* Chat WhatsApp mock */}
+            <div className="reveal reveal-d2">
+              <div className="rounded-3xl overflow-hidden shadow-2xl bg-[#e5ddd5]">
+                <div className="bg-[#075E54] px-4 py-3 flex items-center gap-3">
+                  <div className="flex h-9 w-9 items-center justify-center rounded-full bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-accent)] text-white font-bold text-sm">
+                    A
                   </div>
                   <div>
-                    <p className="font-semibold text-sm">Panel de control</p>
-                    <p className="text-xs text-muted-foreground">Vista en tiempo real</p>
+                    <div className="text-white font-bold text-sm">Avax — Clínica Dental Sonrisa</div>
+                    <div className="text-white/70 text-[11px] flex items-center gap-1.5">
+                      <span className="h-1.5 w-1.5 rounded-full bg-[#4ADE80] animate-pulse-dot" />
+                      en línea
+                    </div>
                   </div>
                 </div>
-                <div>
-                  <p className="text-xs font-medium mb-3 text-muted-foreground">Turnos esta semana</p>
-                  <div className="flex items-end gap-2 h-24">
-                    {[40, 65, 85, 55, 90, 70, 45].map((h, i) => (
-                      <div key={i} className="flex-1 flex flex-col items-center gap-1">
-                        <div
-                          className="w-full rounded-t-md bg-gradient-to-t from-[var(--ht-primary)] to-[var(--ht-accent)]"
-                          style={{ height: `${h}%` }}
-                        />
-                        <span className="text-[9px] text-muted-foreground">
-                          {["L", "M", "X", "J", "V", "S", "D"][i]}
-                        </span>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-                <div className="grid grid-cols-3 gap-3 pt-2">
+                <div className="px-4 py-4 min-h-[300px] flex flex-col gap-2.5 bg-[#ddd]" style={{ backgroundImage: "radial-gradient(circle at 20% 30%, rgba(255,255,255,0.5) 0%, transparent 30%), radial-gradient(circle at 80% 70%, rgba(255,255,255,0.5) 0%, transparent 30%)" }}>
                   {[
-                    { label: "Hoy", value: "12" },
-                    { label: "Semana", value: "68" },
-                    { label: "Ocupación", value: "87%" },
-                  ].map((s) => (
-                    <div key={s.label} className="text-center rounded-lg bg-muted/50 p-2">
-                      <p className="text-lg font-bold bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] bg-clip-text text-transparent">{s.value}</p>
-                      <p className="text-[10px] text-muted-foreground">{s.label}</p>
+                    { who: "sent", txt: "Hola! Quiero sacar un turno para esta semana", time: "09:12" },
+                    { who: "received", txt: "¡Hola! Soy Avax 👋 Con gusto te ayudo. ¿Me podés confirmar tu nombre completo?", time: "09:12" },
+                    { who: "sent", txt: "María González", time: "09:13" },
+                    { who: "received", txt: "Perfecto María 😊 Tengo disponibilidad el miércoles a las 10:00 o el jueves a las 15:30. ¿Cuál te viene mejor?", time: "09:13" },
+                    { who: "sent", txt: "El jueves 15:30 perfecto!", time: "09:14" },
+                    { who: "received", txt: "¡Listo! Tu turno quedó confirmado para el jueves a las 15:30 con Dr. Ramírez. Te llegará un recordatorio 24hs antes ✅", time: "09:14" },
+                  ].map((b, i) => (
+                    <div
+                      key={i}
+                      className={`max-w-[78%] px-3 py-2 rounded-xl text-sm leading-relaxed shadow-sm ${
+                        b.who === "sent"
+                          ? "self-end bg-[#DCF8C6] text-slate-900 rounded-tr-[3px]"
+                          : "self-start bg-white text-slate-900 rounded-tl-[3px]"
+                      }`}
+                    >
+                      {b.txt}
+                      <span className="block text-[9px] text-slate-500/70 text-right mt-1 font-mono">{b.time}</span>
                     </div>
                   ))}
                 </div>
@@ -841,87 +861,190 @@ export default function LandingPage() {
         </div>
       </section>
 
-      {/* ══════════════════ FAQ ══════════════════ */}
-      <section className="relative py-20 sm:py-28" id="faq">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute inset-0 bg-gradient-to-b from-[var(--ht-primary)]/[0.02] to-transparent" />
-        </div>
-
-        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal text-center mb-12">
-            <h2 className="text-3xl font-bold tracking-tight sm:text-4xl">
-              Preguntas frecuentes
+      {/* ════════ INTEGRATIONS ════════ */}
+      <section className="py-24 sm:py-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-4">
+              Integraciones
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight">
+              Se integra con tus herramientas
             </h2>
-            <p className="mt-4 text-muted-foreground text-lg">
-              Todo lo que necesitás saber antes de empezar.
+            <p className="mt-3 text-base text-muted-foreground">
+              Conectá WhatsApp, calendario, pagos y más desde un solo lugar.
             </p>
           </div>
 
-          <div className="reveal space-y-3">
-            {faqItems.map((item) => (
-              <FaqItem key={item.q} q={item.q} a={item.a} />
-            ))}
-          </div>
-
-          <div className="reveal reveal-delay-2 mt-10 text-center">
-            <p className="text-sm text-muted-foreground">
-              ¿Tenés otra pregunta?{" "}
-              <a
-                href="mailto:soporte@avaxhealth.com"
-                className="font-medium text-primary hover:text-primary/80 transition-colors"
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5 max-w-5xl mx-auto">
+            {integrations.map((it, i) => (
+              <div
+                key={it.name}
+                className={`group relative overflow-hidden rounded-2xl border border-border bg-card p-8 text-center hover:-translate-y-1.5 hover:shadow-xl hover:border-[var(--ht-primary-light)]/40 transition-all reveal reveal-d${i + 1}`}
               >
-                Escribinos a soporte@avaxhealth.com
-              </a>
-            </p>
+                <div className={`absolute inset-x-0 top-0 h-[3px] origin-left scale-x-0 ${it.accent} transition-transform duration-300 group-hover:scale-x-100`} />
+                <div className={`mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-2xl shadow-md ${it.iconStyle}`}>
+                  <it.Icon size={32} />
+                </div>
+                <h3 className="font-bold text-lg tracking-tight mb-1.5">{it.name}</h3>
+                <p className="text-sm text-muted-foreground leading-relaxed">{it.desc}</p>
+                {it.badges && (
+                  <div className="mt-4 flex justify-center gap-1.5 flex-wrap">
+                    {it.badges.map((b) => (
+                      <span key={b} className="text-[10px] font-semibold px-2.5 py-1 rounded-full bg-[var(--ht-primary-light)]/10 text-[var(--ht-primary-dark)] border border-[var(--ht-primary-light)]/20">
+                        {b}
+                      </span>
+                    ))}
+                  </div>
+                )}
+              </div>
+            ))}
           </div>
         </div>
       </section>
 
-      {/* ══════════════════ CTA FINAL ══════════════════ */}
-      <section className="relative py-20 sm:py-28">
-        <div className="pointer-events-none absolute inset-0 -z-10">
-          <div className="absolute bottom-0 left-1/2 -translate-x-1/2 h-[400px] w-[700px] rounded-full bg-gradient-to-t from-[var(--ht-primary-light)]/10 to-[var(--ht-primary)]/10 blur-3xl" />
+      {/* ════════ TESTIMONIALS ════════ */}
+      <section className="bg-muted/30 py-24 sm:py-28">
+        <div className="mx-auto max-w-6xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-4">
+              Testimonios
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight">
+              Lo que dicen nuestros clientes
+            </h2>
+            <p className="mt-3 text-base text-muted-foreground">
+              Profesionales de la salud que transformaron su gestión.
+            </p>
+          </div>
+
+          <div className="grid sm:grid-cols-2 lg:grid-cols-3 gap-5">
+            {testimonials.map((t, i) => (
+              <div
+                key={t.name}
+                className={`relative rounded-2xl border border-border bg-card p-7 hover:-translate-y-1 hover:shadow-xl transition-all reveal reveal-d${i + 1}`}
+              >
+                <span className="absolute top-5 right-6 font-serif text-6xl leading-none text-[var(--ht-primary-light)]/25 select-none">"</span>
+                <div className="flex gap-0.5 mb-3">
+                  {Array.from({ length: 5 }).map((_, k) => (
+                    <IconStar key={k} size={14} className="text-amber-500" />
+                  ))}
+                </div>
+                <p className="text-sm sm:text-[0.95rem] leading-relaxed mb-5">{t.text}</p>
+                <div className="flex items-center gap-3 pt-4 border-t border-border">
+                  <div className={`flex h-11 w-11 items-center justify-center rounded-full bg-gradient-to-br ${t.avatarBg} text-white font-bold text-sm`}>
+                    {t.avatar}
+                  </div>
+                  <div>
+                    <div className="font-bold text-sm">{t.name}</div>
+                    <div className="text-xs text-muted-foreground">{t.role}</div>
+                  </div>
+                </div>
+              </div>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════ PRICING TEASER ════════ */}
+      <section id="planes" className="py-24 sm:py-28">
+        <div className="mx-auto max-w-5xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-14 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-4">
+              Planes
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight">
+              Empezá gratis. Escalá cuando crezcas.
+            </h2>
+            <p className="mt-3 text-base text-muted-foreground">
+              Sin tarjeta de crédito. 14 días de prueba completa. Cancelás cuando quieras.
+            </p>
+          </div>
+
+          <div className="reveal flex justify-center">
+            <Link
+              href="/planes"
+              className="group inline-flex items-center gap-2 rounded-2xl border border-border bg-card px-8 py-5 hover:border-[var(--ht-primary-light)]/40 hover:shadow-xl transition-all"
+            >
+              <span className="text-base font-semibold">Ver todos los planes y precios</span>
+              <IconArrowRight size={18} className="text-[var(--ht-primary)] group-hover:translate-x-1 transition-transform" />
+            </Link>
+          </div>
+        </div>
+      </section>
+
+      {/* ════════ FAQ ════════ */}
+      <section id="faq" className="bg-muted/30 py-24 sm:py-28">
+        <div className="mx-auto max-w-3xl px-4 sm:px-6 lg:px-8">
+          <div className="text-center max-w-2xl mx-auto mb-12 reveal">
+            <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-4">
+              FAQ
+            </span>
+            <h2 className="text-[2rem] sm:text-[2.4rem] font-extrabold tracking-tight leading-tight">
+              Preguntas frecuentes
+            </h2>
+            <p className="mt-3 text-base text-muted-foreground">
+              Todo lo que necesitás saber antes de empezar.
+            </p>
+          </div>
+
+          <div className="flex flex-col gap-3 reveal">
+            {faq.map((item) => (
+              <details
+                key={item.q}
+                className="group rounded-2xl border border-border bg-card overflow-hidden open:border-[var(--ht-primary-light)]/40 open:shadow-md"
+              >
+                <summary className="flex items-center justify-between gap-4 px-6 py-5 cursor-pointer font-semibold text-sm sm:text-base list-none hover:bg-muted/40 transition-colors">
+                  {item.q}
+                  <span className="flex h-7 w-7 items-center justify-center rounded-full bg-[var(--ht-primary-light)]/10 text-[var(--ht-primary-dark)] group-open:bg-[var(--ht-primary)] group-open:text-white group-open:rotate-45 transition-all duration-300 shrink-0">
+                    <IconPlus size={14} />
+                  </span>
+                </summary>
+                <div className="px-6 pb-5 pt-0 text-sm text-muted-foreground leading-relaxed">
+                  {item.a}
+                </div>
+              </details>
+            ))}
+          </div>
+        </div>
+      </section>
+
+      {/* ════════ CTA FINAL ════════ */}
+      <section className="relative overflow-hidden py-24 sm:py-28 bg-gradient-to-br from-[var(--ht-primary-light)] via-[var(--ht-primary)] to-[var(--ht-accent-dark)]">
+        <div className="absolute inset-0 pointer-events-none">
+          <div className="absolute top-[20%] left-[20%] h-72 w-72 rounded-full bg-white/15 blur-3xl" />
+          <div className="absolute bottom-[20%] right-[20%] h-72 w-72 rounded-full bg-white/10 blur-3xl" />
+          <div
+            className="absolute inset-0 opacity-40"
+            style={{
+              backgroundImage: "linear-gradient(rgba(255,255,255,0.08) 1px, transparent 1px), linear-gradient(90deg, rgba(255,255,255,0.08) 1px, transparent 1px)",
+              backgroundSize: "60px 60px",
+              maskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+              WebkitMaskImage: "radial-gradient(ellipse at center, black 30%, transparent 75%)",
+            }}
+          />
         </div>
 
-        <div className="mx-auto max-w-7xl px-4 sm:px-6 lg:px-8">
-          <div className="reveal relative overflow-hidden rounded-3xl border border-border/50 bg-gradient-to-br from-[var(--ht-primary)] to-[var(--ht-primary-dark)] px-6 py-16 sm:px-16 sm:py-20 text-center">
-            <div className="pointer-events-none absolute -top-20 -right-20 h-64 w-64 rounded-full bg-[var(--ht-accent)]/10 blur-3xl" />
-            <div className="pointer-events-none absolute -bottom-20 -left-20 h-64 w-64 rounded-full bg-[var(--ht-accent-dark)]/10 blur-3xl" />
-
-            <div className="relative inline-flex items-center gap-2 rounded-full bg-white/10 border border-white/20 px-4 py-1.5 text-sm text-white/80 mb-6">
-              <span className="relative flex h-2 w-2">
-                <span className="absolute inline-flex h-full w-full animate-ping rounded-full bg-white opacity-60" />
-                <span className="relative inline-flex h-2 w-2 rounded-full bg-white" />
-              </span>
-              14 días gratis — sin tarjeta de crédito
-            </div>
-
-            <h2 className="relative text-3xl font-bold tracking-tight text-white sm:text-4xl lg:text-5xl">
-              Transformá tu clínica{" "}
-              <span className="bg-gradient-to-r from-[var(--ht-primary-light)] to-[var(--ht-accent-dark)] bg-clip-text text-transparent">
-                hoy mismo
-              </span>
-            </h2>
-            <p className="relative mt-4 text-lg text-white/70 max-w-xl mx-auto">
-              Más de 200 profesionales de la salud ya gestionan su clínica con Avax Health.
-              Soporte incluido desde el día uno.
-            </p>
-            <div className="relative mt-8 flex flex-col items-center gap-4 sm:flex-row sm:justify-center">
-              <Link
-                href="/register"
-                className="inline-flex items-center justify-center rounded-xl bg-white px-8 py-3.5 text-base font-semibold text-primary shadow-lg hover:bg-white/90 transition-all"
-              >
-                Comenzar ahora — Es gratis
-                <ArrowRightIcon className="ml-2 w-4 h-4" />
-              </Link>
-              <Link
-                href="/planes"
-                className="inline-flex items-center justify-center rounded-xl border border-white/20 px-8 py-3.5 text-base font-semibold text-white hover:bg-white/10 transition-colors"
-              >
-                Ver planes
-              </Link>
-            </div>
-          </div>
+        <div className="relative mx-auto max-w-3xl px-4 sm:px-6 lg:px-8 text-center reveal">
+          <span className="inline-block rounded-full border border-white/25 bg-white/15 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-white mb-5">
+            14 días gratis · sin tarjeta de crédito
+          </span>
+          <h2 className="text-[2.2rem] sm:text-[3rem] font-black tracking-[-0.025em] text-white leading-[1.1] mb-4">
+            Transformá tu clínica<br />hoy mismo.
+          </h2>
+          <p className="text-base sm:text-lg text-white/85 mb-9 leading-relaxed">
+            Más de 200 profesionales de la salud ya gestionan su clínica con Avax Health. Soporte incluido desde el día uno.
+          </p>
+          <Link
+            href="/planes"
+            className="inline-flex items-center gap-2 rounded-xl bg-white px-9 py-4 text-base font-bold text-[var(--ht-primary-dark)] shadow-2xl hover:-translate-y-0.5 hover:shadow-[0_16px_48px] hover:shadow-black/20 transition-all"
+          >
+            Comenzar ahora — Es gratis
+            <IconArrowRight size={16} />
+          </Link>
+          <p className="mt-4 text-xs text-white/70">
+            Sin tarjeta de crédito · Activación inmediata · Cancelás cuando quieras
+          </p>
         </div>
       </section>
     </div>
