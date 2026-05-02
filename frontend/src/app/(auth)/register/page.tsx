@@ -2,7 +2,6 @@
 
 import { useState, useEffect, Suspense } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { useSearchParams } from "next/navigation";
 import { authService } from "@/services/auth.service";
 import { plansService } from "@/services/plans.service";
@@ -233,12 +232,13 @@ function RegisterForm() {
   if (success) {
     return (
       <div className="w-full max-w-lg mx-auto text-center">
-        <Image
+        {/* eslint-disable-next-line @next/next/no-img-element */}
+        <img
           src="/logo.png"
           alt="Avax Health"
           width={56}
           height={56}
-          className="mx-auto mb-6 rounded-xl shadow-md"
+          className="mx-auto mb-6 h-14 w-14 rounded-xl shadow-md object-contain"
         />
         <div className="rounded-3xl border border-border bg-card shadow-2xl p-9">
           <div className="flex h-16 w-16 mx-auto items-center justify-center rounded-2xl bg-gradient-to-br from-[var(--ht-accent)] to-[var(--ht-accent-dark)] shadow-md mb-5">
@@ -286,12 +286,13 @@ function RegisterForm() {
       {/* Header */}
       <div className="text-center mb-8">
         <Link href="/" className="inline-block">
-          <Image
+          {/* eslint-disable-next-line @next/next/no-img-element */}
+          <img
             src="/logo.png"
             alt="Avax Health"
             width={56}
             height={56}
-            className="mx-auto mb-4 rounded-xl shadow-md"
+            className="mx-auto mb-4 h-14 w-14 rounded-xl shadow-md object-contain"
           />
         </Link>
         <span className="inline-block rounded-full border border-[var(--ht-primary-light)]/30 bg-[var(--ht-primary-light)]/8 px-3 py-1 text-[11px] font-bold uppercase tracking-[0.08em] text-[var(--ht-primary-dark)] mb-3">

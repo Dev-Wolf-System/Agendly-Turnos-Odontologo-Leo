@@ -2,7 +2,6 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import Image from "next/image";
 import { ThemeToggle } from "@/components/layout/theme-toggle";
 import { IconArrowRight } from "@/components/landing/landing-icons";
 
@@ -33,12 +32,13 @@ export default function PublicLayout({
       >
         <nav className="mx-auto flex max-w-7xl items-center justify-between px-4 sm:px-6 lg:px-8">
           <Link href="/" className="flex items-center gap-2.5 transition-transform hover:-translate-y-px">
-            <Image
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
               src="/logo.png"
               alt="Avax Health"
               width={36}
               height={36}
-              className="rounded-lg"
+              className="h-9 w-9 rounded-lg object-contain"
             />
             <span className="text-base font-extrabold tracking-tight bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent)] bg-clip-text text-transparent">
               Avax Health
@@ -147,12 +147,13 @@ export default function PublicLayout({
           <div className="grid grid-cols-2 gap-10 sm:grid-cols-4">
             <div className="col-span-2 sm:col-span-1">
               <div className="flex items-center gap-2.5 mb-4">
-                <Image
+                {/* eslint-disable-next-line @next/next/no-img-element */}
+                <img
                   src="/logo.png"
                   alt="Avax Health"
                   width={36}
                   height={36}
-                  className="rounded-lg"
+                  className="h-9 w-9 rounded-lg object-contain"
                 />
                 <span className="text-base font-extrabold text-white tracking-tight">
                   Avax Health
