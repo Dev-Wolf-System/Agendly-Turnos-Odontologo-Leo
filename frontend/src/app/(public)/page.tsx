@@ -514,7 +514,7 @@ export default function LandingPage() {
 
               <div className="mt-9 flex flex-wrap gap-3">
                 <Link
-                  href="/planes"
+                  href="/register"
                   className="group inline-flex items-center gap-2 rounded-xl bg-gradient-to-br from-[var(--ht-primary-light)] to-[var(--ht-primary)] px-7 py-3.5 text-sm font-bold text-white shadow-[0_8px_32px] shadow-[var(--ht-primary)]/30 hover:shadow-[var(--ht-primary)]/45 hover:-translate-y-0.5 transition-all"
                 >
                   <IconArrowRight size={16} />
@@ -1036,7 +1036,7 @@ export default function LandingPage() {
             Más de 200 profesionales de la salud ya gestionan su clínica con Avax Health. Soporte incluido desde el día uno.
           </p>
           <Link
-            href="/planes"
+            href="/register"
             className="inline-flex items-center gap-2 rounded-xl bg-white px-9 py-4 text-base font-bold text-[var(--ht-primary-dark)] shadow-2xl hover:-translate-y-0.5 hover:shadow-[0_16px_48px] hover:shadow-black/20 transition-all"
           >
             Comenzar ahora — Es gratis
