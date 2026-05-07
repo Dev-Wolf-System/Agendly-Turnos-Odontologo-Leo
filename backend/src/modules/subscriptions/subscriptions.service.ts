@@ -55,6 +55,11 @@ export class SubscriptionsService {
     return this.subscriptionRepository.save(sub);
   }
 
+  async remove(id: string): Promise<void> {
+    const sub = await this.findOne(id);
+    await this.subscriptionRepository.remove(sub);
+  }
+
   async createTrialForClinica(
     clinicaId: string,
     planId: string,

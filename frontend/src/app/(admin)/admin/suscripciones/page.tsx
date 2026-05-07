@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from "react";
 import Link from "next/link";
-import { Repeat, Plus, Crown, XCircle, Loader2 } from "lucide-react";
+import { Repeat, Plus, Crown, XCircle, Loader2, Trash2, AlertTriangle } from "lucide-react";
 import {
   getAdminSubscriptions,
   getAdminClinicas,
@@ -10,6 +10,7 @@ import {
   createAdminSubscription,
   updateAdminSubscription,
   cancelAdminSubscription,
+  deleteAdminSubscription,
 } from "@/services/admin.service";
 import type {
   Subscription,
@@ -61,6 +62,7 @@ export default function AdminSuscripcionesPage() {
   const [showForm, setShowForm] = useState(false);
   const [filterEstado, setFilterEstado] = useState<EstadoKey | "">("");
   const [cancelingId, setCancelingId] = useState<string | null>(null);
+  const [deletingId, setDeletingId] = useState<string | null>(null);
 
   const [form, setForm] = useState({
     clinica_id: "",
@@ -127,6 +129,28 @@ export default function AdminSuscripcionesPage() {
       setCancelingId(null);
     }
   };
+
+  const handleDelete = async (sub: Subscription) => {
+    const nombre = sub.clinica?.nombre ?? "esta clínica";
+    const tieneMP = !!sub.preapproval_id;
+    const msg = tieneMP
+      ? `¿Eliminar la suscripción de ${nombre}?\n\nEsto cancelará el débito automático en Mercado Pago y borrará el registro de la base de datos. La acción NO se puede deshacer.`
+      : `¿Eliminar la suscripción de ${nombre}?\n\nEsto borra el registro de la base de datos. La acción NO se puede deshacer.`;
+    if (!window.confirm(msg)) return;
+    try {
+      setDeletingId(sub.id);
+      await deleteAdminSubscription(sub.id);
+      load();
+    } catch (err) {
+      console.error(err);
+      alert("No se pudo eliminar la suscripción. Verificar logs.");
+    } finally {
+      setDeletingId(null);
+    }
+  };
+
+  const clinicaTieneSub = (clinicaId: string) =>
+    subs.some((s) => s.clinica_id === clinicaId);
 
   const filtered = filterEstado ? subs.filter((s) => s.estado === filterEstado) : subs;
 
@@ -209,9 +233,20 @@ export default function AdminSuscripcionesPage() {
           <div className="border-b border-[var(--border-light)] bg-[var(--muted)]/40 px-5 py-3.5">
             <h2 className="flex items-center gap-2 text-sm font-semibold text-[var(--text-primary)]">
               <Repeat className="h-4 w-4 text-[var(--ht-primary)]" aria-hidden="true" />
-              Asignar Plan a Clínica
+              {form.clinica_id && clinicaTieneSub(form.clinica_id)
+                ? "Reemplazar Plan de Clínica"
+                : "Asignar Plan a Clínica"}
             </h2>
           </div>
+          {form.clinica_id && clinicaTieneSub(form.clinica_id) && (
+            <div className="flex items-start gap-2.5 border-b border-[var(--border-light)] bg-amber-50 px-5 py-3 text-amber-900 dark:bg-amber-500/10 dark:text-amber-200">
+              <AlertTriangle className="mt-0.5 h-4 w-4 shrink-0" aria-hidden="true" />
+              <p className="text-xs leading-relaxed">
+                Esta clínica ya tiene una suscripción.
+                Al continuar se <strong>reemplazará</strong> la existente con los datos de este formulario (no se creará una segunda).
+              </p>
+            </div>
+          )}
           <form onSubmit={handleCreate} className="p-5 space-y-5">
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-4">
               <Field label="Clínica">
@@ -308,7 +343,7 @@ export default function AdminSuscripcionesPage() {
                 type="submit"
                 className="rounded-xl bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] px-5 py-2.5 text-sm font-medium text-white shadow-[var(--shadow-primary)] transition-all hover:opacity-95 focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[var(--ht-primary)]/40"
               >
-                Asignar
+                {form.clinica_id && clinicaTieneSub(form.clinica_id) ? "Reemplazar" : "Asignar"}
               </button>
             </div>
           </form>
@@ -329,13 +364,14 @@ export default function AdminSuscripcionesPage() {
                 <Th align="center" className="hidden lg:table-cell">Renovación</Th>
                 <Th align="right">Estado</Th>
                 <Th align="center">MP</Th>
+                <Th align="center">Eliminar</Th>
               </tr>
             </thead>
             <tbody className="divide-y divide-[var(--border-light)]">
               {loading ? (
                 [...Array(5)].map((_, i) => (
                   <tr key={i}>
-                    <td colSpan={7} className="px-5 py-4">
+                    <td colSpan={8} className="px-5 py-4">
                       <div className="flex items-center gap-3">
                         <div className="h-9 w-9 rounded-lg bg-[var(--muted)] animate-pulse" />
                         <div className="flex-1 space-y-1.5">
@@ -348,7 +384,7 @@ export default function AdminSuscripcionesPage() {
                 ))
               ) : filtered.length === 0 ? (
                 <tr>
-                  <td colSpan={7} className="py-16 text-center">
+                  <td colSpan={8} className="py-16 text-center">
                     <div className="flex flex-col items-center gap-2">
                       <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[var(--muted)]">
                         <Repeat className="h-5 w-5 text-[var(--text-muted)]" aria-hidden="true" />
@@ -456,6 +492,21 @@ export default function AdminSuscripcionesPage() {
                         ) : (
                           <span className="text-[11px] text-[var(--text-muted)]">—</span>
                         )}
+                      </td>
+                      <td className="px-5 py-3.5 text-center">
+                        <button
+                          onClick={() => handleDelete(sub)}
+                          disabled={deletingId === sub.id}
+                          title="Eliminar suscripción de la base de datos"
+                          aria-label="Eliminar suscripción"
+                          className="inline-flex h-8 w-8 items-center justify-center rounded-lg border border-destructive/30 text-destructive transition-all hover:bg-destructive/10 disabled:opacity-50"
+                        >
+                          {deletingId === sub.id ? (
+                            <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                          ) : (
+                            <Trash2 className="h-3.5 w-3.5" />
+                          )}
+                        </button>
                       </td>
                     </tr>
                   );

@@ -9,6 +9,7 @@ import { Paciente } from '../pacientes/entities/paciente.entity';
 import { Turno } from '../turnos/entities/turno.entity';
 import { EstadoSubscription } from '../../common/enums';
 import { SupabaseService } from '../../common/services/supabase.service';
+import { EvolutionService } from '../evolution/evolution.service';
 
 @Injectable()
 export class AdminService {
@@ -29,7 +30,31 @@ export class AdminService {
     private readonly turnoRepo: Repository<Turno>,
     private readonly dataSource: DataSource,
     private readonly supabaseService: SupabaseService,
+    private readonly evolutionService: EvolutionService,
   ) {}
+
+  /**
+   * Provisiona la instancia de WhatsApp si el plan tiene whatsapp_agent o
+   * whatsapp_reminders activos. No bloquea el flujo: si falla, queda en log.
+   */
+  private async provisionEvolutionIfPlanRequires(clinicaId: string): Promise<void> {
+    const sub = await this.subscriptionRepo.findOne({
+      where: { clinica_id: clinicaId },
+      relations: ['plan'],
+      order: { created_at: 'DESC' },
+    });
+    const features = sub?.plan?.features ?? {};
+    if (!features.whatsapp_agent && !features.whatsapp_reminders) return;
+
+    try {
+      await this.evolutionService.ensureInstanceForClinica(clinicaId);
+      this.logger.log(`Instancia Evolution provisionada para clínica ${clinicaId}`);
+    } catch (err: any) {
+      this.logger.warn(
+        `No se pudo provisionar instancia Evolution para ${clinicaId}: ${err?.message ?? err}`,
+      );
+    }
+  }
 
   // ─── Clínicas ────────────────────────────────────────
 
@@ -140,7 +165,12 @@ export class AdminService {
       throw new NotFoundException('Clínica no encontrada');
     }
     clinica.estado_aprobacion = 'Aprobado';
-    return this.clinicaRepo.save(clinica);
+    const saved = await this.clinicaRepo.save(clinica);
+
+    // Si el plan asignado incluye WhatsApp, crear la instancia automáticamente
+    this.provisionEvolutionIfPlanRequires(id).catch(() => {});
+
+    return saved;
   }
 
   async rechazarClinica(id: string) {

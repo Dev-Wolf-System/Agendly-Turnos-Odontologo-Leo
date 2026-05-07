@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Injectable, Logger } from '@nestjs/common';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ConfigService } from '@nestjs/config';
 import { Repository } from 'typeorm';
@@ -15,6 +15,7 @@ import { EstadoPago } from '../../common/enums';
 
 @Injectable()
 export class ReportsService {
+  private readonly logger = new Logger(ReportsService.name);
   private _openai: OpenAI | null = null;
 
   private get openai(): OpenAI {
@@ -553,27 +554,34 @@ FACTURACIÓN:
 - Particular: $${(totalFacturado - totalOS).toFixed(2)}
 `.trim();
 
-    const completion = await this.openai.chat.completions.create({
-      model: 'gpt-4o-mini',
-      messages: [
-        {
-          role: 'system',
-          content:
-            'Eres un asistente experto en gestión de clínicas y consultorios médicos. Analizás datos operativos y generás informes ejecutivos claros, en español argentino. ' +
-            'IMPORTANTE: Generás el informe con los datos disponibles, sean pocos, muchos o ninguno. Si hay datos limitados o ceros, igual generás un informe útil indicando que el período tiene poca actividad registrada y ofrecés recomendaciones generales de gestión. ' +
-            'Nunca rechazás generar el informe por falta de datos. ' +
-            'Usás secciones: ## Resumen ejecutivo, ## Turnos, ## Pacientes, ## Facturación, ## Observaciones y recomendaciones. Usás markdown (##, **, listas con -).',
-        },
-        {
-          role: 'user',
-          content: `Generá un informe de gestión clínica basándote en estos datos del sistema:\n\n${datosSummary}`,
-        },
-      ],
-      max_tokens: 1200,
-      temperature: 0.6,
-    });
-
-    const texto = completion.choices[0]?.message?.content ?? 'No se pudo generar el informe.';
+    let texto = '';
+    try {
+      const completion = await this.openai.chat.completions.create({
+        model: 'gpt-4o-mini',
+        messages: [
+          {
+            role: 'system',
+            content:
+              'Eres un asistente experto en gestión de clínicas y consultorios médicos. Analizás datos operativos y generás informes ejecutivos claros, en español argentino. ' +
+              'IMPORTANTE: Generás el informe con los datos disponibles, sean pocos, muchos o ninguno. Si hay datos limitados o ceros, igual generás un informe útil indicando que el período tiene poca actividad registrada y ofrecés recomendaciones generales de gestión. ' +
+              'Nunca rechazás generar el informe por falta de datos. ' +
+              'Usás secciones: ## Resumen ejecutivo, ## Turnos, ## Pacientes, ## Facturación, ## Observaciones y recomendaciones. Usás markdown (##, **, listas con -).',
+          },
+          {
+            role: 'user',
+            content: `Generá un informe de gestión clínica basándote en estos datos del sistema:\n\n${datosSummary}`,
+          },
+        ],
+        max_tokens: 1200,
+        temperature: 0.6,
+      });
+      texto = completion.choices[0]?.message?.content ?? '';
+    } catch (err: any) {
+      const detail = err?.error?.message ?? err?.message ?? String(err);
+      this.logger.error(`Informe IA — fallo OpenAI: ${detail}`);
+      texto = `## Informe no disponible\n\nNo pudimos generar el análisis con IA en este momento.\n\n**Motivo:** ${detail}\n\nLos KPIs del período se muestran abajo. Reintentá en unos minutos o avisá al equipo si el problema persiste.`;
+    }
+    if (!texto) texto = 'No se pudo generar el informe.';
 
     return {
       texto,

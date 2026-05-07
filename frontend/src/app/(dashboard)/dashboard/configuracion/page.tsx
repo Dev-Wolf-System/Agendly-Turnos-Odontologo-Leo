@@ -44,6 +44,13 @@ import {
 import { Badge } from "@/components/ui/badge";
 import { Switch } from "@/components/ui/switch";
 import { toast } from "sonner";
+import {
+  evolutionConnect,
+  evolutionGetQr,
+  evolutionGetStatus,
+  evolutionDisconnect,
+  type EvolutionState,
+} from "@/services/evolution.service";
 import { useClinica } from "@/components/providers/clinica-provider";
 import { useAuth } from "@/components/providers/auth-provider";
 import {
@@ -71,6 +78,10 @@ import {
   CheckCircle2,
   CreditCard,
   ExternalLink,
+  RefreshCw,
+  Power,
+  Loader2,
+  QrCode,
 } from "lucide-react";
 
 // ─── Tipos ───
@@ -2061,43 +2072,7 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
       </div>
 
       {/* Estado conexión WhatsApp */}
-      {agentActivo && (
-        <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
-          <div className="px-6 pt-6 pb-4">
-            <h2 className="flex items-center gap-2 text-base font-semibold">
-              <MessageSquare className="h-5 w-5 text-[var(--status-success-fg)]" aria-hidden="true" />
-              Estado WhatsApp
-              {isConnected ? (
-                <Badge
-                  variant="outline"
-                  className="ml-2 border-[var(--status-success-fg)]/30 bg-[var(--status-success-bg)] text-[var(--status-success-fg)] text-[10px]"
-                >
-                  Conectado
-                </Badge>
-              ) : (
-                <Badge
-                  variant="outline"
-                  className="ml-2 border-[var(--status-warning-fg)]/30 bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)] text-[10px]"
-                >
-                  No configurado
-                </Badge>
-              )}
-            </h2>
-            <p className="text-sm text-muted-foreground mt-0.5">
-              La conexión de WhatsApp es administrada por el equipo de Avax Health
-            </p>
-          </div>
-          <div className="px-6 pb-6">
-            <div className="rounded-lg border bg-muted/30 p-4 text-center">
-              <p className="text-sm text-muted-foreground">
-                {isConnected
-                  ? "Tu número de WhatsApp está conectado y funcionando correctamente."
-                  : "Tu WhatsApp aún no está conectado. Contactá al equipo de soporte para configurarlo."}
-              </p>
-            </div>
-          </div>
-        </div>
-      )}
+      {agentActivo && <WhatsAppConnectionPanel hasInstance={isConnected} onUpdate={onUpdate} />}
 
       {/* Instrucciones personalizadas */}
       {agentActivo && (
@@ -2489,6 +2464,205 @@ function TabPagos({ clinicaId }: { clinicaId: string }) {
         <Save className="h-4 w-4" />
         {saving ? "Guardando..." : "Guardar configuración de pagos"}
       </Button>
+    </div>
+  );
+}
+
+// ─── WhatsApp Connection Panel (Evolution API) ───
+function WhatsAppConnectionPanel({
+  hasInstance,
+  onUpdate,
+}: {
+  hasInstance: boolean;
+  onUpdate: () => void;
+}) {
+  const [state, setState] = useState<EvolutionState>("unknown");
+  const [qr, setQr] = useState<string | null>(null);
+  const [pairingCode, setPairingCode] = useState<string | null>(null);
+  const [loading, setLoading] = useState(false);
+  const [refreshing, setRefreshing] = useState(false);
+  const pollingRef = useRef<ReturnType<typeof setInterval> | null>(null);
+
+  const stopPolling = () => {
+    if (pollingRef.current) {
+      clearInterval(pollingRef.current);
+      pollingRef.current = null;
+    }
+  };
+
+  const startPolling = useCallback(() => {
+    stopPolling();
+    pollingRef.current = setInterval(async () => {
+      try {
+        const s = await evolutionGetStatus();
+        setState(s.state);
+        if (s.state === "open") {
+          stopPolling();
+          setQr(null);
+          setPairingCode(null);
+          toast.success("WhatsApp conectado correctamente");
+          onUpdate();
+        }
+      } catch {
+        // silenciar
+      }
+    }, 3000);
+  }, [onUpdate]);
+
+  useEffect(() => {
+    if (!hasInstance) return;
+    evolutionGetStatus()
+      .then(({ state }) => setState(state))
+      .catch(() => setState("unknown"));
+    return stopPolling;
+  }, [hasInstance]);
+
+  const handleConnect = async () => {
+    try {
+      setLoading(true);
+      const result = await evolutionConnect();
+      setState(result.state);
+      setQr(result.qr);
+      setPairingCode(result.pairingCode);
+      if (result.state !== "open") startPolling();
+      else toast.success("WhatsApp ya está conectado");
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "No se pudo iniciar la conexión");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const handleRefreshQr = async () => {
+    try {
+      setRefreshing(true);
+      const result = await evolutionGetQr();
+      setState(result.state);
+      setQr(result.qr);
+      setPairingCode(result.pairingCode);
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "No se pudo refrescar el QR");
+    } finally {
+      setRefreshing(false);
+    }
+  };
+
+  const handleDisconnect = async () => {
+    if (!window.confirm("¿Desconectar WhatsApp? Vas a tener que volver a escanear el QR para conectarte de nuevo.")) {
+      return;
+    }
+    try {
+      setLoading(true);
+      await evolutionDisconnect();
+      setState("close");
+      setQr(null);
+      toast.success("WhatsApp desconectado");
+      onUpdate();
+    } catch (err: any) {
+      toast.error(err?.response?.data?.message ?? "No se pudo desconectar");
+    } finally {
+      setLoading(false);
+    }
+  };
+
+  const stateConfig: Record<EvolutionState, { label: string; tone: string; dot: string }> = {
+    open: {
+      label: "Conectado",
+      tone: "border-[var(--status-success-fg)]/30 bg-[var(--status-success-bg)] text-[var(--status-success-fg)]",
+      dot: "bg-[var(--status-success-fg)]",
+    },
+    connecting: {
+      label: "Esperando QR",
+      tone: "border-[var(--status-warning-fg)]/30 bg-[var(--status-warning-bg)] text-[var(--status-warning-fg)]",
+      dot: "bg-[var(--status-warning-fg)] animate-pulse",
+    },
+    close: {
+      label: "Desconectado",
+      tone: "border-[var(--status-error-fg)]/30 bg-[var(--status-error-bg)] text-[var(--status-error-fg)]",
+      dot: "bg-[var(--status-error-fg)]",
+    },
+    unknown: {
+      label: hasInstance ? "Sin estado" : "No configurado",
+      tone: "border-[var(--border-light)] bg-muted/40 text-muted-foreground",
+      dot: "bg-muted-foreground/40",
+    },
+  };
+  const cfg = stateConfig[state];
+
+  return (
+    <div className="rounded-xl border border-[var(--border-light)] bg-card shadow-[var(--shadow-card)]">
+      <div className="px-6 pt-6 pb-4">
+        <h2 className="flex items-center gap-2 text-base font-semibold">
+          <MessageSquare className="h-5 w-5 text-[var(--status-success-fg)]" aria-hidden="true" />
+          Conexión WhatsApp
+          <Badge variant="outline" className={`ml-2 text-[10px] ${cfg.tone}`}>
+            <span className={`mr-1.5 inline-block h-1.5 w-1.5 rounded-full ${cfg.dot}`} aria-hidden="true" />
+            {cfg.label}
+          </Badge>
+        </h2>
+        <p className="text-sm text-muted-foreground mt-0.5">
+          Vinculá tu número de WhatsApp escaneando el QR desde el celular.
+        </p>
+      </div>
+
+      <div className="px-6 pb-6 space-y-4">
+        {!hasInstance && state !== "open" && (
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-amber-900 dark:border-amber-500/30 dark:bg-amber-500/10 dark:text-amber-200">
+            <p className="text-sm">
+              Aún no tenés una instancia de WhatsApp asignada. Tocá <strong>Conectar WhatsApp</strong> para crearla y obtener el QR.
+            </p>
+          </div>
+        )}
+
+        {state === "open" && (
+          <div className="rounded-lg border border-[var(--status-success-fg)]/30 bg-[var(--status-success-bg)]/40 p-4">
+            <p className="text-sm text-[var(--status-success-fg)] flex items-center gap-2">
+              <CheckCircle2 className="h-4 w-4" aria-hidden="true" />
+              <span>Tu WhatsApp está conectado y operativo. Avax responderá los mensajes.</span>
+            </p>
+          </div>
+        )}
+
+        {qr && state !== "open" && (
+          <div className="flex flex-col items-center gap-3 rounded-lg border bg-muted/30 p-6">
+            {/* eslint-disable-next-line @next/next/no-img-element */}
+            <img
+              src={qr}
+              alt="QR de conexión WhatsApp"
+              className="h-64 w-64 rounded-lg border bg-white p-2"
+            />
+            <p className="text-xs text-muted-foreground text-center max-w-xs">
+              Abrí WhatsApp en tu celular → <strong>Configuración</strong> → <strong>Dispositivos vinculados</strong> → <strong>Vincular un dispositivo</strong> y escaneá este código.
+            </p>
+            {pairingCode && (
+              <p className="text-xs text-muted-foreground">
+                Código de emparejamiento: <code className="font-mono font-semibold">{pairingCode}</code>
+              </p>
+            )}
+          </div>
+        )}
+
+        <div className="flex flex-wrap gap-2">
+          {state !== "open" && (
+            <Button onClick={handleConnect} disabled={loading} className="gap-2">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <QrCode className="h-4 w-4" />}
+              {hasInstance ? "Generar QR" : "Conectar WhatsApp"}
+            </Button>
+          )}
+          {qr && state !== "open" && (
+            <Button onClick={handleRefreshQr} disabled={refreshing} variant="outline" className="gap-2">
+              <RefreshCw className={`h-4 w-4 ${refreshing ? "animate-spin" : ""}`} />
+              Refrescar QR
+            </Button>
+          )}
+          {state === "open" && (
+            <Button onClick={handleDisconnect} disabled={loading} variant="outline" className="gap-2 text-destructive border-destructive/30 hover:bg-destructive/5">
+              {loading ? <Loader2 className="h-4 w-4 animate-spin" /> : <Power className="h-4 w-4" />}
+              Desconectar
+            </Button>
+          )}
+        </div>
+      </div>
     </div>
   );
 }

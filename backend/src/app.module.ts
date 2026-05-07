@@ -41,6 +41,7 @@ import { ReportsModule } from './modules/reports/reports.module';
 import { ObrasSocialesModule } from './modules/obras-sociales/obras-sociales.module';
 import { ListaEsperaModule } from './modules/lista-espera/lista-espera.module';
 import { MailModule } from './modules/mail/mail.module';
+import { EvolutionModule } from './modules/evolution/evolution.module';
 
 @Module({
   imports: [
@@ -77,6 +78,7 @@ import { MailModule } from './modules/mail/mail.module';
     ReportsModule,
     ObrasSocialesModule,
     ListaEsperaModule,
+    EvolutionModule,
   ],
   providers: [
     {

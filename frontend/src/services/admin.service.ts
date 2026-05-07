@@ -130,3 +130,7 @@ export async function updateAdminSubscription(
 export async function cancelAdminSubscription(id: string): Promise<void> {
   await api.delete(`/admin/subscriptions/${id}/cancel`);
 }
+
+export async function deleteAdminSubscription(id: string): Promise<void> {
+  await api.delete(`/admin/subscriptions/${id}`);
+}

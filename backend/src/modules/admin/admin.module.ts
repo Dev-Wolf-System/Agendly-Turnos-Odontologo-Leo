@@ -15,6 +15,7 @@ import { PlansModule } from '../plans/plans.module';
 import { SubscriptionsModule } from '../subscriptions/subscriptions.module';
 import { BillingModule } from '../billing/billing.module';
 import { AdminNotificacionesModule } from './admin-notificaciones.module';
+import { EvolutionModule } from '../evolution/evolution.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { AdminNotificacionesModule } from './admin-notificaciones.module';
     SubscriptionsModule,
     BillingModule,
     AdminNotificacionesModule,
+    EvolutionModule,
   ],
   controllers: [
     AdminClinicasController,
