@@ -53,6 +53,7 @@ import {
 } from "@/services/evolution.service";
 import { useClinica } from "@/components/providers/clinica-provider";
 import { useAuth } from "@/components/providers/auth-provider";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 import {
   Building2,
   Clock,
@@ -286,6 +287,7 @@ function ConfiguracionContent() {
   const [isLoading, setIsLoading] = useState(true);
   const { reload: reloadClinicaCtx } = useClinica();
   const { user } = useAuth();
+  const { isEnabled } = useFeatureFlags();
   const isTurnosOnly = user?.role === "turnos_only";
 
   const loadData = useCallback(async () => {
@@ -311,17 +313,32 @@ function ConfiguracionContent() {
     loadData();
   }, [loadData]);
 
-  const allTabs: { key: TabKey; label: string; icon: typeof Building2; onlyAdmin?: boolean }[] = [
+  const allTabs: {
+    key: TabKey;
+    label: string;
+    icon: typeof Building2;
+    onlyAdmin?: boolean;
+    feature?: string;
+  }[] = [
     { key: "clinica", label: "Clínica", icon: Building2 },
     { key: "horarios", label: "Horarios", icon: Clock },
     { key: "tratamientos", label: "Tratamientos", icon: Stethoscope, onlyAdmin: true },
     { key: "equipo", label: "Equipo", icon: Users },
-    { key: "integraciones", label: "Integraciones", icon: Webhook },
-    { key: "whatsapp", label: "WhatsApp / IA", icon: Bot },
-    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, onlyAdmin: true },
-    { key: "pagos", label: "Pagos", icon: CreditCard, onlyAdmin: true },
+    { key: "integraciones", label: "Integraciones", icon: Webhook, feature: "whatsapp_reminders" },
+    { key: "whatsapp", label: "WhatsApp / IA", icon: Bot, feature: "whatsapp_agent" },
+    { key: "dashboard", label: "Dashboard", icon: LayoutDashboard, onlyAdmin: true, feature: "advanced_reports" },
+    { key: "pagos", label: "Pagos", icon: CreditCard, onlyAdmin: true, feature: "pagos" },
   ];
-  const tabs = allTabs.filter((t) => !isTurnosOnly || !t.onlyAdmin);
+  const tabs = allTabs.filter(
+    (t) =>
+      (!isTurnosOnly || !t.onlyAdmin) &&
+      (!t.feature || isEnabled(t.feature)),
+  );
+
+  // Si el tab activo dejó de estar visible (ej: cambio de plan), volver a "clinica"
+  useEffect(() => {
+    if (!tabs.some((t) => t.key === activeTab)) setActiveTab("clinica");
+  }, [tabs, activeTab]);
 
   if (isLoading || !clinica) {
     return (
@@ -1417,12 +1434,13 @@ function TabEquipo({
     password: "",
     role: "professional",
     especialidad: "",
+    also_professional: false,
   });
 
   const openCreate = () => {
     setEditing(null);
     setEspecialidadLibre(false);
-    setForm({ nombre: "", apellido: "", email: "", password: "", role: "professional", especialidad: "" });
+    setForm({ nombre: "", apellido: "", email: "", password: "", role: "professional", especialidad: "", also_professional: false });
     setDialogOpen(true);
   };
 
@@ -1437,6 +1455,7 @@ function TabEquipo({
       password: "",
       role: u.role,
       especialidad: esp,
+      also_professional: !!u.also_professional,
     });
     setDialogOpen(true);
   };
@@ -1446,12 +1465,13 @@ function TabEquipo({
     setIsSaving(true);
     try {
       if (editing) {
-        const payload: Record<string, string> = {
+        const payload: Record<string, unknown> = {
           nombre: form.nombre,
           apellido: form.apellido,
           email: form.email,
           role: form.role,
           especialidad: form.especialidad,
+          also_professional: form.role === "admin" ? form.also_professional : false,
         };
         if (form.password) payload.password = form.password;
         await usersService.update(editing.id, payload);
@@ -1464,6 +1484,7 @@ function TabEquipo({
           password: form.password,
           role: form.role,
           especialidad: form.especialidad,
+          also_professional: form.role === "admin" ? form.also_professional : false,
         });
         toast.success("Usuario creado");
       }
@@ -1698,6 +1719,24 @@ function TabEquipo({
                 </SelectContent>
               </Select>
             </div>
+
+            {form.role === "admin" && (
+              <label className="flex items-start gap-3 rounded-lg border border-[var(--border-light)] p-3 cursor-pointer hover:bg-[var(--muted)]/40 transition-colors">
+                <input
+                  type="checkbox"
+                  checked={form.also_professional}
+                  onChange={(e) => setForm({ ...form, also_professional: e.target.checked })}
+                  className="mt-0.5 h-4 w-4 rounded accent-[var(--ht-primary)]"
+                />
+                <div className="flex-1">
+                  <p className="text-sm font-medium">Considerar también como profesional</p>
+                  <p className="text-xs text-muted-foreground mt-0.5">
+                    El admin podrá asignarse turnos como profesional y alternar entre vista admin y vista médico desde la barra superior, sin cerrar sesión.
+                  </p>
+                </div>
+              </label>
+            )}
+
             <DialogFooter>
               <Button type="button" variant="outline" onClick={() => setDialogOpen(false)}>
                 Cancelar

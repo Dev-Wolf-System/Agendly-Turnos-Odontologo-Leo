@@ -416,18 +416,34 @@ function SuscripcionContent() {
             Gestion de tu plan, pagos y soporte tecnico
           </p>
         </div>
-        <Button
-          variant="outline"
-          size="sm"
-          onClick={() => {
-            fetchSubscription();
-            fetchTickets();
-          }}
-          className="gap-2"
-        >
-          <RefreshCw className="w-4 h-4" />
-          Actualizar
-        </Button>
+        <div className="flex flex-wrap items-center gap-2">
+          {sub && estado !== "cancelada" && (
+            <Button
+              size="sm"
+              onClick={() => {
+                document
+                  .getElementById("planes-disponibles")
+                  ?.scrollIntoView({ behavior: "smooth", block: "start" });
+              }}
+              className="gap-2 bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] text-white border-0 shadow-[var(--shadow-primary)]"
+            >
+              <Sparkles className="w-4 h-4" />
+              Mejorar Plan
+            </Button>
+          )}
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => {
+              fetchSubscription();
+              fetchTickets();
+            }}
+            className="gap-2"
+          >
+            <RefreshCw className="w-4 h-4" />
+            Actualizar
+          </Button>
+        </div>
       </div>
 
       {/* ── KPI Cards ── */}
@@ -649,14 +665,16 @@ function SuscripcionContent() {
                     </p>
                   </div>
 
-                  {/* Selector de plan (solo en trial o si no tiene plan pagado) */}
-                  {isTrial && planes.length > 0 && (
-                    <div className="pt-2 space-y-2">
+                  {/* Selector de plan — visible en trial o cuando hay opciones para upgrade */}
+                  {planes.length > 0 && (
+                    <div id="planes-disponibles" className="pt-2 space-y-2 scroll-mt-24">
                       <p className="text-xs font-medium text-muted-foreground uppercase tracking-wider">
-                        Elegí tu plan
+                        {isTrial ? "Elegí tu plan" : "Cambiar de plan"}
                       </p>
                       <div className="flex flex-col gap-2">
-                        {planes.map((p) => (
+                        {planes
+                          .filter((p) => p.id !== sub?.plan_id)
+                          .map((p) => (
                           <button
                             key={p.id}
                             type="button"
@@ -686,8 +704,8 @@ function SuscripcionContent() {
                   <div className="flex items-center justify-between pt-2 gap-2">
                     <Button
                       size="sm"
-                      onClick={() => handleCheckout(isTrial ? selectedPlanId : undefined)}
-                      disabled={checkingOut || estado === "cancelada" || (isTrial && !selectedPlanId)}
+                      onClick={() => handleCheckout(selectedPlanId || undefined)}
+                      disabled={checkingOut || estado === "cancelada" || !selectedPlanId}
                       className="gap-1.5 text-xs bg-gradient-to-r from-[var(--ht-primary)] to-[var(--ht-accent-dark)] hover:opacity-90 text-white border-0"
                     >
                       {checkingOut ? (
@@ -695,7 +713,7 @@ function SuscripcionContent() {
                       ) : (
                         <Zap className="w-3.5 h-3.5" />
                       )}
-                      {isTrial ? "Activar plan" : "Suscribirse"}
+                      {isTrial ? "Activar plan" : "Cambiar plan"}
                     </Button>
                     {estado === "activa" && !isTrial && (
                       <Button

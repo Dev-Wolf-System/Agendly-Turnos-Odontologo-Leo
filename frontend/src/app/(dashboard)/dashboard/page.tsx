@@ -36,12 +36,17 @@ import {
 import { OnboardingWizard } from "@/components/onboarding-wizard";
 import { StatusBadge } from "@/components/ui/status-badge";
 import { MONTH_LABELS, CHART_TOOLTIP_STYLE, CHART_COLORS } from "@/lib/constants";
+import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
 // Sección IDs
 type SectionId = "estadoTurnos" | "turnosHoy" | "turnosSemana" | "tratamientos" | "ingresosMensuales" | "facturacionDiaria";
 
 const DEFAULT_ORDER_ADMIN: SectionId[] = ["ingresosMensuales", "estadoTurnos", "facturacionDiaria", "turnosSemana", "tratamientos", "turnosHoy"];
 const DEFAULT_ORDER_OTHER: SectionId[] = ["estadoTurnos", "turnosHoy", "turnosSemana", "tratamientos"];
+
+// Secciones financieras que requieren la feature `pagos` del plan.
+// Los planes sin pagos (ej: "Solo Agente") no las pueden ver ni reordenar.
+const FINANCIAL_SECTIONS: SectionId[] = ["ingresosMensuales", "facturacionDiaria"];
 
 export default function DashboardPage() {
   const router = useRouter();
@@ -51,6 +56,8 @@ export default function DashboardPage() {
   const isAssistant = user?.role === "assistant";
   const isAdmin = user?.role === "admin";
   const kpiVisibility = clinica?.kpi_visibility?.[user?.role || ""] ?? null;
+  const { isEnabled } = useFeatureFlags();
+  const hasPagos = isEnabled("pagos");
   const [stats, setStats] = useState<DashboardStats | null>(null);
   const [turnosHoy, setTurnosHoy] = useState<TurnoHoy[]>([]);
   const [ingresosMensuales, setIngresosMensuales] = useState<IngresoMensual[]>([]);
@@ -70,20 +77,26 @@ export default function DashboardPage() {
     }
   }, [clinica, isAdmin]);
 
-  // Cargar orden de secciones
+  // Cargar orden de secciones — filtrando las financieras si el plan no las tiene
   useEffect(() => {
     const key = `dashboard-order-${user?.role || "admin"}`;
     const saved = localStorage.getItem(key);
+    const fallback = isAdmin ? DEFAULT_ORDER_ADMIN : DEFAULT_ORDER_OTHER;
+    let order: SectionId[];
     if (saved) {
       try {
-        setSectionOrder(JSON.parse(saved));
+        order = JSON.parse(saved);
       } catch {
-        setSectionOrder(isAdmin ? DEFAULT_ORDER_ADMIN : DEFAULT_ORDER_OTHER);
+        order = fallback;
       }
     } else {
-      setSectionOrder(isAdmin ? DEFAULT_ORDER_ADMIN : DEFAULT_ORDER_OTHER);
+      order = fallback;
     }
-  }, [isAdmin, user?.role]);
+    if (!hasPagos) {
+      order = order.filter((s) => !FINANCIAL_SECTIONS.includes(s));
+    }
+    setSectionOrder(order);
+  }, [isAdmin, user?.role, hasPagos]);
 
   // Guardar orden
   useEffect(() => {
@@ -241,7 +254,17 @@ export default function DashboardPage() {
     );
   }
 
-  const kpiCards = allKpiCards.filter((card) => isKpiVisible(card.id));
+  // Map de feature requerida por KPI — si el plan no la tiene, se oculta el card
+  const KPI_REQUIRED_FEATURE: Record<string, string> = {
+    ingresosMes: "pagos",
+    stockBajo: "inventario",
+  };
+  const kpiCards = allKpiCards.filter((card) => {
+    if (!isKpiVisible(card.id)) return false;
+    const required = KPI_REQUIRED_FEATURE[card.id];
+    if (required && !isEnabled(required)) return false;
+    return true;
+  });
 
   // Secciones renderizables
   const sectionComponents: Record<SectionId, { title: string; render: () => React.ReactNode; visible: boolean }> = {

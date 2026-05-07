@@ -1,4 +1,4 @@
-import { IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
+import { IsBoolean, IsEmail, IsEnum, IsOptional, IsString, MinLength } from 'class-validator';
 import { UserRole } from '../../../common/enums';
 
 export class UpdateUserDto {
@@ -26,4 +26,8 @@ export class UpdateUserDto {
   @IsOptional()
   @IsString()
   especialidad?: string;
+
+  @IsOptional()
+  @IsBoolean()
+  also_professional?: boolean;
 }

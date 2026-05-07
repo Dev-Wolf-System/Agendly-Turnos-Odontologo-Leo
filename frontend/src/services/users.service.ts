@@ -8,6 +8,7 @@ export interface User {
   email: string;
   role: "admin" | "professional" | "assistant";
   especialidad?: string | null;
+  also_professional?: boolean;
   created_at: string;
 }
 
@@ -18,6 +19,7 @@ export interface CreateUserPayload {
   password: string;
   role: string;
   especialidad?: string | null;
+  also_professional?: boolean;
 }
 
 export interface UpdateUserPayload {
@@ -27,6 +29,7 @@ export interface UpdateUserPayload {
   password?: string;
   role?: string;
   especialidad?: string | null;
+  also_professional?: boolean;
 }
 
 const usersService = {

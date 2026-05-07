@@ -5,6 +5,7 @@ export interface User {
   apellido: string;
   email: string;
   role: "superadmin" | "admin" | "professional" | "assistant" | "turnos_only";
+  also_professional?: boolean;
   created_at: string;
 }
 

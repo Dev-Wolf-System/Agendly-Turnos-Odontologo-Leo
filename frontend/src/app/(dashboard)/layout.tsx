@@ -9,6 +9,7 @@ import { ChatWidget } from "@/components/layout/chat-widget";
 import { useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { FeatureFlagContext, useFeatureFlagProvider } from "@/hooks/useFeatureFlags";
+import { ViewModeProvider } from "@/components/providers/view-mode-provider";
 
 function DashboardContent({ children }: { children: React.ReactNode }) {
   const { user, isLoading } = useAuth();
@@ -32,19 +33,21 @@ function DashboardContent({ children }: { children: React.ReactNode }) {
 
   return (
     <FeatureFlagContext.Provider value={featureFlagValue}>
-      <SidebarProvider>
-        <div className="flex h-screen overflow-hidden">
-          <Sidebar />
-          <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
-            <div className="relative z-10 shrink-0">
-              <Header />
-              <SubscriptionBanner />
+      <ViewModeProvider>
+        <SidebarProvider>
+          <div className="flex h-screen overflow-hidden">
+            <Sidebar />
+            <div className="flex flex-1 flex-col min-w-0 overflow-hidden">
+              <div className="relative z-10 shrink-0">
+                <Header />
+                <SubscriptionBanner />
+              </div>
+              <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
             </div>
-            <main className="flex-1 overflow-auto p-4 sm:p-6">{children}</main>
           </div>
-        </div>
-        <ChatWidget />
-      </SidebarProvider>
+          <ChatWidget />
+        </SidebarProvider>
+      </ViewModeProvider>
     </FeatureFlagContext.Provider>
   );
 }

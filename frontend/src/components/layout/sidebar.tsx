@@ -25,6 +25,7 @@ import {
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/components/providers/auth-provider";
 import { useClinica } from "@/components/providers/clinica-provider";
+import { useViewMode } from "@/components/providers/view-mode-provider";
 import { ClinicLogo } from "@/components/ui/clinic-logo";
 import { useFeatureFlags } from "@/hooks/useFeatureFlags";
 
@@ -91,17 +92,17 @@ const navGroups: NavGroup[] = [
       { name: "Pacientes", href: "/dashboard/pacientes", icon: Users },
       { name: "Turnos", href: "/dashboard/turnos", icon: Calendar },
       { name: "Lista de Espera", href: "/dashboard/lista-espera", icon: Clock, roles: ["admin", "assistant"] },
-      { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardList, roles: ["admin", "professional"] },
-      { name: "Pagos", href: "/dashboard/pagos", icon: CreditCard, roles: ["admin", "assistant"] },
+      { name: "Historial", href: "/dashboard/historial-medico", icon: ClipboardList, roles: ["admin", "professional"], feature: "historial_medico" },
+      { name: "Pagos", href: "/dashboard/pagos", icon: CreditCard, roles: ["admin", "assistant"], feature: "pagos" },
     ],
   },
   {
     label: "Gestión",
     items: [
-      { name: "Reportes", href: "/dashboard/reportes", icon: BarChart2, roles: ["admin"] },
-      { name: "Obras Sociales", href: "/dashboard/obras-sociales", icon: Shield, roles: ["admin"] },
-      { name: "Inventario", href: "/dashboard/inventario", icon: Package, roles: ["admin"] },
-      { name: "Proveedores", href: "/dashboard/proveedores", icon: Truck, roles: ["admin"] },
+      { name: "Reportes", href: "/dashboard/reportes", icon: BarChart2, roles: ["admin"], feature: "advanced_reports" },
+      { name: "Obras Sociales", href: "/dashboard/obras-sociales", icon: Shield, roles: ["admin"], feature: "obras_sociales" },
+      { name: "Inventario", href: "/dashboard/inventario", icon: Package, roles: ["admin"], feature: "inventario" },
+      { name: "Proveedores", href: "/dashboard/proveedores", icon: Truck, roles: ["admin"], feature: "proveedores" },
       { name: "Sucursales", href: "/dashboard/sucursales", icon: Building2, roles: ["admin"], feature: "multi_sucursal" },
     ],
   },
@@ -131,6 +132,7 @@ export function Sidebar() {
   const { clinica } = useClinica();
   const { collapsed, setCollapsed, mobileOpen, setMobileOpen } = useSidebar();
   const { isEnabled } = useFeatureFlags();
+  const { effectiveRole } = useViewMode();
 
   useEffect(() => {
     setMobileOpen(false);
@@ -212,7 +214,7 @@ export function Sidebar() {
         {navGroups.map((group) => {
           const visibleItems = group.items.filter(
             (item) =>
-              (!item.roles || item.roles.includes(user?.role ?? "")) &&
+              (!item.roles || item.roles.includes(effectiveRole)) &&
               (!item.feature || isEnabled(item.feature))
           );
           if (visibleItems.length === 0) return null;

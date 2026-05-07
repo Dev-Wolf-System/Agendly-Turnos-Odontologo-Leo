@@ -27,6 +27,14 @@ export class User extends TenantBaseEntity {
   @Column({ type: 'text', nullable: true })
   especialidad: string | null;
 
+  /**
+   * Permite que un usuario admin sea considerado también profesional.
+   * Cuando es true, el admin puede asignarse turnos como profesional y
+   * usar el conmutador de vista para ver el dashboard como médico.
+   */
+  @Column({ type: 'boolean', default: false })
+  also_professional: boolean;
+
   @ManyToOne(() => Clinica, (clinica) => clinica.users)
   @JoinColumn({ name: 'clinica_id' })
   clinica: Clinica;

@@ -6,7 +6,7 @@ import {
   Crown, Plus, Check, Pencil, Trash2, Download, X,
   Bot, MessageSquare, Building2, BarChart3, FileDown,
   Palette, Plug, ClipboardList, Star, Package, CreditCard,
-  Truck, Globe, Users, Eye, EyeOff, Network,
+  Truck, Globe, Users, Eye, EyeOff, Network, Stethoscope, Shield,
 } from "lucide-react";
 import {
   getAdminPlans,
@@ -24,6 +24,8 @@ import { Switch } from "@/components/ui/switch";
 const FEATURE_OPTIONS = [
   { key: "whatsapp_agent",     label: "Agente WhatsApp IA",      Icon: Bot },
   { key: "whatsapp_reminders", label: "Recordatorios WhatsApp",  Icon: MessageSquare },
+  { key: "historial_medico",   label: "Historial Médico",        Icon: Stethoscope },
+  { key: "obras_sociales",     label: "Obras Sociales",          Icon: Shield },
   { key: "multi_consultorio",  label: "Multi-Consultorio",        Icon: Building2 },
   { key: "multi_sucursal",     label: "Multi-Sucursal",           Icon: Network },
   { key: "advanced_reports",   label: "Reportes Avanzados",       Icon: BarChart3 },
