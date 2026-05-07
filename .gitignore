@@ -44,11 +44,19 @@ CLAUDE.md
 ESTADO_PROYECTO.md
 
 # Carpetas no utiles
-UtilidadesMias/
-Planes de Desarrollo/
+
+
 AI/.mcp.json
 .mcp.json
 
 # aRCHIVOS NO UILES
 email_bienvenida_avax.html
 email_reset_password_avax.html
+AI/
+prompts/
+Planes de Desarrollo/
+UtilidadesMias/
+AhorrarTokens.md
+Claude.md
+AVAX_HEALTH_BRAND_GUIDE.md
+scripts/
