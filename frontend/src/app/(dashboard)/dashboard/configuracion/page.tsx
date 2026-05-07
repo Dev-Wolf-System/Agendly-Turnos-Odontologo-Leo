@@ -2071,8 +2071,9 @@ function TabWhatsApp({ clinica, onUpdate }: { clinica: Clinica; onUpdate: () => 
         </div>
       </div>
 
-      {/* Estado conexión WhatsApp */}
-      {agentActivo && <WhatsAppConnectionPanel hasInstance={isConnected} onUpdate={onUpdate} />}
+      {/* Estado conexión WhatsApp — siempre visible para que la clínica pueda
+          escanear su QR independientemente de si activó el agente IA. */}
+      <WhatsAppConnectionPanel hasInstance={isConnected} onUpdate={onUpdate} />
 
       {/* Instrucciones personalizadas */}
       {agentActivo && (

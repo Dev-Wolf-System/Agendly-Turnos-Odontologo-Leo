@@ -1,8 +1,12 @@
-import { Controller, Get, Post, Delete } from '@nestjs/common';
+import { Controller, Get, Post, Delete, SetMetadata } from '@nestjs/common';
 import { CurrentClinica } from '../../common/decorators';
+import { IS_WRITE_OPERATION } from '../../common/guards/subscription.guard';
 import { EvolutionService } from './evolution.service';
 
+// Configuración de WhatsApp es self-service de la clínica, no se bloquea por
+// estado de suscripción para que el cliente pueda configurarlo aun en trial.
 @Controller('evolution')
+@SetMetadata(IS_WRITE_OPERATION, false)
 export class EvolutionController {
   constructor(private readonly evolution: EvolutionService) {}
 
