@@ -49,6 +49,8 @@ export interface Subscription {
   trial_ends_at: string | null;
   auto_renew: boolean;
   external_reference: string | null;
+  preapproval_id?: string | null;
+  grace_period_ends_at?: string | null;
   created_at: string;
   updated_at: string;
   clinica?: AdminClinica;
