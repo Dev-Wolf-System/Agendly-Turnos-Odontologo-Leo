@@ -93,6 +93,7 @@ interface User {
   email: string;
   role: string;
   especialidad?: string | null;
+  also_professional?: boolean;
   created_at: string;
 }
 
