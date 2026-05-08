@@ -40,11 +40,22 @@ export class AdminSubscriptionsController {
 
   @Post()
   async create(@Body() dto: CreateSubscriptionDto) {
+    // Si el plan asignado NO es el trial por defecto, limpiamos trial_ends_at.
+    // Sin esto, queda colgada una fecha vieja que el SubscriptionGuard interpreta
+    // como "trial vencido" y bloquea las operaciones de escritura aunque la sub
+    // esté activa con un plan pago.
+    const plan = await this.plansService.findOne(dto.plan_id);
+    const trialEndsAt = plan?.is_default_trial
+      ? dto.trial_ends_at
+        ? new Date(dto.trial_ends_at)
+        : undefined
+      : null;
+
     const data = {
       ...dto,
       fecha_inicio: new Date(dto.fecha_inicio),
       fecha_fin: new Date(dto.fecha_fin),
-      trial_ends_at: dto.trial_ends_at ? new Date(dto.trial_ends_at) : undefined,
+      trial_ends_at: trialEndsAt as Date | null | undefined,
     };
 
     // Upsert: si la clínica ya tiene una suscripción, actualizarla en lugar de
