@@ -50,9 +50,18 @@ export class SubscriptionsService {
   }
 
   async update(id: string, data: Partial<Subscription>): Promise<Subscription> {
-    const sub = await this.findOne(id);
-    Object.assign(sub, data);
-    return this.subscriptionRepository.save(sub);
+    // Hacemos UPDATE SQL directo en lugar de save(entity) para evitar que
+    // TypeORM use la relación `plan` cargada en memoria como source of truth
+    // y revierta `plan_id` al valor viejo. `clinica` y `plan` son relaciones
+    // ManyToOne — pasarlas en `data` rompe el .update(), así que las quitamos.
+    const { clinica, plan, ...flat } = data as Partial<Subscription> & {
+      clinica?: unknown;
+      plan?: unknown;
+    };
+    void clinica;
+    void plan;
+    await this.subscriptionRepository.update(id, flat);
+    return this.findOne(id);
   }
 
   async remove(id: string): Promise<void> {
