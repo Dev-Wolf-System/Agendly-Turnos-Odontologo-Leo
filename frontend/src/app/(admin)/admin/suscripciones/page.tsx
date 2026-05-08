@@ -19,6 +19,7 @@ import type {
   EstadoSubscription,
 } from "@/types";
 import { Input } from "@/components/ui/input";
+import { toast } from "sonner";
 
 type EstadoKey = EstadoSubscription;
 
@@ -97,19 +98,31 @@ export default function AdminSuscripcionesPage() {
         ...form,
         trial_ends_at: form.trial_ends_at || undefined,
       });
+      toast.success(
+        clinicaTieneSub(form.clinica_id)
+          ? "Plan reemplazado correctamente"
+          : "Plan asignado correctamente",
+      );
       setShowForm(false);
       load();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      const detail =
+        err?.response?.data?.message ?? err?.message ?? "Error al asignar el plan";
+      toast.error(Array.isArray(detail) ? detail[0] : detail);
     }
   };
 
   const changeEstado = async (id: string, estado: EstadoSubscription) => {
     try {
       await updateAdminSubscription(id, { estado } as any);
+      toast.success("Estado actualizado");
       load();
-    } catch (err) {
+    } catch (err: any) {
       console.error(err);
+      const detail =
+        err?.response?.data?.message ?? err?.message ?? "Error al cambiar el estado";
+      toast.error(Array.isArray(detail) ? detail[0] : detail);
     }
   };
 
