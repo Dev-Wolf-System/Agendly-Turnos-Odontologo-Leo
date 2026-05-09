@@ -28,7 +28,7 @@ export class Subscription extends BaseEntity {
   fecha_fin: Date;
 
   @Column({ type: 'date', nullable: true })
-  trial_ends_at: Date;
+  trial_ends_at: Date | null;
 
   @Column({ type: 'boolean', default: false })
   auto_renew: boolean;
