@@ -7,9 +7,15 @@ import {
   Query,
   Body,
   ParseUUIDPipe,
+  UseGuards,
+  SetMetadata,
 } from '@nestjs/common';
 import { ApiKeyAuth } from '../../common/decorators';
 import { AgentService } from './agent.service';
+import {
+  AgentEnabledGuard,
+  ALLOW_AGENT_DISABLED,
+} from '../../common/guards/agent-enabled.guard';
 import { TratamientosService } from '../tratamientos/tratamientos.service';
 import { ObrasSocialesService } from '../obras-sociales/obras-sociales.service';
 import { ListaEsperaService } from '../lista-espera/lista-espera.service';
@@ -23,6 +29,7 @@ import { EstadoTurno } from '../../common/enums';
  */
 @Controller('agent')
 @ApiKeyAuth()
+@UseGuards(AgentEnabledGuard)
 export class AgentController {
   constructor(
     private readonly agentService: AgentService,
@@ -39,6 +46,7 @@ export class AgentController {
    * GET /agent/clinica/by-instance/:instanceName
    */
   @Get('clinica/by-instance/:instanceName')
+  @SetMetadata(ALLOW_AGENT_DISABLED, true)
   findClinicaByInstance(@Param('instanceName') instanceName: string) {
     return this.agentService.findClinicaByInstance(instanceName);
   }
@@ -48,6 +56,7 @@ export class AgentController {
    * GET /agent/clinica/:clinicaId/info
    */
   @Get('clinica/:clinicaId/info')
+  @SetMetadata(ALLOW_AGENT_DISABLED, true)
   getClinicaInfo(@Param('clinicaId', ParseUUIDPipe) clinicaId: string) {
     return this.agentService.getClinicaInfo(clinicaId);
   }

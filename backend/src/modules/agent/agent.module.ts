@@ -12,6 +12,7 @@ import { HorarioProfesional } from '../horarios-profesional/entities/horario-pro
 import { Pago } from '../pagos/entities/pago.entity';
 import { Inventario } from '../inventario/entities/inventario.entity';
 import { WebhookService } from '../../common/services/webhook.service';
+import { AgentEnabledGuard } from '../../common/guards/agent-enabled.guard';
 import { ClinicaMpModule } from '../clinica-mp/clinica-mp.module';
 import { TratamientosModule } from '../tratamientos/tratamientos.module';
 import { ObrasSocialesModule } from '../obras-sociales/obras-sociales.module';
@@ -38,7 +39,7 @@ import { PacientesModule } from '../pacientes/pacientes.module';
     ]),
   ],
   controllers: [AgentController],
-  providers: [AgentService, WebhookService],
+  providers: [AgentService, WebhookService, AgentEnabledGuard],
   exports: [AgentService],
 })
 export class AgentModule {}
