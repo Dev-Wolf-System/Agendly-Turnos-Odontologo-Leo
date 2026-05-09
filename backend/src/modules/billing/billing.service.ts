@@ -623,7 +623,7 @@ export class BillingService {
     if (!sub) return null;
 
     const isTrial = !!sub.trial_ends_at && new Date(sub.trial_ends_at) >= new Date();
-    const endDate = isTrial ? sub.trial_ends_at : sub.fecha_fin;
+    const endDate = isTrial && sub.trial_ends_at ? sub.trial_ends_at : sub.fecha_fin;
     const remaining = Math.max(
       0,
       Math.ceil((new Date(endDate).getTime() - Date.now()) / 86_400_000),
